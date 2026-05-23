@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>物理必修一</title>
+    
+    <!-- KaTeX 渲染 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .content-image {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;  /* 移动端固定左侧宽度 */
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (物理必修一分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>物理必修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ydms')">✚ 运动的描述</div>
+            <div class="category-content" id="cat-ydms">
+                <a href="#zdckx">质点-参考系</a>
+                <a href="#sjwy">时间-位移</a>
+                <a href="#sd">速度</a>
+                <a href="#jsd">加速度</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-yszxyd')">✚ 匀速直线运动</div>
+            <div class="category-content" id="cat-yszxyd">
+                <a href="#syy">实验</a>
+                <a href="#sdsj">速度与时间</a>
+                <a href="#wysj">位移与时间</a>
+                <a href="#zylt">自由落体运动</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-xhzy')">✚ 相互作用——力</div>
+            <div class="category-content" id="cat-xhzy">
+                <a href="#zl">重力</a>
+                <a href="#tl">弹力</a>
+                <a href="#mcl">摩擦力</a>
+                <a href="#hcfj">力的合成与分解</a>
+                <a href="#gld">共力点平衡</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ydhl')">✚ 运动和力</div>
+            <div class="category-content" id="cat-ydhl">
+                <a href="#nddl">牛顿定律</a>
+                <a href="#syt">实验</a>
+                <a href="#lxdwz">力学单位制</a>
+                <a href="#czsz">超重与失重</a>
+            </div>
+        </div>
+
+        <!-- 返回首页链接 -->
+        <a href="/index.html" class="back-home">返回首页</a>
+
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：完整物理必修一知识点卡片（与原始代码完全一致） -->
+    <main>
+        <!-- 运动的描述 章节 -->
+        <h1>运动的描述</h1>
+        
+        <section id="zdckx">
+            <div class="knowledge-card">
+                <h2>质点-参考系</h2>
+                <p>
+                    <b>机械运动</b> 物体的空间位置随时间的变化<br>
+                    <b>力学</b> 研究物体做机械运动规律的分支<br>
+                    <b>质点</b> 某些情况下,可以忽略物体的大小和形状,把它简化为一个具有质量的点<br>
+                    <b>质点性质</b> 有质量但没有大小,是一种理想化的物理模型<br>
+                    <b>可视为质点的情况</b><br>
+                    (1)物体的大小和形状与物体运动的空间相比做不足道,对研究问题的精度影响很小<br>
+                    (2)各点运动的差异不小,但是所研究的问题并不关注物体的细节变化,而是考虑物体整体的变化<br>
+                    (3)不能忽略物体的大小和形状,但物体上各点运动情况完全相同,物体上任意一点的运动可以代表整个物体的运动<br>
+                    <b>理想化模型</b> 为研究问题的方便而突出主要因素,忽略次要因素的一种科学抽象,实际并不存在<br>
+                    <b>参考系</b> 用来作参考的物体<br>
+                    <b>特性</b> 相对性,任意性,同一性,差异性<br>
+                    描述运动必须选定参考系,一般常取地面或相对地面静止的物体为参考系
+                </p>
+            </div>
+        </section>
+
+        <section id="sjwy">
+            <div class="knowledge-card">
+                <h2>时间-位移</h2>
+                <p>
+                    <b>时刻</b> 某一瞬时,是时间轴上的一点<br>
+                    <b>时间</b> 两时刻的间隔,是时间轴上的一段线段<br>
+                    <b>位置</b> 质点相对于参考点(一般是坐标原点)的距离与方位,在坐标系中是一个点<br>
+                    <b>位移</b>矢量 描述质点位置变化的物理量,用初位置指向末位置的有向线段表示<br>
+                    <b>路程</b>标量 质点运动轨迹的长度<br>
+                    <b>x-t图像</b> 物体在每一时刻的位置或每一时间间隔的位移可以用图像直观地表示<br>
+                </p>
+            </div>
+        </section>
+
+        <section id="sd">
+            <div class="knowledge-card">
+                <h2>速度</h2>
+                <p>
+                    <b>速度</b>矢量 位移与发生这段位移所用时间之比表示物体运动的快慢<br>
+                    <b>表达式</b> v=▲x/▲t<br>单位是米每秒,1m/s=3.6 km/h<br>
+                    <b>速率</b>标量<br> 
+                    <b>平均速度</b> 物体的位移与发生这段位移所用时间之比,
+                    描述物体位置变化的快慢<br>
+                    <b>瞬时速度</b> 物体在某一时刻或某一位置的速度,
+                    描述物体在某一时刻或经过某一位置运动的快慢<br>
+                    <b>v-t图像</b> 物体运动的速度随时间变化的情况可以用图像来直观表示<br>
+                </p>
+            </div>
+        </section>
+
+        <section id="jsd">
+            <div class="knowledge-card">
+                <h2>加速度</h2>
+                <p>
+                    描述物体运动速度变化的快慢<br>
+                    定义:速度的变化量与发生这一变化所用时间之比<br>
+                    单位是m/s^2<br>
+                    加速度的方向总是与速度变化量的方向相同,与速度方向无关。
+                </p>
+            </div>
+        </section>
+
+        <!-- 匀速直线运动 章节 -->
+        <h1>匀速直线运动</h1>
+
+        <section id="syy">
+            <div class="knowledge-card">
+                <h2>实验：探究小车速度随时间变化的规律</h2>
+                <p>
+                    <b>电磁打点计时器</b> 8v交流电 f=50hz 使用振针和复写纸<br>
+                    <b>电火花打点计时器</b> 220交流电 f=50hz 使用电火花和墨粉<br>
+                    <img src="wlbxy/sjgl.jpg" alt="实验" class="content-image">
+                    <b>纸带问题</b><br>
+                    中间时刻的瞬时速度等于平均速度 v=(x1+x2)/2T或光电门v=d/▲t<br>
+                    逐差法 Xm-Xn=(m-n)a(T^2)
+                </p>
+            </div>
+        </section>
+
+        <section id="sdsj">
+            <div class="knowledge-card">
+                <h2>速度与时间</h2>
+                <p>
+                    <b>匀变速直线运动</b> 沿一条直线加速度不变的运动<br>
+                    ▲v=v-v0得v=v0+at
+                </p>
+            </div>
+        </section>
+
+        <section id="wysj">
+            <div class="knowledge-card">
+                <h2>位移与时间</h2>
+                <p>
+                    可以使用图像解决一些问题<br>
+                    微元法推出x=(v0+v)t*(1/2)得x=v0t+(1/2)a(t^2)<br>
+                    还可以得出v^2-v0^2=2ax<br>
+                    初速度为0时的推论：<br>
+                    一、<b>每段时间相等</b><br>
+                    1.v1:v2:…:vn=1:2:…:n<br>
+                    2.x1:x2:…:xn=1^2:2^2:…:n^2<br>
+                    3.第一段时间内位移:…:第n段时间内位移=1:3:…:(2n-1)<br>
+                    二、<b>每段位移相等</b><br>
+                    1.v1:v2:…:vn=1:根号2:…:根号n<br>
+                    2.t1:t2:…:tn=1:根号2:…:根号n<br>
+                    3.第一段位移的时间:…:第二段位移的时间=1:(根号2-1):…:(根号n-根号(n-1))
+                </p>
+            </div>
+        </section>
+
+        <section id="zylt">
+            <div class="knowledge-card">
+                <h2>自由落体运动</h2>
+                <p>
+                    只在重力作用下从静止开始下落的运动<br>
+                    <b>自由落体加速度</b> 一切物体自由落体下落的加速度都相同，
+                    方向竖直向下，不同地方g不一样<br>
+                    v=gt x=(1/2)g(t^2)<br>
+                    <b>伽利略的研究</b>
+                    技术受限，无法直接测定瞬时速度，通过数学运算得出
+                    物体初速度为0，速度随时间变化是均匀的，v正比于t，
+                    通过的位移与所用时间的二次方成正比，x正比于t^2<br>
+                    使用下图实验装置进行合理外推
+                    <img src="wlbxy/zylt.jpg" alt="伽利略的研究" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <!-- 相互作用——力 章节 -->
+        <h1>相互作用——力</h1>
+
+        <section id="zl">
+            <div class="knowledge-card">
+                <h2>重力</h2>
+                <p>
+                    由于地球吸引而使物体受到的力，单位牛顿，简称牛，符号N，G=mg,
+                    1N/kg=1m/m^2做自由落体运动的物体只受重力作用<br>
+                    <b>重心</b> 各部分受到的重力作用集中于这点，可以看作重力的作用点<br>
+                    <b>力的图示</b> 有向线段表示力，箭头代表力的方向，长短表示力的大小<br>
+                    <b>力的示意图</b> 只需画出力的作用点与方向
+                </p>
+            </div>
+        </section>
+
+        <section id="tl">
+            <div class="knowledge-card">
+                <h2>弹力</h2>
+                <p>
+                    <b>形变</b> 物体在力的作用下形状或体积发生改变，用放大法观察形变<br>
+                    <b>弹力</b> 发生形变的物体要恢复原状对与它接触的物体产生力的作用<br>
+                    <b>弹性形变</b> 物体发生形变撤去力能恢复原状<br>
+                    <b>弹性限度</b> 物体不能恢复原状的限度<br>
+                    <b>胡克定律</b> F=kx k是弹簧的劲度系数，单位牛每米，符号N/m
+                </p>
+            </div>
+        </section>
+
+        <section id="mcl">
+            <div class="knowledge-card">
+                <h2>摩擦力</h2>
+                <p>
+                    <b>滑动摩擦力</b> 两个相互接触的物体相对滑动时
+                    接触面上产生的相互阻碍的力，方向沿着接触面，与物体运动方向相反<br>
+                    Ff=uF压 u为动摩擦因数<br>
+                    <b>静摩擦力</b> 相互接触的两个物体之间只有相对运动的趋势而没有相对运动
+                    这时的摩擦力叫静摩擦力，大小与推力相等
+                </p>
+            </div>
+        </section>
+
+        <section id="hcfj">
+            <div class="knowledge-card">
+                <h2>力的合成与分解</h2>
+                <p>
+                    <b>共点力</b> 几个力都作用在物体的同一点或作用线相交于一点<br>
+                    <b>合力</b> 一个力单独作用的效果跟某几个力共同作用的效果相同<br>
+                    <b>分力</b> 几个力共同作用的效果跟某个力单独作用的效果相同<br>
+                    <b>力的合成</b> 求几个力的合力过程<br>
+                    <b>力的分解</b> 求一个力的分力过程<br>
+                    <b>平行四边形定则</b> 两力合成时，如果表示这两力的有向线段为
+                    邻边平行四边形，这两个邻边之间的对角线就代表合力的大小和方向<br>
+                    两力大小不变，夹角减小，合力增大<br>
+                    <b>矢量</b> 既有大小又有方向，相加时遵从平行四边形定则的物理量<br>
+                    <b>标量</b> 只有大小没有方向，相加时遵从算术法则的物理量
+                </p>
+            </div>
+        </section>
+
+        <section id="gld">
+            <div class="knowledge-card">
+                <h2>共力点平衡</h2>
+                <p>
+                    在共力点作用下物体平衡的条件是合力为0<br>
+                    三个力保持平衡，其中两个力的合力与第三个力大小相等方向相反
+                </p>
+            </div>
+        </section>
+
+        <!-- 运动和力 章节 -->
+        <h1>运动和力</h1>
+
+        <section id="nddl">
+            <div class="knowledge-card">
+                <h2>牛顿定律</h2>
+                <p>
+                    <b>牛一</b>（惯性定律） 一切物体总保持匀速直线运动状态或静止状态，
+                    除非作用在它上面的力迫使它改变这种状态<br>
+                    <b>惯性</b> 物体保持原来匀速直线运动状态或静止状态的性质<br>
+                    <b>牛二</b> 物体加速度的大小跟它受到的作用力成正比，跟它的质量成反比，
+                    加速度的方向跟作用力的方向相同，可表述为a正比于F/m或F=kma<br>
+                    <b>牛三</b> 两物体之间的作用力和反作用力总是大小相等方向相反，
+                    作用在同一条直线上
+                </p>
+            </div>
+        </section>
+
+        <section id="syt">
+            <div class="knowledge-card">
+                <h2>实验：探究加速度与力、质量的关系</h2>
+                <p>
+                    <b>加速度与力</b> 保持小车质量不变，改变码的个数改变小车所受的拉力,
+                    小车所受的拉力可认为与槽码所受的重力相等。测得不同拉力下小车运动的加速度,
+                    分析实加速度与拉力的变化情况，找出二者之间的定量关系<br>
+                    <b>加速度与质量</b> 保持小车所受的拉力不变，在小车上增加重物改变小车的质量,
+                    测得不同质量的小车在这个拉力下运动的加速度，分析加速度与质量的变化情况，找出二者之间的定量关系<br>
+                    <b>注</b>：实验前平衡阻力，所拉重物质量应远小于小车质量，探究G与m关系化曲为直<br>
+                    平衡阻力过度会使m-F图像线左移，平衡阻力不足会使线右移，重物过重会使线后段弯曲
+                </p>
+            </div>
+        </section>
+
+        <section id="lxdwz">
+            <div class="knowledge-card">
+                <h2>力学单位制</h2>
+                <p>
+                    <b>基本量</b> 能够利用物理量之间的关系推导出其他物理量的单位的物理量<br>
+                    <b>基本单位</b> 基本量对应的单位<br>
+                    <b>导出量</b> 由基本量根据物理关系推导出来的其他物理量<br>
+                    <b>导出单位</b> 导出量的相应单位
+                    基本单位和导出单位组成了单位制<br>
+                    <b>国际单位制</b>SI 国际通用，包括一切计量领域的单位制
+                    <img src="wlbxy/bg.jpg" alt="表格" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="czsz">
+            <div class="knowledge-card">
+                <h2>超重与失重</h2>
+                <p>
+                    <b>失重</b> 物体对支持物的压力（或对悬挂物的拉力）
+                    小于物体所受重力的现象，加速下降或减速上升<br>
+                    <b>超重</b> 物体对支持物的压力（或对悬挂物的拉力）
+                    大于物体所受重力的现象加速上升或减速下降<br>
+                    <b>完全失重</b> 加速度a=g
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            // 切换收缩状态
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120; // 阈值
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    // 降级：取视口内最靠顶部的
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    // 自动展开父级分类
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav(); // 初始调用
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

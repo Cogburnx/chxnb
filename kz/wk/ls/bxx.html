@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>历史必修·中外历史纲要下</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #b8860b;      /* 历史暗金色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fcf8e8;     /* 浅黄底色 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #b8860b;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #b8860b;
+        }
+        .category-title:hover { background: rgba(184, 134, 11, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #5a3e2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮暗金色 */
+        .category-content a.active {
+            color: #b8860b;
+            font-weight: 600;
+            background-color: rgba(184, 134, 11, 0.12);
+            border-left: 3px solid #b8860b;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #5a3e2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f7f0d6;
+            border: 2px dashed #e5b73b;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #b8860b;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #b8860b;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5b73b;
+            color: #b8860b;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #f0d9b5;
+            padding-bottom: 10px;
+            color: #b8860b;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 年代强调 */
+        .year {
+            font-weight: 600;
+            color: #a0522d;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (浅黄背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (历史必修下分类) 依据统编版《中外历史纲要下》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>历史必修·下</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一单元 古代文明的产生与发展 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit1')">✚ 第一单元 古代文明的产生与发展</div>
+            <div class="category-content" id="cat-unit1">
+                <a href="#lesson1">第1课 文明的产生与早期发展</a>
+                <a href="#lesson2">第2课 古代世界的帝国与文明交流</a>
+            </div>
+        </div>
+        
+        <!-- 第二单元 中古时期的世界 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit2')">✚ 第二单元 中古时期的世界</div>
+            <div class="category-content" id="cat-unit2">
+                <a href="#lesson3">第3课 中古时期的欧洲</a>
+                <a href="#lesson4">第4课 中古时期的亚洲</a>
+                <a href="#lesson5">第5课 古代非洲与美洲</a>
+            </div>
+        </div>
+        
+        <!-- 第三单元 走向整体的世界 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit3')">✚ 第三单元 走向整体的世界</div>
+            <div class="category-content" id="cat-unit3">
+                <a href="#lesson6">第6课 全球航路的开辟</a>
+                <a href="#lesson7">第7课 全球联系的初步建立</a>
+            </div>
+        </div>
+        
+        <!-- 第四单元 资本主义制度的确立 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit4')">✚ 第四单元 资本主义制度的确立</div>
+            <div class="category-content" id="cat-unit4">
+                <a href="#lesson8">第8课 西欧的思想解放运动</a>
+                <a href="#lesson9">第9课 资产阶级革命与资本主义制度的确立</a>
+            </div>
+        </div>
+        
+        <!-- 第五单元 工业革命与马克思主义的诞生 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit5')">✚ 第五单元 工业革命与马克思主义的诞生</div>
+            <div class="category-content" id="cat-unit5">
+                <a href="#lesson10">第10课 影响世界的工业革命</a>
+                <a href="#lesson11">第11课 马克思主义的诞生与传播</a>
+            </div>
+        </div>
+        
+        <!-- 第六单元 世界殖民体系与亚非拉民族独立运动 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit6')">✚ 第六单元 世界殖民体系与民族独立运动</div>
+            <div class="category-content" id="cat-unit6">
+                <a href="#lesson12">第12课 资本主义世界殖民体系的形成</a>
+                <a href="#lesson13">第13课 亚非拉民族独立运动</a>
+            </div>
+        </div>
+        
+        <!-- 第七单元 两次世界大战、十月革命与国际秩序的演变 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit7')">✚ 第七单元 两次世界大战与国际秩序</div>
+            <div class="category-content" id="cat-unit7">
+                <a href="#lesson14">第14课 第一次世界大战与战后国际秩序</a>
+                <a href="#lesson15">第15课 十月革命的胜利与苏联的社会主义实践</a>
+                <a href="#lesson16">第16课 亚非拉民族民主运动的高涨</a>
+                <a href="#lesson17">第17课 第二次世界大战与战后国际秩序的形成</a>
+            </div>
+        </div>
+        
+        <!-- 第八单元 20世纪下半叶世界的新变化 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit8')">✚ 第八单元 20世纪下半叶世界的新变化</div>
+            <div class="category-content" id="cat-unit8">
+                <a href="#lesson18">第18课 冷战与国际格局的演变</a>
+                <a href="#lesson19">第19课 资本主义国家的新变化</a>
+                <a href="#lesson20">第20课 社会主义国家的发展与变化</a>
+                <a href="#lesson21">第21课 世界殖民体系的瓦解与新兴国家的发展</a>
+            </div>
+        </div>
+        
+        <!-- 第九单元 当代世界发展的特点与主要趋势 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit9')">✚ 第九单元 当代世界发展的特点与主要趋势</div>
+            <div class="category-content" id="cat-unit9">
+                <a href="#lesson22">第22课 世界多极化与经济全球化</a>
+                <a href="#lesson23">第23课 和平发展合作共赢的时代潮流</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">以史为鉴 · 面向世界</div>
+    </nav>
+    
+    <!-- 主要内容：详细版历史必修下知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一单元 古代文明的产生与发展 -->
+        <h1>第一单元 古代文明的产生与发展</h1>
+        <section id="lesson1">
+            <div class="knowledge-card">
+                <h2>第1课 文明的产生与早期发展</h2>
+                <ul>
+                    <li><strong>人类文明的产生</strong>：
+                        <ul>
+                            <li>根本原因：生产力的发展。</li>
+                            <li>产生前提：农业和畜牧业的产生。西亚地区、南亚、中国和中南美洲等地培育出各自的农作物。</li>
+                            <li>产生标志：
+                                <ul>
+                                    <li>阶级和奴隶制的出现：社会分工的发展和劳动生产率的提高导致剩余产品出现，私有制和剥削逐渐产生，社会分化成统治者和被统治者两大阶级。</li>
+                                    <li>国家形成：在阶级矛盾和部落战争的双重作用下，逐渐出现了政府、军队和监狱等强制机关，国家开始形成，人类进入奴隶社会。</li>
+                                    <li>文字产生：出于记事和管理的需要。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>古代文明的多元特点</strong>：
+                        <ul>
+                            <li>由于生产力发展水平和交通条件限制，古代各个文明基本独立发展，表现出明显的多元特征。</li>
+                        </ul>
+                    </li>
+                    <li><strong>两河流域文明</strong>：
+                        <ul>
+                            <li>地理条件：幼发拉底河和底格里斯河提供了充足的水源。</li>
+                            <li>发展状况：公元前3500年左右产生文明；约公元前18世纪，古巴比伦王国国王汉谟拉比基本统一了两河流域，建立君主专制制度。</li>
+                            <li>《汉谟拉比法典》：是世界上现存最早的较为完整的成文法典。</li>
+                            <li>文化成就：楔形文字（世界上最古老的文字）、《吉尔伽美什》（目前所知最早的史诗）、洪水和方舟传说、60进制。</li>
+                        </ul>
+                    </li>
+                    <li><strong>古埃及文明</strong>：
+                        <ul>
+                            <li>地理条件：尼罗河的定期泛滥，有利于农业生产的发展，提供了连通上下埃及的交通条件。</li>
+                            <li>发展概况：公元前3500年左右兴起；公元前3100年左右初步实现统一，建立起比较完善的官僚系统；法老被视为神在人间的代表，掌握着政治、经济和军事等最重要的权力。</li>
+                            <li>文化成就：象形文字、世界上第一部太阳历、莎草纸、金字塔。</li>
+                        </ul>
+                    </li>
+                    <li><strong>古印度文明</strong>：
+                        <ul>
+                            <li>地理条件：诞生于印度河流域的大平原上。</li>
+                            <li>国家出现：公元前6世纪，恒河流域形成一系列国家。</li>
+                            <li>种姓制度：婆罗门教的说教为种姓制度提供了理论和宗教基础。婆罗门主掌宗教祭祀；刹帝利负责统治和保卫国家；吠舍是普通劳动者；首陀罗地位最低，需要为前三个等级服务；还有“贱民”，处在社会的最底层。特点：贵贱分明、职业世袭、法律地位不平等。</li>
+                            <li>文化成就：佛教、世界著名的史诗《摩诃婆罗多》和《罗摩衍那》、创造了从1到9的数字，发明了“0”，提出了按位计值的方法。</li>
+                        </ul>
+                    </li>
+                    <li><strong>古希腊文明</strong>：
+                        <ul>
+                            <li>地理条件：古代希腊的中心区域是巴尔干半岛南部和爱琴海中的部分岛屿，这里多山少平原，陆上交通不便，不利于地区性大国的兴起。</li>
+                            <li>爱琴文明：公元前2千纪，曾诞生克里特文明和迈锡尼文明。</li>
+                            <li>城邦制度：公元前8—6世纪，城邦逐渐发展起来，典型特征是小国寡民，公民直接参与国家管理。斯巴达是寡头政治的代表，雅典是民主政治的典型。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2">
+            <div class="knowledge-card">
+                <h2>第2课 古代世界的帝国与文明交流</h2>
+                <ul>
+                    <li><strong>古代文明的扩展</strong>：
+                        <ul>
+                            <li>埃及文明向两河流域扩展，西亚文明向埃及扩张。</li>
+                            <li>希腊人通过移民方式扩大影响，在地中海和黑海地区建立了许多城邦国家。</li>
+                        </ul>
+                    </li>
+                    <li><strong>古代世界的帝国</strong>：
+                        <ul>
+                            <li><strong>波斯帝国</strong>：公元前6世纪，兴起于伊朗高原，建立起地跨亚非欧三洲的大帝国。实行君主专制制度，国王是核心，宣扬君权神授；地方实行行省制度，总督和军事长官相互监督。</li>
+                            <li><strong>亚历山大帝国</strong>：公元前4世纪晚期，亚历山大通过十年征战灭亡波斯，建立起地跨欧亚非的大帝国。继承波斯基本制度，地方实行行省制，同时推广希腊文化，促进东西方文化交融。</li>
+                            <li><strong>罗马帝国</strong>：公元前27年，屋大维建立元首制，罗马进入帝国时代。1—2世纪，帝国达到繁荣，地中海成为其内海。4世纪末帝国分裂为东西两部分；476年西罗马帝国灭亡。</li>
+                        </ul>
+                    </li>
+                    <li><strong>文明的交流</strong>：
+                        <ul>
+                            <li>技术传播：农耕技术、冶铁技术等逐渐向外传播。</li>
+                            <li>文化联系：神话、字母文字等得到传播。腓尼基字母在东方演化为阿拉马字母，在西方演化为希腊字母，成为后来字母文字的共同源头。</li>
+                            <li>丝绸之路：汉朝与罗马通过丝绸之路建立起间接的经贸和文化联系。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二单元 中古时期的世界 -->
+        <h1>第二单元 中古时期的世界</h1>
+        <section id="lesson3">
+            <div class="knowledge-card">
+                <h2>第3课 中古时期的欧洲</h2>
+                <ul>
+                    <li><strong>西欧封建社会的基本特征</strong>：
+                        <ul>
+                            <li><strong>封君封臣制度</strong>：授予土地者为封君，领取土地者为封臣。国王或皇帝是名义上的统治者，通过封君封臣制度与各级封建主联系起来；封建主在各自领地内独立行使权力，政治上出现不同程度的分裂割据局面。</li>
+                            <li><strong>庄园与农奴制度</strong>：庄园是中古西欧基本的农业经济组织。封地由领主自营地和农民份地（农奴份地和自由农份地）组成。庄园法庭审理案件，维护秩序。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中古西欧的王权、城市与教会</strong>：
+                        <ul>
+                            <li><strong>王权加强</strong>：15世纪晚期，英国都铎王朝建立后形成较为强大的王权；法兰西基本完成统一；伊比利亚半岛形成西班牙和葡萄牙。这些国家为西欧民族国家的发展奠定了基础。</li>
+                            <li><strong>城市自治</strong>：10—11世纪，城市兴起。主要居民是手工业者和商人。通过金钱赎买或武装暴动赢得自治权。城市兴办大学，以金钱和人力支持王权，一定程度上促进了国王的统一事业。</li>
+                            <li><strong>基督教会</strong>：拥有大量庄园和广袤土地，向信徒征收什一税；控制人民的精神生活，束缚人性的发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>拜占庭与俄罗斯</strong>：
+                        <ul>
+                            <li><strong>拜占庭帝国</strong>：即东罗马帝国，首都君士坦丁堡。6世纪查士丁尼在位时编订《查士丁尼法典》，使罗马法成为系统、完整的法律体系。《罗马民法大全》由《查士丁尼法典》《法学汇纂》《法理概要》《新法典》组成。1453年，奥斯曼土耳其攻占君士坦丁堡，帝国灭亡。</li>
+                            <li><strong>俄罗斯</strong>：发端于9世纪建立的基辅罗斯。16世纪初，莫斯科公国统一俄罗斯，建立国家。伊凡四世正式加冕为沙皇，颁布法典，强化中央集权。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson4">
+            <div class="knowledge-card">
+                <h2>第4课 中古时期的亚洲</h2>
+                <ul>
+                    <li><strong>阿拉伯帝国</strong>：
+                        <ul>
+                            <li>建立：7世纪初，穆罕默德创立伊斯兰教。622年，穆罕默德迁居麦地那，建立政权。到8世纪中期，建立起地跨亚非欧三洲的大帝国。</li>
+                            <li>鼎盛时期：最高统治者哈里发掌握政治、军事和宗教大权，下设各部大臣，以掌管财政和税务的部门最为重要。都城巴格达是当时世界上最大的城市之一。</li>
+                            <li>文化繁荣：阿拉伯人吸收了被征服地区的文化，广泛翻译古代文献。阿拉伯商人和旅行家成为东西方文化交流的桥梁，中国的造纸术、印度的数字等先后经阿拉伯人传入欧洲。</li>
+                        </ul>
+                    </li>
+                    <li><strong>奥斯曼帝国的兴起</strong>：
+                        <ul>
+                            <li>兴起过程：13世纪，奥斯曼土耳其人在小亚细亚发展起来；1453年攻占君士坦丁堡，将其改名为伊斯坦布尔并定为首都；到16世纪后期，建立起地跨亚非欧三洲的大帝国。</li>
+                            <li>帝国统治：最高统治者是苏丹，既是宗教领袖，又是国家和军队的主宰，还是全国土地的最高所有者。帝国控制了连接亚欧的商路，对过往商品征收重税。</li>
+                        </ul>
+                    </li>
+                    <li><strong>南亚与东亚的国家</strong>：
+                        <ul>
+                            <li><strong>笈多帝国</strong>：4世纪初兴起于恒河中游，政局稳定，经济繁荣。由婆罗门教演变而来的印度教得到统治阶级支持，逐渐发展为印度的主要宗教。</li>
+                            <li><strong>德里苏丹国</strong>：13世纪初，突厥人在印度建立德里苏丹国家，以伊斯兰教为国教，最高统治者称苏丹。</li>
+                            <li><strong>日本</strong>：646年，日本开始大化改新，经过约半个世纪的改革，模仿中国建立了中央集权国家。12世纪末，武士集团首领源赖朝在镰仓建立幕府，日本进入幕府政治时期。17世纪建立的德川幕府实行锁国政策，以加强统治，抵御外来影响。</li>
+                            <li><strong>朝鲜</strong>：7世纪末，新罗初步统一朝鲜半岛，模仿中国建立中央集权国家。10世纪初，高丽王朝建立，仿效中国唐朝制度。14世纪末，高丽大将李成桂自立为王，改国号为朝鲜。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson5">
+            <div class="knowledge-card">
+                <h2>第5课 古代非洲与美洲</h2>
+                <ul>
+                    <li><strong>古代非洲文明</strong>：
+                        <ul>
+                            <li>班图人：西非居民班图人培育出高粱、西瓜和棉花等农作物，掌握了冶铁技术。</li>
+                            <li>东非文明：4世纪，阿克苏姆王国兴起（今埃塞俄比亚地区）；10—15世纪，桑给巴尔、蒙巴萨、摩加迪沙等城市国家兴起。</li>
+                            <li>西非文明：加纳、马里和桑海等帝国先后兴起，控制黄金贸易，繁荣一时。</li>
+                            <li>南非文明：津巴布韦是代表，大津巴布韦是著名的石头城遗址。</li>
+                        </ul>
+                    </li>
+                    <li><strong>古代美洲文明</strong>：
+                        <ul>
+                            <li><strong>玛雅文明</strong>：中美洲印第安人创造，4—9世纪达于极盛。发明了独特的表意文字，使用玛雅历法（太阳历），采用20进位制，知道“零”的概念。</li>
+                            <li><strong>阿兹特克文明</strong>：今墨西哥地区，16世纪初鼎盛时期。农业发达，发明了“浮动园地”以扩大耕地面积。</li>
+                            <li><strong>印加文明</strong>：南美洲安第斯山区，15世纪末16世纪初鼎盛。国王集权，建立完善的道路系统，用于传递信息和调动军队。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三单元 走向整体的世界 -->
+        <h1>第三单元 走向整体的世界</h1>
+        <section id="lesson6">
+            <div class="knowledge-card">
+                <h2>第6课 全球航路的开辟</h2>
+                <ul>
+                    <li><strong>新航路开辟的动因</strong>：
+                        <ul>
+                            <li>经济因素（根本）：资本主义萌芽的出现，商品经济发展，需要货币和市场。</li>
+                            <li>社会因素：《马可·波罗行纪》引发了西方的“寻金热”。</li>
+                            <li>商业危机（直接）：奥斯曼帝国控制传统商路，阻断东西方贸易。</li>
+                            <li>政治因素：西班牙、葡萄牙王室的支持。</li>
+                            <li>宗教因素：通过海外扩张传播天主教。</li>
+                        </ul>
+                    </li>
+                    <li><strong>新航路开辟的条件</strong>：
+                        <ul>
+                            <li>丰富的航行经验，地理知识日益丰富（地圆说）。</li>
+                            <li>航海技术的进步：指南针的应用，造船技术的发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>主要航路</strong>：
+                        <ul>
+                            <li>1487—1488年，迪亚士抵达好望角。</li>
+                            <li>1492年，哥伦布横渡大西洋，发现美洲。</li>
+                            <li>1497—1498年，达·伽马绕过非洲到达印度。</li>
+                            <li>1519—1522年，麦哲伦船队完成环球航行。</li>
+                        </ul>
+                    </li>
+                    <li><strong>其他航路</strong>：
+                        <ul>
+                            <li>1497年，卡伯特发现纽芬兰岛。</li>
+                            <li>16世纪，德雷克到达合恩角。</li>
+                            <li>1642—1643年，塔斯曼环航澳大利亚。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson7">
+            <div class="knowledge-card">
+                <h2>第7课 全球联系的初步建立</h2>
+                <ul>
+                    <li><strong>人口迁移与物种交换</strong>：
+                        <ul>
+                            <li>人口迁移：欧洲人入侵美洲，印第安人大量死亡；非洲黑人被贩卖到美洲，美洲成为种族混合程度很高的地区。</li>
+                            <li>物种交换：欧亚大陆的家畜、农作物传入美洲（马、牛、羊、小麦、橄榄等）；美洲的玉米、甘薯、马铃薯等作物传播到欧亚大陆。</li>
+                            <li>疾病传播：欧洲人带来的传染病造成印第安人大量死亡。</li>
+                        </ul>
+                    </li>
+                    <li><strong>商品的世界性流动</strong>：
+                        <ul>
+                            <li>印度洋贸易：传统贸易得以延续。</li>
+                            <li>大西洋贸易：形成“三角贸易”，欧洲—非洲—美洲之间的奴隶贸易。</li>
+                            <li>太平洋贸易：葡萄牙人以澳门为中介的丝银贸易，西班牙人的马尼拉帆船贸易。</li>
+                        </ul>
+                    </li>
+                    <li><strong>早期殖民扩张</strong>：
+                        <ul>
+                            <li>葡萄牙：占领巴西、非洲沿岸、印度果阿、马六甲、中国澳门。</li>
+                            <li>西班牙：占领除巴西以外的美洲大部、亚洲菲律宾。</li>
+                            <li>影响：带来灾难和破坏，同时也促进了商业革命和价格革命，加速欧洲社会变革。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四单元 资本主义制度的确立 -->
+        <h1>第四单元 资本主义制度的确立</h1>
+        <section id="lesson8">
+            <div class="knowledge-card">
+                <h2>第8课 西欧的思想解放运动</h2>
+                <ul>
+                    <li><strong>文艺复兴</strong>：
+                        <ul>
+                            <li>时间：14—17世纪，起源于意大利。</li>
+                            <li>核心：人文主义，肯定人的价值和尊严，追求现世幸福。</li>
+                            <li>代表人物：文学三杰（但丁、彼特拉克、薄伽丘），美术三杰（达·芬奇、米开朗基罗、拉斐尔），莎士比亚（英国）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>宗教改革</strong>：
+                        <ul>
+                            <li>背景：天主教会盘剥，质疑情绪高涨。</li>
+                            <li>开端：1517年，马丁·路德发表《九十五条论纲》。</li>
+                            <li>主张：因信称义，认为信仰即可得救，上帝面前人人平等。</li>
+                            <li>影响：形成新教（路德教、加尔文教、英国国教），促进民族国家形成。</li>
+                        </ul>
+                    </li>
+                    <li><strong>近代科学的兴起</strong>：
+                        <ul>
+                            <li>哥白尼提出日心说，冲击基督教世界观。</li>
+                            <li>牛顿建立力学体系，重视实验方法。</li>
+                        </ul>
+                    </li>
+                    <li><strong>启蒙运动</strong>：
+                        <ul>
+                            <li>时间：17—18世纪，核心是理性主义。</li>
+                            <li>代表人物：孟德斯鸠（三权分立）、伏尔泰（君主立宪）、卢梭（社会契约、直接民主）、亚当·斯密（国富论）、康德（理性批判）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson9">
+            <div class="knowledge-card">
+                <h2>第9课 资产阶级革命与资本主义制度的确立</h2>
+                <ul>
+                    <li><strong>英、美、法资产阶级革命</strong>：
+                        <ul>
+                            <li><strong>英国</strong>：1640年革命爆发，1688年光荣革命巩固成果。1689年《权利法案》扩大议会权力，确立君主立宪制。</li>
+                            <li><strong>美国</strong>：1775年莱克星顿枪声，1776年《独立宣言》发表。1787年宪法确立联邦制和三权分立原则。</li>
+                            <li><strong>法国</strong>：1789年攻占巴士底狱，颁布《人权宣言》。几经反复，最终确立共和制。</li>
+                        </ul>
+                    </li>
+                    <li><strong>资本主义制度的扩展</strong>：
+                        <ul>
+                            <li><strong>俄国</strong>：1861年废除农奴制改革。</li>
+                            <li><strong>美国</strong>：1861—1865年内战，废除奴隶制。</li>
+                            <li><strong>德意志</strong>：俾斯麦推行铁血政策，1871年完成统一。</li>
+                            <li><strong>日本</strong>：1868年开始明治维新，进行近代化改革。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五单元 工业革命与马克思主义的诞生 -->
+        <h1>第五单元 工业革命与马克思主义的诞生</h1>
+        <section id="lesson10">
+            <div class="knowledge-card">
+                <h2>第10课 影响世界的工业革命</h2>
+                <ul>
+                    <li><strong>工业革命的背景</strong>：
+                        <ul>
+                            <li>前提：英国资本主义制度确立。</li>
+                            <li>条件：圈地运动提供劳动力；手工工场积累技术；海外殖民提供资本和市场。</li>
+                        </ul>
+                    </li>
+                    <li><strong>工业革命的进程</strong>：
+                        <ul>
+                            <li><strong>第一次工业革命</strong>（18世纪60年代—19世纪中期）：开始标志是珍妮纺纱机，瓦特改良蒸汽机使人类进入“蒸汽时代”。</li>
+                            <li><strong>第二次工业革命</strong>（19世纪70年代—20世纪初）：电力的广泛应用（发电机、电动机），人类进入“电气时代”。内燃机的创制推动了汽车、飞机的发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>工业革命的影响</strong>：
+                        <ul>
+                            <li>生产力极大提高，管理方式变革，垄断组织出现。</li>
+                            <li>社会形成两大对立阶级——工业资产阶级和无产阶级。</li>
+                            <li>城市化进程加快，但也带来贫富差距、环境污染等问题。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson11">
+            <div class="knowledge-card">
+                <h2>第11课 马克思主义的诞生与传播</h2>
+                <ul>
+                    <li><strong>早期工人运动</strong>：
+                        <ul>
+                            <li>三大工人运动：法国里昂工人起义、英国宪章运动、德意志西里西亚纺织工人起义，标志工人阶级登上政治舞台。</li>
+                            <li>空想社会主义：圣西门、傅立叶、欧文批判资本主义，提出理想社会方案。</li>
+                        </ul>
+                    </li>
+                    <li><strong>马克思主义的诞生</strong>：
+                        <ul>
+                            <li>1848年，《共产党宣言》发表，标志着马克思主义诞生。</li>
+                            <li>内容：阐明社会发展规律，论证资本主义必然灭亡、共产主义必然胜利；阶级斗争的作用；唯物史观和剩余价值学说。</li>
+                        </ul>
+                    </li>
+                    <li><strong>国际工人运动的发展</strong>：
+                        <ul>
+                            <li>第一国际：1864年在伦敦成立，推动工人运动联合。</li>
+                            <li>巴黎公社：1871年建立，是无产阶级建立政权的第一次伟大尝试。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第六单元 世界殖民体系与亚非拉民族独立运动 -->
+        <h1>第六单元 世界殖民体系与亚非拉民族独立运动</h1>
+        <section id="lesson12">
+            <div class="knowledge-card">
+                <h2>第12课 资本主义世界殖民体系的形成</h2>
+                <ul>
+                    <li><strong>拉丁美洲的殖民地化</strong>：
+                        <ul>
+                            <li>西班牙、葡萄牙在拉丁美洲建立殖民统治，实行专制统治和农奴制剥削。</li>
+                        </ul>
+                    </li>
+                    <li><strong>亚洲沦为殖民地和半殖民地</strong>：
+                        <ul>
+                            <li>葡萄牙、西班牙、荷兰、英国、法国等相继入侵亚洲，建立殖民据点，控制贸易。</li>
+                        </ul>
+                    </li>
+                    <li><strong>西方列强瓜分非洲</strong>：
+                        <ul>
+                            <li>19世纪末20世纪初，欧洲列强掀起瓜分非洲狂潮，到一战前，除埃塞俄比亚、利比里亚外，非洲完全被瓜分。</li>
+                        </ul>
+                    </li>
+                    <li><strong>世界殖民体系的形成</strong>：
+                        <ul>
+                            <li>19世纪末20世纪初，资本主义世界殖民体系最终形成。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson13">
+            <div class="knowledge-card">
+                <h2>第13课 亚非拉民族独立运动</h2>
+                <ul>
+                    <li><strong>拉丁美洲的独立运动</strong>：
+                        <ul>
+                            <li>19世纪初，西属拉丁美洲和巴西掀起独立运动，海地、墨西哥、巴西等相继独立。</li>
+                        </ul>
+                    </li>
+                    <li><strong>亚洲的觉醒</strong>：
+                        <ul>
+                            <li>印度民族解放运动（1905—1908年）、伊朗立宪运动（1905—1911年）、中国辛亥革命（1911年）、土耳其革命等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>非洲的抗争</strong>：
+                        <ul>
+                            <li>埃及阿拉比抗英斗争、苏丹马赫迪起义、埃塞俄比亚抗意战争（1896年阿杜瓦战役胜利，保持独立）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第七单元 两次世界大战、十月革命与国际秩序的演变 -->
+        <h1>第七单元 两次世界大战与国际秩序</h1>
+        <section id="lesson14">
+            <div class="knowledge-card">
+                <h2>第14课 第一次世界大战与战后国际秩序</h2>
+                <ul>
+                    <li><strong>大战的爆发</strong>：
+                        <ul>
+                            <li>根本原因：资本主义国家间政治经济发展不平衡。</li>
+                            <li>导火索：1914年萨拉热窝事件。</li>
+                        </ul>
+                    </li>
+                    <li><strong>大战的过程</strong>：
+                        <ul>
+                            <li>两大军事集团：同盟国（德、奥、意）与协约国（英、法、俄）。</li>
+                            <li>1914—1918年，战火遍及欧亚非，1918年11月德国投降，同盟国战败。</li>
+                        </ul>
+                    </li>
+                    <li><strong>战后国际秩序</strong>：
+                        <ul>
+                            <li>巴黎和会：签订对德《凡尔赛条约》。</li>
+                            <li>华盛顿会议：签订《九国公约》等。</li>
+                            <li>国际联盟成立，但缺乏普遍性和权威性。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson15">
+            <div class="knowledge-card">
+                <h2>第15课 十月革命的胜利与苏联的社会主义实践</h2>
+                <ul>
+                    <li><strong>十月革命</strong>：
+                        <ul>
+                            <li>1917年11月（俄历10月），彼得格勒武装起义，推翻临时政府，建立苏维埃政权。</li>
+                            <li>意义：人类历史上第一次取得胜利的社会主义革命。</li>
+                        </ul>
+                    </li>
+                    <li><strong>苏联社会主义建设</strong>：
+                        <ul>
+                            <li>战时共产主义政策（1918—1921）：余粮收集制、工业国有化。</li>
+                            <li>新经济政策（1921—1928）：粮食税、允许自由贸易。</li>
+                            <li>斯大林模式：高度集中的指令性计划经济，优先发展重工业，农业集体化。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson16">
+            <div class="knowledge-card">
+                <h2>第16课 亚非拉民族民主运动的高涨</h2>
+                <ul>
+                    <li><strong>亚洲</strong>：
+                        <ul>
+                            <li>中国：中国共产党成立，国民大革命。</li>
+                            <li>印度：甘地领导非暴力不合作运动。</li>
+                        </ul>
+                    </li>
+                    <li><strong>非洲</strong>：
+                        <ul>
+                            <li>埃及：扎格鲁尔领导华夫脱运动。</li>
+                            <li>摩洛哥：里夫起义。</li>
+                        </ul>
+                    </li>
+                    <li><strong>拉丁美洲</strong>：
+                        <ul>
+                            <li>墨西哥：卡德纳斯改革。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson17">
+            <div class="knowledge-card">
+                <h2>第17课 第二次世界大战与战后国际秩序的形成</h2>
+                <ul>
+                    <li><strong>大战的爆发</strong>：
+                        <ul>
+                            <li>1931年九一八事变，1937年七七事变，二战在亚洲爆发。</li>
+                            <li>1939年德国突袭波兰，二战全面爆发。</li>
+                        </ul>
+                    </li>
+                    <li><strong>大战的过程</strong>：
+                        <ul>
+                            <li>1941年德国入侵苏联，日本偷袭珍珠港。</li>
+                            <li>1942年世界反法西斯同盟建立。</li>
+                            <li>1945年德国投降，日本投降，二战结束。</li>
+                        </ul>
+                    </li>
+                    <li><strong>战后国际秩序</strong>：
+                        <ul>
+                            <li>雅尔塔体系形成，奠定两极格局基础。</li>
+                            <li>联合国成立，维护国际和平与安全。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第八单元 20世纪下半叶世界的新变化 -->
+        <h1>第八单元 20世纪下半叶世界的新变化</h1>
+        <section id="lesson18">
+            <div class="knowledge-card">
+                <h2>第18课 冷战与国际格局的演变</h2>
+                <ul>
+                    <li><strong>冷战的发生</strong>：
+                        <ul>
+                            <li>1947年杜鲁门主义出台，冷战开始。</li>
+                            <li>马歇尔计划、北约与华约对峙，两极格局形成。</li>
+                        </ul>
+                    </li>
+                    <li><strong>冷战的发展</strong>：
+                        <ul>
+                            <li>柏林危机、古巴导弹危机、越南战争等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>多极化趋势</strong>：
+                        <ul>
+                            <li>欧共体成立、日本崛起、第三世界兴起、中国恢复联合国合法席位。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson19">
+            <div class="knowledge-card">
+                <h2>第19课 资本主义国家的新变化</h2>
+                <ul>
+                    <li><strong>国家宏观调控</strong>：
+                        <ul>
+                            <li>加强国家对经济的干预，凯恩斯主义成为主流。</li>
+                        </ul>
+                    </li>
+                    <li><strong>福利国家</strong>：
+                        <ul>
+                            <li>建立社会保障体系，缩小贫富差距。</li>
+                        </ul>
+                    </li>
+                    <li><strong>科学技术的新发展</strong>：
+                        <ul>
+                            <li>第三次科技革命，信息技术、生物技术等发展。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson20">
+            <div class="knowledge-card">
+                <h2>第20课 社会主义国家的发展与变化</h2>
+                <ul>
+                    <li><strong>苏联的发展与改革</strong>：
+                        <ul>
+                            <li>赫鲁晓夫改革、勃列日涅夫改革、戈尔巴乔夫改革。</li>
+                            <li>1991年苏联解体。</li>
+                        </ul>
+                    </li>
+                    <li><strong>东欧的社会主义建设与变革</strong>：
+                        <ul>
+                            <li>东欧社会主义国家建立，后发生剧变。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中国社会主义的发展</strong>：
+                        <ul>
+                            <li>改革开放，中国特色社会主义道路。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson21">
+            <div class="knowledge-card">
+                <h2>第21课 世界殖民体系的瓦解与新兴国家的发展</h2>
+                <ul>
+                    <li><strong>世界殖民体系的瓦解</strong>：
+                        <ul>
+                            <li>二战后，亚洲、非洲、拉丁美洲掀起民族独立浪潮。</li>
+                            <li>1990年纳米比亚独立，标志着世界殖民体系最终崩溃。</li>
+                        </ul>
+                    </li>
+                    <li><strong>新兴国家的发展</strong>：
+                        <ul>
+                            <li>面临发展问题，如经济落后、政局动荡、债务问题等。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第九单元 当代世界发展的特点与主要趋势 -->
+        <h1>第九单元 当代世界发展的特点与主要趋势</h1>
+        <section id="lesson22">
+            <div class="knowledge-card">
+                <h2>第22课 世界多极化与经济全球化</h2>
+                <ul>
+                    <li><strong>世界多极化</strong>：
+                        <ul>
+                            <li>美国、欧盟、日本、俄罗斯、中国、发展中国家等多种力量发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>经济全球化</strong>：
+                        <ul>
+                            <li>贸易全球化、生产全球化、资本全球化。</li>
+                            <li>跨国公司成为载体，世界贸易组织（WTO）推动贸易自由化。</li>
+                        </ul>
+                    </li>
+                    <li><strong>区域集团化</strong>：
+                        <ul>
+                            <li>欧盟、北美自由贸易区、亚太经合组织等。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson23">
+            <div class="knowledge-card">
+                <h2>第23课 和平发展合作共赢的时代潮流</h2>
+                <ul>
+                    <li><strong>和平与发展的时代主题</strong>：
+                        <ul>
+                            <li>和平是发展的前提，发展是和平的保障。</li>
+                        </ul>
+                    </li>
+                    <li><strong>人类面临的共同挑战</strong>：
+                        <ul>
+                            <li>地区冲突、恐怖主义、环境问题、贫困问题等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>合作共赢的路径</strong>：
+                        <ul>
+                            <li>发挥联合国作用，加强国际合作。</li>
+                            <li>中国提出构建人类命运共同体，推动“一带一路”建设。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

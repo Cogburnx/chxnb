@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数学工具</title>
+    <style>
+        :root { --accent: #2196F3; }
+        body { margin: 0; display: flex; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fff; overflow: hidden; }
+        
+        /* 侧边栏整体布局 */
+        #sidebar { 
+            width: 360px; 
+            border-right: 3px solid #000; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 20px; 
+            gap: 15px; 
+            background: #fff; 
+            z-index: 100; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1); 
+        }
+
+        h2 { margin: 0; font-size: 20px; border-bottom: 4px solid #000; padding-bottom: 10px; }
+        
+        /* 功能区 - 可滚动 */
+        .controls-wrapper {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding-right: 5px;
+        }
+
+        .card { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 2px solid #000; }
+        h3 { font-size: 14px; margin: 0 0 10px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #000; padding-left: 8px; }
+        
+        /* 组件样式 */
+        .input-group { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        input[type="text"] { flex: 1; padding: 8px; border: 2px solid #ccc; border-radius: 4px; font-family: "Fira Code", monospace; font-weight: bold; }
+        input[type="color"] { width: 32px; height: 32px; border: 2px solid #000; cursor: pointer; padding: 0; background: none; border-radius: 4px; }
+        .item-box { background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 6px; margin-top: 8px; position: relative; }
+        .del-btn { color: #ff4444; cursor: pointer; font-weight: bold; border: none; background: none; font-size: 18px; }
+        
+        button { padding: 10px; cursor: pointer; border: 2px solid #000; background: #fff; font-weight: bold; border-radius: 4px; transition: all 0.2s; }
+        button:active { transform: translateY(2px); }
+        button.active { background: #000 !important; color: #fff !important; }
+        .btn-run { background: #2ecc71; color: white; border: none; width: 100%; font-size: 16px; margin-top: 10px; }
+
+        /* 底部固定区（独立于视图切换） */
+        .footer-tools {
+            border-top: 2px solid #eee;
+            padding-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-home {
+            display: block;
+            text-decoration: none;
+            color: #000;
+            font-weight: bold;
+            padding: 10px;
+            border: 2px solid #000;
+            border-radius: 4px;
+            text-align: center;
+            background: #fff;
+            transition: background 0.2s;
+        }
+        .nav-home:hover { background: #f0f0f0; }
+        
+        #ad-space {
+            padding: 15px;
+            border: 2px dashed #bbb;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+
+        /* 画布区 */
+        #viewport { flex: 1; position: relative; background: #fff; }
+        canvas { width: 100%; height: 100%; display: block; }
+        #hud { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.9); border: 2px solid #000; padding: 12px; font-size: 13px; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h2>数学工具</h2>
+    
+    <div class="controls-wrapper">
+        <div class="card">
+            <h3>1. 函数方程 z = f(x, y) <button style="padding:2px 10px" onclick="addFunc()">+</button></h3>
+            <div id="fList"></div>
+        </div>
+
+        <div class="card">
+            <h3>2. 动点参数 [x(t), y(t)] <button style="padding:2px 10px" onclick="addPoint()">+</button></h3>
+            <div id="pList"></div>
+            <button id="playBtn" class="btn-run" onclick="togglePlay()">▶ 启动动画时间轴</button>
+        </div>
+
+        <div class="card">
+            <h3>3. 视图切换</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button id="v2" onclick="setView('2d')">2D 平面</button>
+                <button id="v3" class="active" onclick="setView('3d')">3D 空间</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-tools">
+        <button onclick="resetCamera()" style="width:100%;">📸 重置视角</button>
+        <a href="/index.html" class="nav-home">🏠 返回主页</a>
+        <div id="ad-space">
+            暂无
+        </div>
+    </div>
+</div>
+
+<div id="viewport">
+    <canvas id="canvas"></canvas>
+    <div id="hud">
+        <b>状态监测</b><br>
+        时间 t = <span id="tVal">0.00</span><br>
+        操作：左键旋转 | 右键平移 | 滚轮缩放
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
+    let mode = '3d', isPlaying = false, t = 0;
+    let rx = -0.6, ry = 0.6, zoom = 1.0, offX = 0, offY = 0;
+    
+    let functions = [{ expr: "sin(x)*cos(y)", color: "#2196F3" }];
+    let points = [{ x_t: "5*cos(t)", y_t: "5*sin(t)", color: "#ff4444", worldTrail: [] }];
+
+    function safeEval(expr, x, y) {
+        let raw = expr.toLowerCase().replace(/(sin|cos|tan|abs|sqrt|pi|pow|exp)/g, 'Math.$1');
+        try { return new Function('x', 'y', `return ${raw}`)(x, y); } catch { return 0; }
+    }
+
+    function resize() {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+        render();
+    }
+    window.onresize = resize;
+
+    function project(x, y, z) {
+        let s = 45 * zoom;
+        if (mode === '2d') return { x: canvas.width/2 + x * s + offX, y: canvas.height/2 - z * s + offY };
+        let cx = Math.cos(rx), sx = Math.sin(rx), cy = Math.cos(ry), sy = Math.sin(ry);
+        let x1 = x * cy - y * sy;
+        let y1 = x * sy + y * cy;
+        let z1 = z * cx - y1 * sx;
+        let y2 = z * sx + y1 * cx;
+        let p = 750 / (750 + y2);
+        return { x: canvas.width/2 + x1 * s * p + offX, y: canvas.height/2 - z1 * s * p + offY };
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const axes = [[15,0,0],[0,15,0],[0,0,15]];
+        ctx.lineWidth = 4; ctx.strokeStyle = '#000';
+        axes.forEach((ax, i) => {
+            if(mode === '2d' && i === 1) return;
+            let p1 = project(-ax[0], -ax[1], -ax[2]), p2 = project(ax[0], ax[1], ax[2]);
+            ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+            
+            ctx.fillStyle = "#000"; ctx.font = "bold 11px Arial";
+            for(let n=-10; n<=10; n+=5) {
+                let tp = project(...(i===0?[n,0,0]:i===1?[0,n,0]:[0,0,n]));
+                ctx.fillText(n, tp.x+5, tp.y-5);
+            }
+        });
+
+        functions.forEach(f => {
+            ctx.strokeStyle = f.color; ctx.lineWidth = 1; ctx.globalAlpha = 0.35;
+            const step = 0.6, range = 8;
+            for (let i = -range; i <= range; i += step) {
+                ctx.beginPath();
+                for (let j = -range; j <= range; j += step) {
+                    let p = project(i, j, safeEval(f.expr, i, j));
+                    if (j === -range) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+                }
+                ctx.stroke();
+                ctx.beginPath();
+                for (let j = -range; j <= range; j += step) {
+                    let p = project(j, i, safeEval(f.expr, j, i));
+                    if (j === -range) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+                }
+                ctx.stroke();
+            }
+        });
+        ctx.globalAlpha = 1.0;
+
+        points.forEach(pObj => {
+            try {
+                let xt = safeEval(pObj.x_t, t, 0);
+                let yt = safeEval(pObj.y_t, t, 0);
+                let zt = functions.length > 0 ? safeEval(functions[0].expr, xt, yt) : 0;
+                
+                if(isPlaying) {
+                    pObj.worldTrail.push({x:xt, y:yt, z:zt});
+                    if(pObj.worldTrail.length > 200) pObj.worldTrail.shift();
+                }
+
+                ctx.strokeStyle = pObj.color; ctx.lineWidth = 2.5; ctx.beginPath();
+                pObj.worldTrail.forEach((wp, i) => {
+                    let pp = project(wp.x, wp.y, wp.z);
+                    if(i===0) ctx.moveTo(pp.x, pp.y); else ctx.lineTo(pp.x, pp.y);
+                });
+                ctx.stroke();
+
+                let p = project(xt, yt, zt);
+                ctx.fillStyle = pObj.color; ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, 7); ctx.fill();
+                ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.stroke();
+            } catch(e){}
+        });
+        document.getElementById('tVal').innerText = t.toFixed(2);
+    }
+
+    let isDown = false;
+    canvas.onmousedown = () => isDown = true;
+    window.onmousemove = (e) => {
+        if(!isDown) return;
+        if(e.buttons === 2) {
+            offX += e.movementX; offY += e.movementY;
+        } else if(mode === '3d') {
+            ry += e.movementX * 0.01; rx -= e.movementY * 0.01;
+        }
+        render();
+    };
+    window.onmouseup = () => isDown = false;
+    window.oncontextmenu = e => e.preventDefault();
+    window.onwheel = e => { zoom *= (e.deltaY > 0 ? 0.9 : 1.1); render(); e.preventDefault(); };
+
+    function addFunc() { functions.push({ expr: "x+y", color: "#4CAF50" }); updateUI(); render(); }
+    function addPoint() { points.push({ x_t: "t", y_t: "0", color: "#9C27B0", worldTrail: [] }); updateUI(); }
+    
+    function updateUI() {
+        const fl = document.getElementById('fList');
+        fl.innerHTML = functions.map((f, i) => `
+            <div class="item-box">
+                <div class="input-group">
+                    <input type="text" value="${f.expr}" oninput="functions[${i}].expr=this.value;render()">
+                    <input type="color" value="${f.color}" oninput="functions[${i}].color=this.value;render()">
+                    <button class="del-btn" onclick="functions.splice(${i},1);updateUI();render()">×</button>
+                </div>
+            </div>
+        `).join('');
+
+        const pl = document.getElementById('pList');
+        pl.innerHTML = points.map((p, i) => `
+            <div class="item-box">
+                <div class="input-group">x(t):<input type="text" value="${p.x_t}" oninput="points[${i}].x_t=this.value;points[${i}].worldTrail=[]"></div>
+                <div class="input-group">y(t):<input type="text" value="${p.y_t}" oninput="points[${i}].y_t=this.value;points[${i}].worldTrail=[]"></div>
+                <div class="input-group">颜色:<input type="color" value="${p.color}" oninput="points[${i}].color=this.value;render()">
+                <button class="del-btn" style="margin-left:auto" onclick="points.splice(${i},1);updateUI();render()">×</button></div>
+            </div>
+        `).join('');
+    }
+
+    function setView(v) {
+        mode = v; rx = v==='2d'?0:-0.6; ry = v==='2d'?0:0.6;
+        document.getElementById('v2').className = v==='2d'?'active':'';
+        document.getElementById('v3').className = v==='3d'?'active':'';
+        render();
+    }
+    function resetCamera() { rx = -0.6; ry = 0.6; zoom = 1.0; offX = 0; offY = 0; render(); }
+    function togglePlay() { isPlaying = !isPlaying; if(isPlaying) loop(); }
+    function loop() { if(!isPlaying) return; t += 0.04; render(); requestAnimationFrame(loop); }
+
+    updateUI(); resize();
+</script>
+</body>
+</html>

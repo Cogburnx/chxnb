@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>历史选修三 · 文化交流与传播（详细版）</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #b8860b;      /* 历史暗金色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fcf8e8;     /* 浅黄底色 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #b8860b;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #b8860b;
+        }
+        .category-title:hover { background: rgba(184, 134, 11, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #5a3e2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮暗金色 */
+        .category-content a.active {
+            color: #b8860b;
+            font-weight: 600;
+            background-color: rgba(184, 134, 11, 0.12);
+            border-left: 3px solid #b8860b;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #5a3e2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f7f0d6;
+            border: 2px dashed #e5b73b;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #b8860b;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #b8860b;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5b73b;
+            color: #b8860b;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #f0d9b5;
+            padding-bottom: 10px;
+            color: #b8860b;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 年代强调 */
+        .year {
+            font-weight: 600;
+            color: #a0522d;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (浅黄背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (历史选修三分类) 依据统编版选修3《文化交流与传播》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>历史选修三</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一单元 源远流长的中华文化 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit1')">✚ 第一单元 源远流长的中华文化</div>
+            <div class="category-content" id="cat-unit1">
+                <a href="#lesson1">第1课 中华优秀传统文化的内涵与特点</a>
+                <a href="#lesson2">第2课 中华文化的世界意义</a>
+            </div>
+        </div>
+        
+        <!-- 第二单元 多样发展的世界文化 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit2')">✚ 第二单元 多样发展的世界文化</div>
+            <div class="category-content" id="cat-unit2">
+                <a href="#lesson3">第3课 古代西亚、非洲文化</a>
+                <a href="#lesson4">第4课 欧洲文化的形成</a>
+                <a href="#lesson5">第5课 南亚、东亚与美洲的文化</a>
+            </div>
+        </div>
+        
+        <!-- 第三单元 人口迁徙、文化交融与认同 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit3')">✚ 第三单元 人口迁徙与文化交融</div>
+            <div class="category-content" id="cat-unit3">
+                <a href="#lesson6">第6课 古代人类的迁徙和区域文化的形成</a>
+                <a href="#lesson7">第7课 近代殖民活动和人口的跨地域转移</a>
+                <a href="#lesson8">第8课 现代社会的“移民”和多元文化</a>
+            </div>
+        </div>
+        
+        <!-- 第四单元 商路、贸易与文化交流 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit4')">✚ 第四单元 商路、贸易与文化交流</div>
+            <div class="category-content" id="cat-unit4">
+                <a href="#lesson9">第9课 古代的商路、贸易与文化交流</a>
+                <a href="#lesson10">第10课 近代以来的世界贸易与文化交流的扩展</a>
+            </div>
+        </div>
+        
+        <!-- 第五单元 战争与文化交锋 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit5')">✚ 第五单元 战争与文化交锋</div>
+            <div class="category-content" id="cat-unit5">
+                <a href="#lesson11">第11课 古代战争与地域文化的演变</a>
+                <a href="#lesson12">第12课 近代战争与西方文化的扩张</a>
+                <a href="#lesson13">第13课 现代战争与不同文化的碰撞和交流</a>
+            </div>
+        </div>
+        
+        <!-- 第六单元 文化的传承与保护 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit6')">✚ 第六单元 文化的传承与保护</div>
+            <div class="category-content" id="cat-unit6">
+                <a href="#lesson14">第14课 文化传承的多种载体及其发展</a>
+                <a href="#lesson15">第15课 文化遗产：全人类共同的财富</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">文化交流 · 互鉴共荣</div>
+    </nav>
+    
+    <!-- 主要内容：详细版历史选修三知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一单元 源远流长的中华文化 -->
+        <h1>第一单元 源远流长的中华文化</h1>
+        <section id="lesson1">
+            <div class="knowledge-card">
+                <h2>第1课 中华优秀传统文化的内涵与特点</h2>
+                <ul>
+                    <li><strong>中华文化的发展历程</strong>：
+                        <ul>
+                            <li>多元起源：黄河流域、长江流域、珠江流域等孕育了早期中华文化。</li>
+                            <li>春秋战国时期：百家争鸣，儒家思想孕育了我国传统文化中的政治理想和道德准则。</li>
+                            <li>秦汉时期：汉武帝尊崇儒术，儒学成为我国封建社会的主流意识形态。</li>
+                            <li>魏晋南北朝：佛教传入和道教兴起，儒学吸收佛道精神，有了新的发展。</li>
+                            <li>隋唐时期：中华传统文化辉煌灿烂，儒释道三家交融。</li>
+                            <li>宋元时期：理学形成，朱熹等思想家推动儒学复兴。</li>
+                            <li>明清时期：进步思想家批判理学，提倡个性自由和经世致用。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中华优秀传统文化的内涵</strong>：
+                        <ul>
+                            <li><strong>重视以人为本</strong>：孔子提出“仁者爱人”，主张“己所不欲，勿施于人”。</li>
+                            <li><strong>崇尚天人合一，道法自然</strong>：老子提出“道法自然”，追求人与自然和谐。</li>
+                            <li><strong>提倡爱国，追求家国情怀</strong>：范仲淹“先天下之忧而忧”，文天祥“人生自古谁无死”。</li>
+                            <li><strong>崇德尚贤，推崇天下为公</strong>：儒家推崇“为政以德”，墨家主张“尚贤”。</li>
+                            <li><strong>崇尚自强不息，厚德载物</strong>：《周易》提出“天行健，君子以自强不息”。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中华优秀传统文化的特点</strong>：
+                        <ul>
+                            <li>本土性、多样性、包容性、凝聚性、连续性。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2">
+            <div class="knowledge-card">
+                <h2>第2课 中华文化的世界意义</h2>
+                <ul>
+                    <li><strong>中华文化对亚洲的影响</strong>：
+                        <ul>
+                            <li>汉字、儒学、佛教等传入朝鲜半岛、日本、越南等地。</li>
+                            <li>朝鲜、日本、越南等国模仿中国制度，建立中央集权国家。</li>
+                            <li>东亚文化圈形成，汉字成为东亚地区通用的文字。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中华文化对欧洲的影响</strong>：
+                        <ul>
+                            <li>造纸术、指南针、火药、印刷术四大发明经阿拉伯人传入欧洲，推动了欧洲社会进步。</li>
+                            <li>中国儒家思想对法国启蒙思想家伏尔泰等产生影响。</li>
+                        </ul>
+                    </li>
+                    <li><strong>西学东渐</strong>：
+                        <ul>
+                            <li>明末清初，传教士利玛窦等带来西方科技知识。</li>
+                            <li>鸦片战争后，中国开始大规模学习西方文化，推动近代化进程。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二单元 多样发展的世界文化 -->
+        <h1>第二单元 多样发展的世界文化</h1>
+        <section id="lesson3">
+            <div class="knowledge-card">
+                <h2>第3课 古代西亚、非洲文化</h2>
+                <ul>
+                    <li><strong>古代西亚文化</strong>：
+                        <ul>
+                            <li>文字：楔形文字是世界上最古老的文字。</li>
+                            <li>文学：《吉尔伽美什》是目前所知最早的史诗。</li>
+                            <li>法律：《汉谟拉比法典》是世界上现存最早的较为完整的成文法典，宣扬君权神授，保护奴隶主利益。</li>
+                            <li>建筑：苏美尔人的塔庙、亚述的王宫、新巴比伦的空中花园。</li>
+                        </ul>
+                    </li>
+                    <li><strong>古代埃及文化</strong>：
+                        <ul>
+                            <li>文字：象形文字。</li>
+                            <li>历法：太阳历，是世界上第一部太阳历。</li>
+                            <li>建筑：金字塔、神庙。</li>
+                            <li>宗教：多神崇拜，法老被视为神在人间的代表。</li>
+                        </ul>
+                    </li>
+                    <li><strong>阿拉伯文化</strong>：
+                        <ul>
+                            <li>阿拉伯人翻译并保存了大量古希腊罗马典籍，成为东西方文化交流的桥梁。</li>
+                            <li>文学：《天方夜谭》（《一千零一夜》）是阿拉伯文学的瑰宝。</li>
+                            <li>数学：阿拉伯数字的传播，代数学的创立。</li>
+                            <li>医学：伊本·西那的《医典》被奉为医学经典。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson4">
+            <div class="knowledge-card">
+                <h2>第4课 欧洲文化的形成</h2>
+                <ul>
+                    <li><strong>古希腊文化</strong>：
+                        <ul>
+                            <li>哲学：苏格拉底、柏拉图、亚里士多德奠定了西方哲学的基础。</li>
+                            <li>文学：荷马史诗《伊利亚特》《奥德赛》。</li>
+                            <li>史学：希罗多德《历史》、修昔底德《伯罗奔尼撒战争史》。</li>
+                        </ul>
+                    </li>
+                    <li><strong>古罗马文化</strong>：
+                        <ul>
+                            <li>法律：罗马法体系，包括《十二铜表法》、万民法、《民法大全》。</li>
+                            <li>建筑：万神殿、大斗兽场、高架引水桥。</li>
+                            <li>文学：维吉尔《埃涅阿斯纪》。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中古西欧文化</strong>：
+                        <ul>
+                            <li>基督教成为西欧社会的主要精神支柱，神权高于王权。</li>
+                            <li>大学的兴起，如巴黎大学、牛津大学。</li>
+                        </ul>
+                    </li>
+                    <li><strong>拜占庭文化</strong>：
+                        <ul>
+                            <li>《罗马民法大全》保留了罗马法，对后世影响深远。</li>
+                            <li>圣索菲亚大教堂是拜占庭建筑的杰出代表。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson5">
+            <div class="knowledge-card">
+                <h2>第5课 南亚、东亚与美洲的文化</h2>
+                <ul>
+                    <li><strong>古代印度文化</strong>：
+                        <ul>
+                            <li>宗教：婆罗门教（印度教前身）、佛教产生于印度。</li>
+                            <li>文学：《摩诃婆罗多》《罗摩衍那》是世界著名的史诗。</li>
+                            <li>数学：创造了从0到9的数字，发明了按位计值的方法。</li>
+                        </ul>
+                    </li>
+                    <li><strong>古代朝鲜和日本文化</strong>：
+                        <ul>
+                            <li>朝鲜：仿效中国建立中央集权制度，使用汉字，学习儒学。</li>
+                            <li>日本：大化改新模仿中国制度，12世纪后进入幕府政治时期。</li>
+                        </ul>
+                    </li>
+                    <li><strong>古代美洲文化</strong>：
+                        <ul>
+                            <li>玛雅文化：创造了独特的象形文字、玛雅历法（太阳历）、20进位制，知道“零”的概念。</li>
+                            <li>阿兹特克文化：发明“浮动园地”以扩大耕地面积。</li>
+                            <li>印加文化：建立完善的道路系统，用于传递信息和调动军队。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三单元 人口迁徙、文化交融与认同 -->
+        <h1>第三单元 人口迁徙与文化交融</h1>
+        <section id="lesson6">
+            <div class="knowledge-card">
+                <h2>第6课 古代人类的迁徙和区域文化的形成</h2>
+                <ul>
+                    <li><strong>印欧人的迁徙</strong>：
+                        <ul>
+                            <li>印欧人从东欧平原向外迁徙，形成赫梯人、波斯人、希腊人、雅利安人等。</li>
+                            <li>推动了亚欧大陆中西部文化的形成和发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>亚欧游牧民族的迁徙</strong>：
+                        <ul>
+                            <li>匈奴西迁促进了欧洲民族大迁徙。</li>
+                            <li>阿拉伯人扩张，建立了地跨亚非欧的阿拉伯帝国，促进了伊斯兰文化的传播。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson7">
+            <div class="knowledge-card">
+                <h2>第7课 近代殖民活动和人口的跨地域转移</h2>
+                <ul>
+                    <li><strong>欧洲人的殖民扩张</strong>：
+                        <ul>
+                            <li>新航路开辟后，西班牙、葡萄牙、英国、法国等欧洲国家进行殖民扩张。</li>
+                            <li>大量欧洲人移居美洲，印第安人大量死亡，非洲黑人被贩卖到美洲。</li>
+                        </ul>
+                    </li>
+                    <li><strong>美洲文化的演变</strong>：
+                        <ul>
+                            <li>欧洲文化、非洲文化、印第安文化在美洲融合，形成新的文化认同。</li>
+                            <li>拉丁美洲形成以欧洲文化为主体，融合印第安和非洲文化的混合文化。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson8">
+            <div class="knowledge-card">
+                <h2>第8课 现代社会的“移民”和多元文化</h2>
+                <ul>
+                    <li><strong>全球移民浪潮</strong>：
+                        <ul>
+                            <li>二战后，经济全球化推动了大规模跨国移民。</li>
+                            <li>移民主要从发展中国家流向发达国家。</li>
+                        </ul>
+                    </li>
+                    <li><strong>多元文化社会</strong>：
+                        <ul>
+                            <li>美国形成“熔炉”文化，欧洲国家面临移民文化与本土文化的融合问题。</li>
+                            <li>新加坡形成以儒家文化为主体，融合马来、印度和西方文化的多元文化。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四单元 商路、贸易与文化交流 -->
+        <h1>第四单元 商路、贸易与文化交流</h1>
+        <section id="lesson9">
+            <div class="knowledge-card">
+                <h2>第9课 古代的商路、贸易与文化交流</h2>
+                <ul>
+                    <li><strong>丝绸之路</strong>：
+                        <ul>
+                            <li>陆上丝绸之路：从长安出发，经中亚、西亚到达欧洲，促进了中国丝绸、瓷器与西域、欧洲的商品和文化交流。</li>
+                            <li>海上丝绸之路：从中国东南沿海出发，经东南亚、印度洋到达阿拉伯和非洲，促进了陶瓷、香料贸易和佛教传播。</li>
+                        </ul>
+                    </li>
+                    <li><strong>欧亚大陆的其他商路</strong>：
+                        <ul>
+                            <li>草原丝绸之路：连接蒙古高原和东欧。</li>
+                            <li>西南丝绸之路：从四川经云南通往缅甸、印度。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson10">
+            <div class="knowledge-card">
+                <h2>第10课 近代以来的世界贸易与文化交流的扩展</h2>
+                <ul>
+                    <li><strong>全球贸易网络的形成</strong>：
+                        <ul>
+                            <li>新航路开辟后，全球贸易网络形成，商品、技术、文化在全球范围流动。</li>
+                            <li>茶叶、丝绸、瓷器、香料等商品促进了饮食文化和审美观念的变化。</li>
+                        </ul>
+                    </li>
+                    <li><strong>文化交流的扩展</strong>：
+                        <ul>
+                            <li>西方传教士来华传播基督教和西方科技，中国儒家思想影响欧洲启蒙运动。</li>
+                            <li>近代中国向西方学习，推动思想解放和近代化进程。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五单元 战争与文化交锋 -->
+        <h1>第五单元 战争与文化交锋</h1>
+        <section id="lesson11">
+            <div class="knowledge-card">
+                <h2>第11课 古代战争与地域文化的演变</h2>
+                <ul>
+                    <li><strong>亚历山大东征</strong>：
+                        <ul>
+                            <li>公元前4世纪，亚历山大建立地跨欧亚非的大帝国，推广希腊文化，形成希腊化世界。</li>
+                            <li>希腊文化与埃及、巴比伦、印度等文化相互融合，促进了文化发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>蒙古西征</strong>：
+                        <ul>
+                            <li>13世纪蒙古西征，促进了东西方文化交流，中国四大发明等传入欧洲。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson12">
+            <div class="knowledge-card">
+                <h2>第12课 近代战争与西方文化的扩张</h2>
+                <ul>
+                    <li><strong>拿破仑战争</strong>：
+                        <ul>
+                            <li>拿破仑通过战争将法国大革命的思想传播到欧洲各地，推动欧洲封建制度的瓦解。</li>
+                        </ul>
+                    </li>
+                    <li><strong>殖民战争与文化扩张</strong>：
+                        <ul>
+                            <li>欧洲列强通过殖民战争，将西方文化传播到亚非拉地区，与当地文化碰撞融合。</li>
+                            <li>拉美独立运动后形成以欧洲文化为主体的多元文化。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson13">
+            <div class="knowledge-card">
+                <h2>第13课 现代战争与不同文化的碰撞和交流</h2>
+                <ul>
+                    <li><strong>两次世界大战与民族解放运动</strong>：
+                        <ul>
+                            <li>一战和二战后，殖民地半殖民地国家民族意识高涨，民族解放运动兴起。</li>
+                            <li>新兴国家在现代化进程中探索本国文化发展道路，形成多元文化格局。</li>
+                        </ul>
+                    </li>
+                    <li><strong>全球化与文化交流</strong>：
+                        <ul>
+                            <li>二战后，经济全球化推动文化交流日益频繁，文化多样性受到重视。</li>
+                            <li>联合国教科文组织推动世界遗产保护，维护世界文化多样性。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第六单元 文化的传承与保护 -->
+        <h1>第六单元 文化的传承与保护</h1>
+        <section id="lesson14">
+            <div class="knowledge-card">
+                <h2>第14课 文化传承的多种载体及其发展</h2>
+                <ul>
+                    <li><strong>学校教育</strong>：
+                        <ul>
+                            <li>古代中国：官学、私学、书院承担文化传承功能，孔子提出“有教无类”，推动私学发展。</li>
+                            <li>欧洲：中世纪大学（如巴黎大学、牛津大学）兴起，培养人才，促进文化传承。</li>
+                            <li>近代以来，国民教育体系建立，成为文化传承的主要途径。</li>
+                        </ul>
+                    </li>
+                    <li><strong>书籍与印刷术</strong>：
+                        <ul>
+                            <li>造纸术和印刷术的发明，推动了书籍的普及和文化传播。</li>
+                            <li>翻译活动促进了不同文化之间的交流，如明末清初的科技翻译、晚清的西学翻译。</li>
+                        </ul>
+                    </li>
+                    <li><strong>图书馆</strong>：
+                        <ul>
+                            <li>古代：亚述巴尼拔图书馆是古文明的代表。</li>
+                            <li>近代：国家图书馆、公共图书馆普及，促进文化普及和知识传播。</li>
+                        </ul>
+                    </li>
+                    <li><strong>博物馆</strong>：
+                        <ul>
+                            <li>古代：亚历山大博学园中的缪斯宫被认为是博物馆的雏形。</li>
+                            <li>近代：牛津大学阿什莫林博物馆被认为是第一个具有近代特征的博物馆。</li>
+                            <li>中国：南通博物苑是中国人自建的第一个公共博物馆，故宫博物院是中国最大的古代文化艺术博物馆。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson15">
+            <div class="knowledge-card">
+                <h2>第15课 文化遗产：全人类共同的财富</h2>
+                <ul>
+                    <li><strong>文化遗产的保护</strong>：
+                        <ul>
+                            <li>古代就有保护文物的意识，如中国历代对收藏品的保护。</li>
+                            <li>19世纪以来，各国通过立法保护文物，如法国1840年制定《历史性建筑法案》。</li>
+                            <li>国际组织推动文化遗产保护，如联合国教科文组织通过《世界遗产公约》。</li>
+                        </ul>
+                    </li>
+                    <li><strong>世界遗产的登录</strong>：
+                        <ul>
+                            <li>世界遗产分为文化遗产、自然遗产、文化和自然双重遗产。</li>
+                            <li>登录标准：具有突出的普遍价值，真实性和完整性。</li>
+                            <li>中国于1985年加入《世界遗产公约》，长城、故宫、莫高窟、秦始皇陵等被列入世界遗产名录。</li>
+                        </ul>
+                    </li>
+                    <li><strong>文化遗产的保护原则</strong>：
+                        <ul>
+                            <li>真实性原则：保持遗产的原貌。</li>
+                            <li>完整性原则：保护遗产及其环境的整体。</li>
+                        </ul>
+                    </li>
+                    <li><strong>文化遗产的意义</strong>：
+                        <ul>
+                            <li>维护世界文化多样性和创造性。</li>
+                            <li>促进人类文明交流互鉴，推动和平与发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>案例：长城、孔望山摩崖造像、巴黎圣母院</strong>：
+                        <ul>
+                            <li>长城：从军事防御工程演变为中华民族的象征和中华文明的重要标志。</li>
+                            <li>孔望山摩崖造像：东汉佛道杂糅的造像群，体现了佛教传入初期的中国化特征。</li>
+                            <li>巴黎圣母院：2019年发生火灾后，国际社会合作修复，体现了文化遗产作为全人类共同财富的共识。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>政治必修一 · 中国特色社会主义（详细版）</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #b22222;      /* 中国红 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fcf8e8;     /* 浅黄底色 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #b22222;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #b22222;
+        }
+        .category-title:hover { background: rgba(178, 34, 34, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #5a3e2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮红色 */
+        .category-content a.active {
+            color: #b22222;
+            font-weight: 600;
+            background-color: rgba(178, 34, 34, 0.12);
+            border-left: 3px solid #b22222;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #5a3e2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f7f0d6;
+            border: 2px dashed #e5b73b;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #b22222;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #b22222;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5b73b;
+            color: #b22222;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #f0d9b5;
+            padding-bottom: 10px;
+            color: #b22222;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 概念强调 */
+        .concept {
+            font-weight: 600;
+            color: #b22222;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (浅黄背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (政治必修一分类) 依据统编版必修1《中国特色社会主义》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>政治必修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一课 社会主义从空想到科学、从理论到实践的发展 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-lesson1')">✚ 第一课 社会主义的发展</div>
+            <div class="category-content" id="cat-lesson1">
+                <a href="#origin">原始社会与私有制起源</a>
+                <a href="#class">阶级社会的演进</a>
+                <a href="#capitalism">资本主义与剩余价值</a>
+                <a href="#socialism">科学社会主义的诞生</a>
+            </div>
+        </div>
+        
+        <!-- 第二课 只有社会主义才能救中国 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-lesson2')">✚ 第二课 只有社会主义才能救中国</div>
+            <div class="category-content" id="cat-lesson2">
+                <a href="#modern-china">近代中国探索的历程</a>
+                <a href="#new-democracy">新民主主义革命</a>
+                <a href="#socialism-transition">社会主义改造与制度确立</a>
+            </div>
+        </div>
+        
+        <!-- 第三课 只有中国特色社会主义才能发展中国 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-lesson3')">✚ 第三课 中国特色社会主义</div>
+            <div class="category-content" id="cat-lesson3">
+                <a href="#reform-open">改革开放的伟大转折</a>
+                <a href="#four-confidences">四个自信与中国特色社会主义</a>
+                <a href="#chinese-dream">中国梦与新时代</a>
+            </div>
+        </div>
+        
+        <!-- 第四课 习近平新时代中国特色社会主义思想 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-lesson4')">✚ 第四课 习近平新时代中国特色社会主义思想</div>
+            <div class="category-content" id="cat-lesson4">
+                <a href="#core-content">十个明确与十四个坚持</a>
+                <a href="#new-era">新时代与社会主要矛盾</a>
+                <a href="#chinese-modernization">中国式现代化</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">坚定道路自信 · 理论自信 · 制度自信 · 文化自信</div>
+    </nav>
+    
+    <!-- 主要内容：详细版政治必修一知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一课 社会主义从空想到科学、从理论到实践的发展 -->
+        <h1>第一课 社会主义从空想到科学、从理论到实践的发展</h1>
+        <section id="origin">
+            <div class="knowledge-card">
+                <h2>原始社会与私有制起源</h2>
+                <ul>
+                    <li><strong>生产方式的基本范畴</strong>：
+                        <ul>
+                            <li><span class="concept">生产力</span>：人类改造自然的能力。要素包括劳动者、劳动工具、劳动对象。生产工具是生产力发展水平的重要标志。</li>
+                            <li><span class="concept">生产关系</span>：生产过程中形成的人与人之间的关系。内容包括生产资料所有制、人们在生产中的地位和相互关系、分配制度。生产资料所有制起决定作用。</li>
+                            <li><span class="concept">生产力与生产关系辩证关系</span>：生产力决定生产关系；生产关系反作用于生产力。当生产关系适应生产力状况时促进生产力发展，反之阻碍。这是人类社会的基本规律。</li>
+                        </ul>
+                    </li>
+                    <li><strong>原始社会</strong>：
+                        <ul>
+                            <li>地位：人类发展的最初阶段，也是最低阶段。分为旧石器时代（采集天然食物）和新石器时代（原始农业和畜牧业出现）。</li>
+                            <li>生产关系特点：共同占有生产资料；平等互助的关系；平均分配产品。</li>
+                            <li>社会组织：按血缘关系结成的氏族，通过氏族议事会管理集体事务，氏族长由选举产生，没有特权。</li>
+                        </ul>
+                    </li>
+                    <li><strong>私有制的确立</strong>：
+                        <ul>
+                            <li>根本原因：生产力的发展（原始社会末期，个体劳动逐渐取代共同劳动）。</li>
+                            <li>过程：生产工具和牲畜最早归家庭私有 → 土地变成私有财产 → 私有制确立。</li>
+                            <li>后果：贫富分化加剧，氏族成员地位不平等，原始社会解体。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="class">
+            <div class="knowledge-card">
+                <h2>阶级社会的演进</h2>
+                <ul>
+                    <li><strong>奴隶社会</strong>：
+                        <ul>
+                            <li>阶级：奴隶主阶级（剥削者）和奴隶阶级（被剥削者）。阶级是在一定生产关系中处于不同地位的集团。</li>
+                            <li>生产关系特点：奴隶主占有生产资料并完全占有奴隶；奴隶毫无人身自由，在奴隶主强制下劳动；全部产品归奴隶主占有和支配，奴隶仅得最低限度的生活资料。</li>
+                            <li>国家的产生：奴隶主为维护统治建立军队、法庭、监狱等暴力机关——奴隶制国家产生。国家是阶级矛盾不可调和的产物，是阶级统治的工具。</li>
+                            <li>历史进步性：金属工具广泛应用、文字发明、脑力劳动与体力劳动分工，使人类迈入文明时代门槛。判断标准：生产关系是否适应生产力发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>封建社会</strong>：
+                        <ul>
+                            <li>产生：奴隶社会后期生产力发展，封建制生产关系萌芽。</li>
+                            <li>生产力：铁制农具广泛使用，耕作技术进步，水利事业发展，冶铁业成为主要手工业，商业和城市发展。</li>
+                            <li>生产关系特点：地主占有绝大部分土地；农民有一定人身自由，有自己的劳动工具甚至少量土地；地主通过地租（劳役、实物、货币）占有农民大部分劳动成果。</li>
+                            <li>剥削基础：封建土地所有制。</li>
+                            <li>封建国家特征：君主专制、等级森严。</li>
+                            <li>主要矛盾：农民阶级和地主阶级的矛盾。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="capitalism">
+            <div class="knowledge-card">
+                <h2>资本主义与剩余价值</h2>
+                <ul>
+                    <li><strong>资本主义生产关系的建立</strong>：
+                        <ul>
+                            <li>两个基本条件：大批失去生产资料、有人身自由、能出卖劳动力的人；开办企业所需的大量货币资本。西方资产阶级通过掠夺暴力促成这两个条件。</li>
+                            <li>萌芽：封建社会后期，随着生产力和商品经济发展，资本主义生产关系在封建社会内部萌生。</li>
+                            <li>资产阶级革命胜利：标志着资本主义社会的开始。</li>
+                        </ul>
+                    </li>
+                    <li><strong>资本主义生产关系特点</strong>：
+                        <ul>
+                            <li>资本家占有一切生产资料。</li>
+                            <li>劳动者成为雇佣工人，出卖劳动力。</li>
+                            <li>资本家占有工人创造的剩余价值。</li>
+                            <li><span class="concept">剩余价值</span>：工人创造的、被资本家无偿占有的超过劳动力价值的那部分价值。剩余价值的发现揭示了资本家剥削的秘密。</li>
+                        </ul>
+                    </li>
+                    <li><strong>资本主义的历史作用</strong>：
+                        <ul>
+                            <li>工业革命发生和完成，带来生产力巨大飞跃，促进思想解放，使科学、教育、文化达到前所未有的高度。</li>
+                        </ul>
+                    </li>
+                    <li><strong>资本主义经济危机</strong>：
+                        <ul>
+                            <li>基本特征：生产相对过剩（相对于劳动人民有支付能力的需求而言过剩，不是绝对过剩）。</li>
+                            <li>主要表现：大量商品卖不出去，生产资料闲置，企业破产，工人失业，信用关系破坏。</li>
+                            <li>直接原因：生产无限扩大趋势与劳动人民有支付能力需求相对缩小之间的矛盾；个别企业生产有组织性与整个社会生产无政府状态之间的矛盾。</li>
+                            <li><span class="concept">根本原因</span>：生产社会化与生产资料资本主义私人占有之间的矛盾，即资本主义基本矛盾。这是资本主义社会一切矛盾和冲突的总根源。</li>
+                        </ul>
+                    </li>
+                    <li><strong>资本主义的命运</strong>：
+                        <ul>
+                            <li>基本矛盾在阶级关系上表现为无产阶级和资产阶级的对立。</li>
+                            <li>资本主义基本矛盾贯穿始终，决定资本主义必然被社会主义所取代的历史趋势。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="socialism">
+            <div class="knowledge-card">
+                <h2>科学社会主义的诞生</h2>
+                <ul>
+                    <li><strong>历史条件</strong>：
+                        <ul>
+                            <li>思想来源：空想社会主义。代表人物：圣西门、傅立叶、欧文。进步性：揭露批判资本主义弊端，表达未来社会诉求。局限性：从理性原则出发，主张阶级调和，看不到无产阶级力量，找不到社会变革的正确途径。</li>
+                            <li>历史前提：资本主义发展和工人运动兴起。三大工人运动（法国里昂工人起义、英国宪章运动、德意志西里西亚纺织工人起义）标志工人阶级作为独立政治力量登上历史舞台，呼唤科学理论指导。</li>
+                        </ul>
+                    </li>
+                    <li><strong>两大理论基石</strong>：
+                        <ul>
+                            <li><span class="concept">唯物史观</span>：揭示人类社会发展的一般规律（生产关系适应生产力状况），揭示人民群众的历史主体作用，揭示阶级斗争在阶级社会发展的巨大作用。</li>
+                            <li><span class="concept">剩余价值学说</span>：揭示剩余价值的来源，揭示无产阶级与资产阶级利益的根本对立，找到变革资本主义的坚定力量，为无产阶级斗争指明方向。</li>
+                            <li>两大发现使社会主义从空想变为科学。</li>
+                        </ul>
+                    </li>
+                    <li><strong>诞生标志</strong>：1848年2月《共产党宣言》发表。
+                        <ul>
+                            <li>内容：分析资本主义内在矛盾与人类社会规律，论证资本主义必然灭亡和社会主义必然胜利（两个必然）。</li>
+                            <li>论述无产阶级政党性质（先锋队）、特点（无自身特殊利益）、任务（推翻资产阶级统治，建立无产阶级政权）、策略原则（团结绝大多数人）。</li>
+                            <li>阐述未来共产主义理想目标（每个人自由发展是一切人的自由发展的条件）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>马克思主义鲜明特征</strong>：科学性、人民性、实践性、开放性。</li>
+                    <li><strong>社会主义从理论到实践</strong>：
+                        <ul>
+                            <li>巴黎公社：1871年，社会主义运动第一次从理论到实践的尝试。</li>
+                            <li>十月革命：1917年俄国，建立第一个社会主义国家，实现社会主义从理论到现实、从一国到多国的飞跃。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二课 只有社会主义才能救中国 -->
+        <h1>第二课 只有社会主义才能救中国</h1>
+        <section id="modern-china">
+            <div class="knowledge-card">
+                <h2>近代中国探索的历程</h2>
+                <ul>
+                    <li><strong>近代中国社会性质</strong>：鸦片战争后，中国逐步沦为半殖民地半封建社会。基本国情决定了近代中国的主要矛盾是帝国主义与中华民族的矛盾、封建主义与人民大众的矛盾。</li>
+                    <li><strong>探索之路</strong>：
+                        <ul>
+                            <li>农民阶级：太平天国运动、义和团运动——失败。</li>
+                            <li>地主阶级改良派：洋务运动（“师夷长技以自强”）——失败。</li>
+                            <li>资产阶级维新派：戊戌变法（君主立宪）——失败。</li>
+                            <li>资产阶级革命派：辛亥革命（建立中华民国）——推翻了封建帝制，但未能改变中国半殖民地半封建的社会性质。</li>
+                        </ul>
+                    </li>
+                    <li><strong>结论</strong>：资本主义道路在中国走不通。这是由近代中国的基本国情决定的。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="new-democracy">
+            <div class="knowledge-card">
+                <h2>新民主主义革命</h2>
+                <ul>
+                    <li><strong>五四运动</strong>（1919年）：
+                        <ul>
+                            <li>导火索：巴黎和会中国外交失败。</li>
+                            <li>意义：促进了马克思主义在中国的传播；工人阶级登上政治舞台；标志着新民主主义革命的开端。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中国共产党成立</strong>（1921年）：
+                        <ul>
+                            <li>是中国历史上开天辟地的大事变，深刻改变了近代以后中华民族发展的方向和进程，改变了中国人民和中华民族的前途和命运。</li>
+                        </ul>
+                    </li>
+                    <li><strong>新民主主义革命的性质和道路</strong>：
+                        <ul>
+                            <li>性质：无产阶级领导的、工农联盟为基础的、人民大众的、反对帝国主义、封建主义和官僚资本主义的民主革命。</li>
+                            <li>道路：农村包围城市、武装夺取政权。</li>
+                            <li>三大法宝：统一战线、武装斗争、党的建设。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中华人民共和国成立</strong>（1949年）：
+                        <ul>
+                            <li>彻底结束了旧中国半殖民地半封建社会的历史，实现了民族独立和人民解放。</li>
+                            <li>为实现由新民主主义向社会主义的过渡创造了前提条件。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="socialism-transition">
+            <div class="knowledge-card">
+                <h2>社会主义改造与制度确立</h2>
+                <ul>
+                    <li><strong>过渡时期总路线</strong>（1953年）：“一化三改”——社会主义工业化，对农业、手工业和资本主义工商业的社会主义改造。</li>
+                    <li><strong>社会主义改造的完成</strong>（1956年底）：
+                        <ul>
+                            <li>农业：从互助组到初级社再到高级社。</li>
+                            <li>手工业：供销合作到生产合作。</li>
+                            <li>资本主义工商业：加工订货、统购包销到公私合营（和平赎买政策）。</li>
+                            <li>意义：生产资料私有制转变为社会主义公有制，社会主义制度在中国基本建立。</li>
+                        </ul>
+                    </li>
+                    <li><strong>社会主义建设探索</strong>：
+                        <ul>
+                            <li>1956年中共八大：正确分析了社会主要矛盾，提出集中力量发展生产力。</li>
+                            <li>成就：独立的比较完整的工业体系和国民经济体系基本建立。</li>
+                            <li>经验教训：必须从中国国情出发，尊重经济规律。</li>
+                        </ul>
+                    </li>
+                    <li><strong>历史结论</strong>：只有社会主义才能救中国。社会主义制度的确立为中国发展奠定了根本政治前提和制度基础。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三课 只有中国特色社会主义才能发展中国 -->
+        <h1>第三课 只有中国特色社会主义才能发展中国</h1>
+        <section id="reform-open">
+            <div class="knowledge-card">
+                <h2>改革开放的伟大转折</h2>
+                <ul>
+                    <li><strong>党的十一届三中全会</strong>（1978年）：
+                        <ul>
+                            <li>重新确立了解放思想、实事求是的思想路线。</li>
+                            <li>把党和国家工作中心转移到经济建设上来，实行改革开放。</li>
+                            <li>是新中国成立以来党的历史上具有深远意义的伟大转折。</li>
+                        </ul>
+                    </li>
+                    <li><strong>改革开放的进程</strong>：
+                        <ul>
+                            <li>农村改革：家庭联产承包责任制（安徽凤阳小岗村）。</li>
+                            <li>城市改革：扩大企业自主权，发展多种所有制经济。</li>
+                            <li>开放格局：经济特区（深圳、珠海、汕头、厦门）→沿海开放城市→沿海经济开放区→内地，全方位、多层次、宽领域的对外开放格局。</li>
+                        </ul>
+                    </li>
+                    <li><strong>改革开放的意义</strong>：
+                        <ul>
+                            <li>极大解放和发展了社会生产力，使人民生活显著改善，综合国力显著增强。</li>
+                            <li>开创和发展了中国特色社会主义，为社会主义现代化建设提供了强大动力。</li>
+                            <li>改革开放是决定当代中国命运的关键一招，也是决定实现中华民族伟大复兴的关键一招。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="four-confidences">
+            <div class="knowledge-card">
+                <h2>四个自信与中国特色社会主义</h2>
+                <ul>
+                    <li><strong>中国特色社会主义的内涵</strong>：
+                        <ul>
+                            <li>道路：中国特色社会主义道路（实现途径）。</li>
+                            <li>理论：中国特色社会主义理论体系（行动指南）。</li>
+                            <li>制度：中国特色社会主义制度（根本保障）。</li>
+                            <li>文化：中国特色社会主义文化（精神力量）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中国特色社会主义理论体系</strong>：
+                        <ul>
+                            <li>包括：邓小平理论、“三个代表”重要思想、科学发展观、习近平新时代中国特色社会主义思想。</li>
+                            <li>是马克思主义中国化的最新成果，是党最宝贵的政治和精神财富。</li>
+                        </ul>
+                    </li>
+                    <li><span class="concept">四个自信</span>：
+                        <ul>
+                            <li>道路自信：坚信中国特色社会主义道路是实现社会主义现代化的必由之路。</li>
+                            <li>理论自信：坚信中国特色社会主义理论体系是指导党和人民实现中华民族伟大复兴的正确理论。</li>
+                            <li>制度自信：坚信中国特色社会主义制度是当代中国发展进步的根本制度保障。</li>
+                            <li>文化自信：坚信中国特色社会主义文化是激励全党全国各族人民奋勇前进的强大精神力量。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="chinese-dream">
+            <div class="knowledge-card">
+                <h2>中国梦与新时代</h2>
+                <ul>
+                    <li><strong>中国特色社会主义进入新时代</strong>（党的十九大）：
+                        <ul>
+                            <li>这是我国发展新的历史方位。</li>
+                            <li>新时代的内涵：是承前启后、继往开来，在新的历史条件下继续夺取中国特色社会主义伟大胜利的时代；是决胜全面建成小康社会、进而全面建设社会主义现代化强国的时代；是全国各族人民团结奋斗、不断创造美好生活、逐步实现全体人民共同富裕的时代；是全体中华儿女勠力同心、奋力实现中华民族伟大复兴中国梦的时代；是我国日益走近世界舞台中央、不断为人类作出更大贡献的时代。</li>
+                        </ul>
+                    </li>
+                    <li><span class="concept">中国梦</span>：
+                        <ul>
+                            <li>本质：国家富强、民族振兴、人民幸福。</li>
+                            <li>实现途径：必须坚持中国道路、弘扬中国精神、凝聚中国力量。</li>
+                            <li>中国梦归根到底是人民的梦，必须紧紧依靠人民来实现，必须不断为人民造福。</li>
+                        </ul>
+                    </li>
+                    <li><strong>新时代的历史性成就和历史性变革</strong>：
+                        <ul>
+                            <li>在经济建设、政治建设、文化建设、社会建设、生态文明建设等方面取得举世瞩目的成就。</li>
+                            <li>中华民族迎来了从站起来、富起来到强起来的伟大飞跃。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四课 习近平新时代中国特色社会主义思想 -->
+        <h1>第四课 习近平新时代中国特色社会主义思想</h1>
+        <section id="core-content">
+            <div class="knowledge-card">
+                <h2>十个明确与十四个坚持</h2>
+                <ul>
+                    <li><strong>习近平新时代中国特色社会主义思想创立的时代背景</strong>：
+                        <ul>
+                            <li>世界百年未有之大变局加速演进。</li>
+                            <li>中华民族伟大复兴进入关键时期。</li>
+                            <li>中国式现代化全面推进拓展。</li>
+                        </ul>
+                    </li>
+                    <li><span class="concept">十个明确</span>（核心内容的集中概括）：
+                        <ol>
+                            <li>明确中国特色社会主义最本质的特征是中国共产党领导，中国特色社会主义制度的最大优势是中国共产党领导，中国共产党是最高政治领导力量，全党必须增强“四个意识”、坚定“四个自信”、做到“两个维护”。</li>
+                            <li>明确坚持和发展中国特色社会主义，总任务是实现社会主义现代化和中华民族伟大复兴，在全面建成小康社会的基础上，分两步走在本世纪中叶建成富强民主文明和谐美丽的社会主义现代化强国。</li>
+                            <li>明确新时代我国社会主要矛盾是人民日益增长的美好生活需要和不平衡不充分的发展之间的矛盾，必须坚持以人民为中心的发展思想，发展全过程人民民主，推动人的全面发展、全体人民共同富裕取得更为明显的实质性进展。</li>
+                            <li>明确中国特色社会主义事业总体布局是经济建设、政治建设、文化建设、社会建设、生态文明建设五位一体，战略布局是全面建设社会主义现代化国家、全面深化改革、全面依法治国、全面从严治党四个全面。</li>
+                            <li>明确全面深化改革总目标是完善和发展中国特色社会主义制度、推进国家治理体系和治理能力现代化。</li>
+                            <li>明确全面推进依法治国总目标是建设中国特色社会主义法治体系、建设社会主义法治国家。</li>
+                            <li>明确必须坚持和完善社会主义基本经济制度，使市场在资源配置中起决定性作用，更好发挥政府作用，把握新发展阶段，贯彻创新、协调、绿色、开放、共享的新发展理念，加快构建以国内大循环为主体、国内国际双循环相互促进的新发展格局，推动高质量发展，统筹发展和安全。</li>
+                            <li>明确党在新时代的强军目标是建设一支听党指挥、能打胜仗、作风优良的人民军队，把人民军队建设成为世界一流军队。</li>
+                            <li>明确中国特色大国外交要服务民族复兴、促进人类进步，推动建设新型国际关系，推动构建人类命运共同体。</li>
+                            <li>明确全面从严治党的战略方针，提出新时代党的建设总要求，全面推进党的政治建设、思想建设、组织建设、作风建设、纪律建设，把制度建设贯穿其中，深入推进反腐败斗争，落实管党治党政治责任，以伟大自我革命引领伟大社会革命。</li>
+                        </ol>
+                    </li>
+                    <li><span class="concept">十四个坚持</span>（基本方略）：
+                        <ul>
+                            <li>坚持党对一切工作的领导；坚持以人民为中心；坚持全面深化改革；坚持新发展理念；坚持人民当家作主；坚持全面依法治国；坚持社会主义核心价值体系；坚持在发展中保障和改善民生；坚持人与自然和谐共生；坚持总体国家安全观；坚持党对人民军队的绝对领导；坚持“一国两制”和推进祖国统一；坚持推动构建人类命运共同体；坚持全面从严治党。</li>
+                            <li>十四个坚持是习近平新时代中国特色社会主义思想的重要组成部分，是落实习近平新时代中国特色社会主义思想的实践要求。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="new-era">
+            <div class="knowledge-card">
+                <h2>新时代与社会主要矛盾</h2>
+                <ul>
+                    <li><strong>新时代我国社会主要矛盾</strong>：
+                        <ul>
+                            <li>表述：人民日益增长的美好生活需要和不平衡不充分的发展之间的矛盾。</li>
+                            <li>依据：我国稳定解决了十几亿人的温饱问题，总体上实现小康，不久将全面建成小康社会；人民美好生活需要日益广泛，不仅对物质文化生活提出了更高要求，而且在民主、法治、公平、正义、安全、环境等方面的要求日益增长；同时，我国社会生产力水平总体上显著提高，社会生产能力在很多方面进入世界前列，但发展不平衡不充分问题更加突出，这已经成为满足人民日益增长的美好生活需要的主要制约因素。</li>
+                        </ul>
+                    </li>
+                    <li><strong>新时代的意义</strong>：
+                        <ul>
+                            <li>对中华民族：意味着近代以来久经磨难的中华民族迎来了从站起来、富起来到强起来的伟大飞跃。</li>
+                            <li>对社会主义：意味着科学社会主义在21世纪的中国焕发出强大生机活力，在世界上高高举起了中国特色社会主义伟大旗帜。</li>
+                            <li>对发展中国家：意味着中国特色社会主义道路、理论、制度、文化不断发展，拓展了发展中国家走向现代化的途径，给那些既希望加快发展又希望保持自身独立性的国家和民族提供了全新选择。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="chinese-modernization">
+            <div class="knowledge-card">
+                <h2>中国式现代化</h2>
+                <ul>
+                    <li><strong>中国式现代化的特征</strong>：
+                        <ul>
+                            <li>是人口规模巨大的现代化。</li>
+                            <li>是全体人民共同富裕的现代化。</li>
+                            <li>是物质文明和精神文明相协调的现代化。</li>
+                            <li>是人与自然和谐共生的现代化。</li>
+                            <li>是走和平发展道路的现代化。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中国式现代化的本质要求</strong>：
+                        <ul>
+                            <li>坚持中国共产党领导，坚持中国特色社会主义，实现高质量发展，发展全过程人民民主，丰富人民精神世界，实现全体人民共同富裕，促进人与自然和谐共生，推动构建人类命运共同体，创造人类文明新形态。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中国式现代化的意义</strong>：
+                        <ul>
+                            <li>打破了“现代化=西方化”的迷思，展现了现代化的另一幅图景。</li>
+                            <li>为发展中国家走向现代化提供了中国智慧和中国方案。</li>
+                            <li>创造了人类文明新形态，为人类对更好社会制度的探索提供了中国方案。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

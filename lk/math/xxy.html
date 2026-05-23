@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>数学选修一</title>
+    
+    <!-- KaTeX 渲染（选修一公式较多） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        /* 无图片，但保留样式以备将来 */
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;  /* 移动端固定左侧宽度 */
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (数学选修一分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>数学选修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-kjxl')">✚ 空间向量</div>
+            <div class="category-content" id="cat-kjxl">
+                <a href="#xlgn">概念与运算</a>
+                <a href="#xlslj">数量积</a>
+                <a href="#xlzb">坐标表示</a>
+                <a href="#xljj">夹角与距离</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ltjj')">✚ 立体几何中的向量方法</div>
+            <div class="category-content" id="cat-ltjj">
+                <a href="#fxpx">方向向量与法向量</a>
+                <a href="#zmpz">证明平行与垂直</a>
+                <a href="#qj">求角（线线、线面、面面）</a>
+                <a href="#qjl">求距离</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-zxy')">✚ 直线与圆的方程</div>
+            <div class="category-content" id="cat-zxy">
+                <a href="#zxf">直线方程形式</a>
+                <a href="#zxwz">两条直线的位置关系</a>
+                <a href="#jlgs">距离公式</a>
+                <a href="#yfc">圆的方程</a>
+                <a href="#zxyp">直线与圆、圆与圆的位置关系</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-yzqx')">✚ 圆锥曲线</div>
+            <div class="category-content" id="cat-yzqx">
+                <a href="#ty">椭圆</a>
+                <a href="#syx">双曲线</a>
+                <a href="#pwx">抛物线</a>
+                <a href="#zqgx">直线与圆锥曲线</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：数学选修一知识点卡片（纯文字，无图片） -->
+    <main>
+        <!-- 空间向量 章节 -->
+        <h1>空间向量</h1>
+        
+        <section id="xlgn">
+            <div class="knowledge-card">
+                <h2>概念与运算</h2>
+                <p>
+                    <b>空间向量</b>：在空间中，具有大小和方向的量，用有向线段表示。<br>
+                    <b>零向量</b>：长度为0的向量，方向任意。<br>
+                    <b>单位向量</b>：模为1的向量。<br>
+                    <b>相等向量</b>：方向相同且模相等。<br>
+                    <b>相反向量</b>：模相等，方向相反。<br>
+                    <b>向量的加法</b>：三角形法则、平行四边形法则；满足交换律、结合律。<br>
+                    <b>向量的减法</b>：a - b = a + (-b)。<br>
+                    <b>数乘向量</b>：λa，λ>0时与a同向，λ<0时反向；满足分配律、结合律。<br>
+                    <b>共线向量定理</b>：对空间任意两个向量a,b(b≠0)，a∥b ⇔ 存在唯一实数λ使a=λb。<br>
+                    <b>共面向量定理</b>：两个不共线的向量a,b，则向量p与a,b共面 ⇔ 存在唯一实数对(x,y)使p=xa+yb。
+                </p>
+            </div>
+        </section>
+        
+        <section id="xlslj">
+            <div class="knowledge-card">
+                <h2>数量积</h2>
+                <p>
+                    <b>夹角</b>：两向量a,b的夹角记为〈a,b〉，范围[0,π]。<br>
+                    <b>数量积定义</b>：a·b = |a||b|cos〈a,b〉。<br>
+                    <b>几何意义</b>：a·b等于a的长度|a|与b在a方向上的投影|b|cosθ的乘积。<br>
+                    <b>运算律</b>：交换律、分配律、(λa)·b = λ(a·b)。<br>
+                    <b>性质</b>：a·a = |a|²；a⊥b ⇔ a·b = 0。<br>
+                    <b>模长公式</b>：|a| = √(a·a)。<br>
+                    <b>夹角公式</b>：cos〈a,b〉 = (a·b) / (|a||b|)。
+                </p>
+            </div>
+        </section>
+
+        <section id="xlzb">
+            <div class="knowledge-card">
+                <h2>坐标表示</h2>
+                <p>
+                    在空间直角坐标系Oxyz中，取与x,y,z轴同向的单位向量i,j,k作为基底。<br>
+                    对任意向量a，存在唯一有序实数对(x,y,z)使a = xi + yj + zk，(x,y,z)称为a的坐标。<br>
+                    设a=(x₁,y₁,z₁)，b=(x₂,y₂,z₂)，则：<br>
+                    a±b = (x₁±x₂, y₁±y₂, z₁±z₂)；<br>
+                    λa = (λx₁, λy₁, λz₁)；<br>
+                    a·b = x₁x₂ + y₁y₂ + z₁z₂；<br>
+                    |a| = √(x₁²+y₁²+z₁²)；<br>
+                    cos〈a,b〉 = (x₁x₂+y₁y₂+z₁z₂) / (√(x₁²+y₁²+z₁²)·√(x₂²+y₂²+z₂²))。
+                </p>
+            </div>
+        </section>
+
+        <section id="xljj">
+            <div class="knowledge-card">
+                <h2>夹角与距离</h2>
+                <p>
+                    <b>两点距离</b>：A(x₁,y₁,z₁)，B(x₂,y₂,z₂)，则 |AB| = √[(x₂-x₁)²+(y₂-y₁)²+(z₂-z₁)²]。<br>
+                    <b>点到直线的距离</b>：设点P，直线l方向向量为u，点A在l上，则距离 d = |AP × u| / |u|。<br>
+                    <b>点到平面的距离</b>：设点P，平面α法向量为n，点A在α上，则距离 d = |AP·n| / |n|。<br>
+                    <b>异面直线距离</b>：设两直线方向向量分别为u,v，公垂线段方向与u,v均垂直，用向量法可求。
+                </p>
+            </div>
+        </section>
+
+        <!-- 立体几何中的向量方法 章节 -->
+        <h1>立体几何中的向量方法</h1>
+
+        <section id="fxpx">
+            <div class="knowledge-card">
+                <h2>方向向量与法向量</h2>
+                <p>
+                    <b>方向向量</b>：与直线平行的非零向量。<br>
+                    <b>法向量</b>：与平面垂直的非零向量。平面的法向量不唯一，但方向相同或相反。<br>
+                    求法向量的常用方法：设n=(x,y,z)，利用n与平面内两个不共线向量垂直（点积为0）列出方程组，取一组非零解。
+                </p>
+            </div>
+        </section>
+
+        <section id="zmpz">
+            <div class="knowledge-card">
+                <h2>证明平行与垂直</h2>
+                <p>
+                    <b>线线平行</b>：方向向量共线。<br>
+                    <b>线面平行</b>：直线的方向向量与平面的法向量垂直，且直线不在平面内。<br>
+                    <b>面面平行</b>：两个平面的法向量共线。<br>
+                    <b>线线垂直</b>：方向向量的数量积为0。<br>
+                    <b>线面垂直</b>：直线的方向向量与平面的法向量共线。<br>
+                    <b>面面垂直</b>：两个平面的法向量数量积为0。
+                </p>
+            </div>
+        </section>
+
+        <section id="qj">
+            <div class="knowledge-card">
+                <h2>求角</h2>
+                <p>
+                    <b>两条异面直线所成的角θ</b>：设方向向量为u,v，则 cosθ = |u·v|/(|u||v|) (0<θ≤π/2)。<br>
+                    <b>直线与平面所成的角θ</b>：设直线的方向向量为u，平面的法向量为n，则 sinθ = |u·n|/(|u||n|) (0≤θ≤π/2)。<br>
+                    <b>二面角的平面角θ</b>：设两个平面的法向量分别为n₁,n₂，则 cosθ = |n₁·n₂|/(|n₁||n₂|) 或取其补角，需根据图形判断。
+                </p>
+            </div>
+        </section>
+
+        <section id="qjl">
+            <div class="knowledge-card">
+                <h2>求距离</h2>
+                <p>
+                    <b>点到平面的距离</b>：如上节公式。<br>
+                    <b>直线到平面的距离</b>（线面平行）：转化为直线上一点到平面的距离。<br>
+                    <b>平行平面间的距离</b>：转化为一个平面上一点到另一平面的距离。<br>
+                    <b>异面直线的距离</b>：转化为公垂线段长度，可用向量法：设两直线方向向量u,v，求同时垂直于u,v的向量n（可取n=u×v），再取两直线上各一点构成的向量在n上的投影长度。
+                </p>
+            </div>
+        </section>
+
+        <!-- 直线与圆的方程 章节 -->
+        <h1>直线与圆的方程</h1>
+
+        <section id="zxf">
+            <div class="knowledge-card">
+                <h2>直线方程形式</h2>
+                <p>
+                    <b>点斜式</b>：y - y₀ = k(x - x₀)（斜率k存在）。<br>
+                    <b>斜截式</b>：y = kx + b。<br>
+                    <b>两点式</b>：(y - y₁)/(y₂ - y₁) = (x - x₁)/(x₂ - x₁)（x₁≠x₂, y₁≠y₂）。<br>
+                    <b>截距式</b>：x/a + y/b = 1（a,b为截距，不为0）。<br>
+                    <b>一般式</b>：Ax + By + C = 0（A,B不同时为0）。<br>
+                    <b>参数式</b>：{x = x₀ + t·cosα, y = y₀ + t·sinα}（t为参数，α为倾斜角）。
+                </p>
+            </div>
+        </section>
+
+        <section id="zxwz">
+            <div class="knowledge-card">
+                <h2>两条直线的位置关系</h2>
+                <p>
+                    设直线l₁: A₁x+B₁y+C₁=0，l₂: A₂x+B₂y+C₂=0。<br>
+                    <b>平行</b>：A₁B₂ = A₂B₁ 且 B₁C₂ ≠ B₂C₁（或 A₁C₂ ≠ A₂C₁）。<br>
+                    <b>垂直</b>：A₁A₂ + B₁B₂ = 0。<br>
+                    <b>相交</b>：联立方程组有唯一解。<br>
+                    <b>夹角公式</b>：tanθ = |(k₂ - k₁)/(1 + k₁k₂)|（k₁k₂≠-1），或直接用方向向量。
+                </p>
+            </div>
+        </section>
+
+        <section id="jlgs">
+            <div class="knowledge-card">
+                <h2>距离公式</h2>
+                <p>
+                    <b>两点间距离</b>：|P₁P₂| = √[(x₂-x₁)² + (y₂-y₁)²]。<br>
+                    <b>点到直线的距离</b>：点P(x₀,y₀)到直线Ax+By+C=0的距离 d = |Ax₀+By₀+C| / √(A²+B²)。<br>
+                    <b>两平行线距离</b>：l₁: Ax+By+C₁=0，l₂: Ax+By+C₂=0，则 d = |C₁ - C₂| / √(A²+B²)。
+                </p>
+            </div>
+        </section>
+
+        <section id="yfc">
+            <div class="knowledge-card">
+                <h2>圆的方程</h2>
+                <p>
+                    <b>标准方程</b>：(x - a)² + (y - b)² = r²，圆心(a,b)，半径r>0。<br>
+                    <b>一般方程</b>：x² + y² + Dx + Ey + F = 0 (D²+E²-4F>0)，圆心(-D/2, -E/2)，半径 r = ½√(D²+E²-4F)。<br>
+                    <b>直径式</b>：(x-x₁)(x-x₂)+(y-y₁)(y-y₂)=0，其中A(x₁,y₁),B(x₂,y₂)为直径端点。
+                </p>
+            </div>
+        </section>
+
+        <section id="zxyp">
+            <div class="knowledge-card">
+                <h2>直线与圆、圆与圆的位置关系</h2>
+                <p>
+                    <b>直线与圆</b>：圆心到直线的距离d与半径r比较。<br>
+                    d<r ⇔ 相交；d=r ⇔ 相切；d>r ⇔ 相离。<br>
+                    <b>圆与圆</b>：圆心距d与两半径r₁,r₂关系。<br>
+                    d>r₁+r₂ ⇔ 外离；d=r₁+r₂ ⇔ 外切；|r₁-r₂|<d<r₁+r₂ ⇔ 相交；d=|r₁-r₂| ⇔ 内切；d<|r₁-r₂| ⇔ 内含。
+                </p>
+            </div>
+        </section>
+
+        <!-- 圆锥曲线 章节 -->
+        <h1>圆锥曲线</h1>
+
+        <section id="ty">
+            <div class="knowledge-card">
+                <h2>椭圆</h2>
+                <p>
+                    <b>定义</b>：平面内到两个定点F₁,F₂的距离之和等于常数(大于|F₁F₂|)的点的轨迹。<br>
+                    <b>标准方程</b>：焦点在x轴：x²/a² + y²/b² = 1 (a>b>0)，焦点(±c,0)，c²=a²-b²；<br>
+                    焦点在y轴：y²/a² + x²/b² = 1 (a>b>0)，焦点(0,±c)，c²=a²-b²。<br>
+                    <b>范围</b>：-a≤x≤a, -b≤y≤b（焦点在x轴）。<br>
+                    <b>对称性</b>：关于x轴、y轴、原点对称。<br>
+                    <b>顶点</b>：(±a,0), (0,±b)。<br>
+                    <b>离心率</b>：e = c/a (0<e<1)，e越大越扁。<br>
+                    <b>通径</b>：过焦点垂直于长轴的弦长 2b²/a。
+                </p>
+            </div>
+        </section>
+
+        <section id="syx">
+            <div class="knowledge-card">
+                <h2>双曲线</h2>
+                <p>
+                    <b>定义</b>：平面内到两个定点F₁,F₂的距离之差的绝对值等于常数(小于|F₁F₂|)的点的轨迹。<br>
+                    <b>标准方程</b>：焦点在x轴：x²/a² - y²/b² = 1 (a>0,b>0)，焦点(±c,0)，c²=a²+b²；<br>
+                    焦点在y轴：y²/a² - x²/b² = 1 (a>0,b>0)，焦点(0,±c)，c²=a²+b²。<br>
+                    <b>范围</b>：|x|≥a（焦点在x轴）。<br>
+                    <b>对称性</b>：关于x轴、y轴、原点对称。<br>
+                    <b>顶点</b>：(±a,0)（焦点在x轴）。<br>
+                    <b>渐近线</b>：焦点在x轴：y = ±(b/a)x；焦点在y轴：y = ±(a/b)x。<br>
+                    <b>离心率</b>：e = c/a (e>1)，e越大开口越大。<br>
+                    <b>通径</b>：2b²/a。
+                </p>
+            </div>
+        </section>
+
+        <section id="pwx">
+            <div class="knowledge-card">
+                <h2>抛物线</h2>
+                <p>
+                    <b>定义</b>：平面内到一个定点F（焦点）和一条定直线l（准线）距离相等的点的轨迹。<br>
+                    <b>标准方程</b>：<br>
+                    开口向右：y² = 2px (p>0)，焦点(p/2,0)，准线 x = -p/2；<br>
+                    开口向左：y² = -2px (p>0)，焦点(-p/2,0)，准线 x = p/2；<br>
+                    开口向上：x² = 2py (p>0)，焦点(0,p/2)，准线 y = -p/2；<br>
+                    开口向下：x² = -2py (p>0)，焦点(0,-p/2)，准线 y = p/2。<br>
+                    <b>范围、对称性</b>：根据开口方向确定。<br>
+                    <b>离心率</b>：e = 1。<br>
+                    <b>通径</b>：2p。
+                </p>
+            </div>
+        </section>
+
+        <section id="zqgx">
+            <div class="knowledge-card">
+                <h2>直线与圆锥曲线</h2>
+                <p>
+                    <b>位置关系</b>：联立直线与圆锥曲线方程，消元得一元二次方程，判别式Δ判定：<br>
+                    Δ>0 ⇔ 相交（两个交点）；Δ=0 ⇔ 相切；Δ<0 ⇔ 相离。<br>
+                    <b>弦长公式</b>：设直线斜率为k，与曲线交于A(x₁,y₁),B(x₂,y₂)，则 |AB| = √[(1+k²)((x₁+x₂)²-4x₁x₂)]。<br>
+                    <b>中点弦问题</b>：常用点差法求斜率。<br>
+                    <b>焦点弦</b>：过焦点的弦，有特殊性质（如抛物线焦点弦长 = x₁+x₂+p）。
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+          // 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>生物选修二 · 生物与环境</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2e7d32;      /* 生态绿 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e0f2e0;     /* 柔和绿色背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #1b5e20;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #1b5e20;
+        }
+        .category-title:hover { background: rgba(46, 125, 50, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #2e3b2e;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮绿色 */
+        .category-content a.active {
+            color: #1b5e20;
+            font-weight: 600;
+            background-color: rgba(46, 125, 50, 0.12);
+            border-left: 3px solid #1b5e20;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #2e3b2e;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f1f8e9;
+            border: 2px dashed #81c784;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2e7d32;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #1b5e20;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #81c784;
+            color: #1b5e20;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #c8e6c9;
+            padding-bottom: 10px;
+            color: #1b5e20;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 公式微调 */
+        .formula {
+            font-style: italic;
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (生态绿背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (生物选修二分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>生物选修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一章 种群及其动态 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-population')">✚ 种群及其动态</div>
+            <div class="category-content" id="cat-population">
+                <a href="#pop-char">种群的数量特征</a>
+                <a href="#pop-density">种群密度的调查</a>
+                <a href="#pop-change">种群数量的变化</a>
+                <a href="#pop-factor">影响种群数量变化的因素</a>
+            </div>
+        </div>
+        
+        <!-- 第二章 群落及其演替 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-community')">✚ 群落及其演替</div>
+            <div class="category-content" id="cat-community">
+                <a href="#com-structure">群落的结构</a>
+                <a href="#com-type">群落的主要类型</a>
+                <a href="#com-succession">群落的演替</a>
+            </div>
+        </div>
+        
+        <!-- 第三章 生态系统及其稳定性 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ecosystem')">✚ 生态系统及其稳定性</div>
+            <div class="category-content" id="cat-ecosystem">
+                <a href="#eco-structure">生态系统的结构</a>
+                <a href="#energy-flow">能量流动</a>
+                <a href="#material-cycle">物质循环</a>
+                <a href="#info-trans">信息传递</a>
+                <a href="#stability">生态系统的稳定性</a>
+            </div>
+        </div>
+        
+        <!-- 第四章 人与环境 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-human')">✚ 人与环境</div>
+            <div class="category-content" id="cat-human">
+                <a href="#human-impact">人类活动对生态环境的影响</a>
+                <a href="#biodiversity">生物多样性及其保护</a>
+                <a href="#eco-engineering">生态工程</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">保护环境 · 和谐共生</div>
+    </nav>
+    
+    <!-- 主要内容：完整生物选修二知识点卡片 (详细版, 无图片, 无citation) -->
+    <main>
+        <!-- 第一章 种群及其动态 (详细) -->
+        <h1>第一章 种群及其动态</h1>
+        <section id="pop-char">
+            <div class="knowledge-card">
+                <h2>种群的数量特征</h2>
+                <ul>
+                    <li><strong>种群密度</strong>：种群在单位面积或单位体积中的个体数。是种群最基本的数量特征。
+                        <ul>
+                            <li>公式：种群密度 = 个体数 / 面积（或体积）</li>
+                            <li>意义：反映种群数量多少，但无法单独预测种群变化趋势。</li>
+                        </ul>
+                    </li>
+                    <li><strong>出生率和死亡率</strong>
+                        <ul>
+                            <li>出生率：单位时间内新产生的个体数目占该种群个体总数的比值。</li>
+                            <li>死亡率：单位时间内死亡的个体数目占该种群个体总数的比值。</li>
+                            <li>两者直接决定种群密度变化（出生率 > 死亡率 → 种群增长；反之下降）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>迁入率和迁出率</strong>
+                        <ul>
+                            <li>迁入率：单位时间内迁入的个体数占种群总数的比值。</li>
+                            <li>迁出率：单位时间内迁出的个体数占种群总数的比值。</li>
+                            <li>对城市人口、旅鼠等种群密度影响显著。</li>
+                        </ul>
+                    </li>
+                    <li><strong>年龄结构</strong>：种群中各年龄期个体数的比例。分为三种类型：
+                        <ul>
+                            <li><strong>增长型</strong>：幼年个体多，老年个体少 → 出生率 > 死亡率，种群密度增大。</li>
+                            <li><strong>稳定型</strong>：各年龄期比例适中 → 出生率 ≈ 死亡率，种群密度基本稳定。</li>
+                            <li><strong>衰退型</strong>：幼年个体少，老年个体多 → 出生率 < 死亡率，种群密度减小。</li>
+                        </ul>
+                        年龄结构通过影响出生率和死亡率间接影响种群密度，可预测种群变化趋势。
+                    </li>
+                    <li><strong>性别比例</strong>：种群中雌雄个体数量的比例。通过影响出生率间接影响种群密度。
+                        <ul>
+                            <li>类型：雌雄相当（多见于高等动物）、雌多于雄（如象海豹）、雄多于雌（如家白蚁）。</li>
+                            <li>应用：用性引诱剂诱杀雄性害虫，降低出生率。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="pop-density">
+            <div class="knowledge-card">
+                <h2>种群密度的调查方法</h2>
+                <ul>
+                    <li><strong>样方法</strong>：适用于植物或活动能力弱、活动范围小的动物（如昆虫卵、蚜虫、跳蝻）。
+                        <ul>
+                            <li>步骤：随机取样（常用五点取样法、等距取样法）→计数样方内个体数→计算平均值。</li>
+                            <li>样方大小：草本植物1m²，灌木16m²，乔木100m²。</li>
+                            <li>边缘计数原则：样方相邻两边及其顶角的个体（计上不计下，计左不计右）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>标记重捕法</strong>：适用于活动能力强、活动范围大的动物（如鸟、鼠、鱼）。
+                        <ul>
+                            <li>原理：在调查区域内捕获一部分个体进行标记，放回后再次捕获，根据重捕中标记个体比例推算总数。</li>
+                            <li>公式：种群数量 N = M * n / m，其中M为初次标记数，n为重捕总数，m为重捕中被标记数。</li>
+                            <li>注意事项：标记物不能过分醒目、不影响动物活动、不易脱落；调查期间没有大规模迁入迁出和死亡。</li>
+                        </ul>
+                    </li>
+                    <li><strong>其他方法</strong>：
+                        <ul>
+                            <li>黑光灯诱捕法：用于趋光性昆虫。</li>
+                            <li>红外触发相机、粪便DNA分析、鸣叫计数法等现代技术。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="pop-change">
+            <div class="knowledge-card">
+                <h2>种群数量的变化</h2>
+                <ul>
+                    <li><strong>“J”形增长</strong>
+                        <ul>
+                            <li>条件：食物和空间充裕、气候适宜、无敌害、无疾病等理想条件。</li>
+                            <li>数学模型：Nt=N0λt （N₀为起始数量，λ为当年种群数量与前一年比值，t为时间）。</li>
+                            <li>特点：增长率保持不变，无K值，种群数量持续指数增长。</li>
+                        </ul>
+                    </li>
+                    <li><strong>“S”形增长</strong>
+                        <ul>
+                            <li>条件：自然条件有限（环境阻力），种群经过一定时间增长后趋于稳定。</li>
+                            <li>数学模型：逻辑斯蒂方程 dNdt=λN(KN)，其中K为环境容纳量，r为瞬时增长率。</li>
+                            <li>特点：
+                                <ul>
+                                    <li>种群数量达到K/2时，增长速率最快（渔业捕捞、狩猎最佳时机）。</li>
+                                    <li>达到K值时，种群增长速率为0，数量在K值上下波动。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>K值（环境容纳量）</strong>：在环境条件不受破坏的情况下，一定空间所能维持的种群最大数量。K值随环境改变而变化（如食物增加K值升高）。</li>
+                    <li><strong>种群数量的波动和下降</strong>：多数种群数量在K值附近波动，受气候、食物、疾病、天敌等因素影响。当种群数量过小或环境剧变时可能下降甚至灭绝。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="pop-factor">
+            <div class="knowledge-card">
+                <h2>影响种群数量变化的因素</h2>
+                <ul>
+                    <li><strong>非生物因素</strong>：阳光、温度、水、土壤pH、污染物等。
+                        <ul>
+                            <li>例如：光照影响植物开花、动物繁殖；低温导致动物冬眠；干旱使种群死亡率上升。</li>
+                        </ul>
+                    </li>
+                    <li><strong>生物因素</strong>
+                        <ul>
+                            <li><strong>种内关系</strong>：种内竞争（争夺食物、空间），种内互助（如狼群合作捕猎）。</li>
+                            <li><strong>种间关系</strong>：捕食、竞争、寄生、互利共生、原始合作等（详见群落部分）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>密度制约因素</strong>：影响程度与种群密度有关，如食物、天敌、传染病。种群密度越大，这些因素作用越强。</li>
+                    <li><strong>非密度制约因素</strong>：影响程度与种群密度无关，如气候、自然灾害、环境污染。这些因素可突然改变种群数量。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 群落及其演替 (详细) -->
+        <h1>第二章 群落及其演替</h1>
+        <section id="com-structure">
+            <div class="knowledge-card">
+                <h2>群落的结构</h2>
+                <ul>
+                    <li><strong>物种组成</strong>：群落的特征之一，决定群落性质。
+                        <ul>
+                            <li><strong>优势种</strong>：数量多、占优势的物种，对群落结构和功能影响最大。</li>
+                            <li><strong>常见种</strong>：数量较少的伴生种。</li>
+                            <li><strong>物种丰富度</strong>：群落中物种数目的多少。从热带到北极，丰富度一般递减。</li>
+                        </ul>
+                    </li>
+                    <li><strong>种间关系</strong>（详细分类）：
+                        <ul>
+                            <li><strong>原始合作</strong>：双方互利，但关系不紧密，分开后也能生存（如寄居蟹和海葵）。</li>
+                            <li><strong>互利共生</strong>：双方相互依赖，彼此有利，分开后不能生存（如豆科植物与根瘤菌、地衣中的真菌与藻类）。</li>
+                            <li><strong>种间竞争</strong>：两种生物争夺资源（食物、空间）而导致双方受抑制（如水稻与杂草）。竞争结果可能是一方占优势，另一方被淘汰，或生态位分化。</li>
+                            <li><strong>捕食</strong>：一种生物以另一种生物为食。捕食者往往捕食老弱病残个体，对种群有调节作用。</li>
+                            <li><strong>寄生</strong>：一种生物生活在另一种生物体内或体表，摄取营养，对宿主有害（如蛔虫、菟丝子）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>空间结构</strong>
+                        <ul>
+                            <li><strong>垂直结构</strong>：生物在垂直方向上的分层现象。如森林中乔木、灌木、草本、地被层；水域中浮游、游泳、底栖。提高了资源利用率。</li>
+                            <li><strong>水平结构</strong>：由于地形、光照、土壤湿度等因素，生物在水平方向上呈镶嵌分布。如盐碱地不同地段植物种类差异。</li>
+                        </ul>
+                    </li>
+                    <li><strong>生态位</strong>：一个物种在群落中的地位和作用，包括空间位置、食物、活动时间、与其他物种的关系等。生态位重叠会导致竞争，生态位分化可减少竞争。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="com-type">
+            <div class="knowledge-card">
+                <h2>群落的主要类型</h2>
+                <ul>
+                    <li><strong>陆地生物群落</strong>
+                        <ul>
+                            <li><strong>森林群落</strong>：热带雨林（物种丰富，结构复杂）、落叶阔叶林（温带）、针叶林（寒温带）。</li>
+                            <li><strong>草原群落</strong>：以多年生草本为主，气候半干旱，如温带草原、热带稀树草原。</li>
+                            <li><strong>荒漠群落</strong>：降水极少，动植物耐旱（如仙人掌、骆驼刺）。</li>
+                            <li><strong>湿地群落</strong>：水生和陆生过渡，如沼泽、红树林。</li>
+                        </ul>
+                    </li>
+                    <li><strong>水生生物群落</strong>
+                        <ul>
+                            <li><strong>淡水群落</strong>：河流、湖泊、池塘。浮游植物、浮游动物、底栖动物、鱼类等。</li>
+                            <li><strong>海洋群落</strong>：分为潮间带、浅海、大洋区、深海热泉等。如珊瑚礁（高生物多样性）。</li>
+                        </ul>
+                    </li>
+                    <li>不同类型群落具有不同的物种组成和优势种，是长期自然选择适应环境的结果。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="com-succession">
+            <div class="knowledge-card">
+                <h2>群落的演替</h2>
+                <ul>
+                    <li><strong>初生演替</strong>
+                        <ul>
+                            <li>定义：从未被生物覆盖过的裸地（裸岩、沙丘、火山岩）开始的演替。</li>
+                            <li>典型过程（裸岩→地衣→苔藓→草本→灌木→森林）：
+                                <ul>
+                                    <li>地衣阶段：分泌有机酸，风化岩石，形成土壤。</li>
+                                    <li>苔藓阶段：进一步积累土壤和有机物。</li>
+                                    <li>草本阶段：土壤增多，小气候改善，昆虫等动物出现。</li>
+                                    <li>灌木阶段：更高大植物取代草本，改善土壤。</li>
+                                    <li>乔木阶段：形成森林，物种丰富，群落稳定。</li>
+                                </ul>
+                            </li>
+                            <li>特点：时间长、速度慢、起始无土壤。</li>
+                        </ul>
+                    </li>
+                    <li><strong>次生演替</strong>
+                        <ul>
+                            <li>定义：原有植被被破坏但土壤条件基本保留（弃耕农田、火灾后森林、过度放牧草原）的演替。</li>
+                            <li>过程（弃耕农田→一年生杂草→多年生杂草→灌木→乔木）比初生演替快。</li>
+                            <li>特点：时间短、速度较快，原有土壤和繁殖体（种子、根）促进恢复。</li>
+                        </ul>
+                    </li>
+                    <li><strong>演替方向</strong>：一般朝着物种多样化、结构复杂化、功能完善化方向发展，最终达到与气候相适应的顶极群落（如森林、草原、荒漠）。</li>
+                    <li><strong>人类活动的影响</strong>：可改变演替方向和速度，如砍伐森林、过度放牧可使演替逆行；封山育林、治理沙漠可加速恢复。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 生态系统及其稳定性 (详细) -->
+        <h1>第三章 生态系统及其稳定性</h1>
+        <section id="eco-structure">
+            <div class="knowledge-card">
+                <h2>生态系统的结构</h2>
+                <ul>
+                    <li><strong>组成成分</strong>（两大部分、四种基本成分）：
+                        <ul>
+                            <li><strong>非生物的物质和能量</strong>：阳光、热能、空气、水、无机盐等。</li>
+                            <li><strong>生产者</strong>：自养生物，主要是绿色植物（光合作用），还有化能合成细菌（如硝化细菌）。是生态系统的基石，为消费者和分解者提供物质和能量。</li>
+                            <li><strong>消费者</strong>：异养生物，主要是动物。包括初级消费者（植食动物）、次级消费者（小型肉食动物）、三级消费者（大型肉食动物）。有些消费者是寄生生物。</li>
+                            <li><strong>分解者</strong>：异养生物，主要是细菌、真菌，还有腐生动物（如蚯蚓、蜣螂）。将动植物遗体和排泄物分解为无机物，供生产者重新利用。</li>
+                        </ul>
+                    </li>
+                    <li><strong>营养结构——食物链和食物网</strong>
+                        <ul>
+                            <li><strong>食物链</strong>：生态系统中各种生物之间由于食物关系形成的一种联系。起点是生产者，终点是不被其他动物食用的顶级消费者。一般不超过5个营养级，因为能量沿食物链逐级递减。</li>
+                            <li><strong>食物网</strong>：多条食物链交错连接形成。食物网越复杂，生态系统抵抗力稳定性越高。</li>
+                            <li>营养级：处于食物链同一环节上的所有生物的总和。消费者级别与营养级级别相差1（如初级消费者处于第二营养级）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="energy-flow">
+            <div class="knowledge-card">
+                <h2>生态系统的能量流动</h2>
+                <ul>
+                    <li><strong>过程</strong>：能量输入→传递→转化→散失。
+                        <ul>
+                            <li><strong>输入</strong>：生产者通过光合作用固定太阳能（或化能合成作用），将光能转化为化学能储存在有机物中。</li>
+                            <li><strong>传递</strong>：沿食物链从生产者→初级消费者→次级消费者等，通过捕食关系传递。</li>
+                            <li><strong>转化</strong>：生物通过呼吸作用将有机物中的化学能转化为热能（散失）和ATP（用于生命活动）。</li>
+                            <li><strong>散失</strong>：最终以热能形式散失到环境中，不能循环利用。</li>
+                        </ul>
+                    </li>
+                    <li><strong>特点</strong>：
+                        <ul>
+                            <li><strong>单向流动</strong>：能量沿食物链方向流动，不可逆转，不能循环。</li>
+                            <li><strong>逐级递减</strong>：每一营养级都有能量通过呼吸作用散失、被分解者利用、未被利用等，因此流入下一营养级的能量只有10%~20%。</li>
+                        </ul>
+                    </li>
+                    <li><strong>能量金字塔</strong>：将单位时间内各营养级所得到的能量数值绘制成图，呈正金字塔形。数量金字塔和生物量金字塔有时倒置（如树上昆虫数量多但生物量少）。</li>
+                    <li><strong>研究意义</strong>：
+                        <ul>
+                            <li>帮助人们合理调整能量流动关系，使能量持续高效地流向对人类有益的部分。例如：草场放牧量控制、农田除草除虫、秸秆喂养牲畜等。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="material-cycle">
+            <div class="knowledge-card">
+                <h2>生态系统的物质循环</h2>
+                <ul>
+                    <li><strong>碳循环</strong>（全球性）：
+                        <ul>
+                            <li>碳在无机环境中的存在形式：CO₂、碳酸盐；在生物群落中的存在形式：含碳有机物。</li>
+                            <li>循环过程：
+                                <ul>
+                                    <li>生产者通过光合作用/化能合成作用将CO₂固定为有机物。</li>
+                                    <li>消费者通过摄食获得碳。</li>
+                                    <li>生产者和消费者的呼吸作用释放CO₂。</li>
+                                    <li>分解者分解有机物释放CO₂。</li>
+                                    <li>化石燃料燃烧释放CO₂。</li>
+                                </ul>
+                            </li>
+                            <li>温室效应：化石燃料大量燃烧，森林破坏，打破碳循环平衡，大气CO₂浓度升高，导致全球气候变暖。</li>
+                        </ul>
+                    </li>
+                    <li><strong>氮循环</strong>：
+                        <ul>
+                            <li>氮固定：高能固氮（闪电）、生物固氮（根瘤菌、固氮蓝藻）、工业固氮（合成氨）。</li>
+                            <li>硝化作用：硝化细菌将氨（NH₃）氧化为亚硝酸盐、硝酸盐，被植物吸收。</li>
+                            <li>反硝化作用：反硝化细菌在缺氧条件下将硝酸盐还原为N₂返回大气。</li>
+                        </ul>
+                    </li>
+                    <li><strong>特点</strong>：物质在生物群落与无机环境之间反复循环，具有全球性；能量流动伴随物质循环，但能量单向流动，物质循环利用。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="info-trans">
+            <div class="knowledge-card">
+                <h2>生态系统的信息传递</h2>
+                <ul>
+                    <li><strong>信息的种类</strong>：
+                        <ul>
+                            <li><strong>物理信息</strong>：光（植物开花、昆虫趋光）、声（鸟鸣、蝙蝠回声定位）、温度、磁力（鸽子导航）等。</li>
+                            <li><strong>化学信息</strong>：生物碱、性外激素（昆虫交配）、信息素（蚂蚁追踪）、尿液标记领地等。</li>
+                            <li><strong>行为信息</strong>：动物的动作、姿态（蜜蜂跳舞、孔雀开屏、恐吓姿态）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>作用</strong>：
+                        <ul>
+                            <li><strong>生命活动的正常进行</strong>：如光照调节植物开花；蝙蝠回声定位捕食。</li>
+                            <li><strong>种群的繁衍</strong>：如性外激素吸引异性；鸟类求偶炫耀。</li>
+                            <li><strong>调节种间关系，维持生态系统稳定</strong>：如捕食者气味使猎物躲避；植物产生化感物质抑制竞争者。</li>
+                        </ul>
+                    </li>
+                    <li><strong>应用</strong>：
+                        <ul>
+                            <li>生物防治：利用性引诱剂诱杀雄性害虫、干扰交配；利用天敌信息素吸引天敌。</li>
+                            <li>提高农畜产品产量：模拟动物信息增加家畜繁殖率；光照调控植物花期。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="stability">
+            <div class="knowledge-card">
+                <h2>生态系统的稳定性</h2>
+                <ul>
+                    <li><strong>概念</strong>：生态系统维持或恢复自身结构与功能相对平衡的能力。包括抵抗力稳定性和恢复力稳定性。</li>
+                    <li><strong>抵抗力稳定性</strong>：抵抗外界干扰保持原状的能力。
+                        <ul>
+                            <li>与物种丰富度、营养结构复杂程度正相关。森林生态系统抵抗力稳定性＞草原＞北极冻原。</li>
+                        </ul>
+                    </li>
+                    <li><strong>恢复力稳定性</strong>：受到破坏后恢复原状的能力。
+                        <ul>
+                            <li>一般与抵抗力稳定性负相关（如草原恢复力强，森林恢复力弱），但也有特殊情况（如北极冻原恢复力极低）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>提高生态系统的稳定性</strong>：
+                        <ul>
+                            <li>控制对生态系统干扰的程度，不超过其自我调节能力。</li>
+                            <li>实施相应的物质能量投入，保证生态系统内部结构与功能的协调。</li>
+                            <li>保护生物多样性，增加营养结构复杂性。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 人与环境 (详细) -->
+        <h1>第四章 人与环境</h1>
+        <section id="human-impact">
+            <div class="knowledge-card">
+                <h2>人类活动对生态环境的影响</h2>
+                <ul>
+                    <li><strong>生态足迹</strong>：在现有技术条件下，维持某一人口单位生存所需的生产资源和吸纳废物的土地及水域面积。生态足迹越大，对生态的影响越大。
+                        <ul>
+                            <li>包括：耕地足迹、草地足迹、林地足迹、碳足迹（吸收CO₂需要的林地）、建设用地足迹、渔业水域足迹。</li>
+                            <li>生态赤字：生态足迹超过生态承载力（生态盈余为相反）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>全球性环境问题</strong>：
+                        <ul>
+                            <li><strong>全球气候变化</strong>：温室效应导致气温升高、冰川融化、极端天气。</li>
+                            <li><strong>水资源短缺</strong>：人口增长、污染、浪费导致淡水危机。</li>
+                            <li><strong>臭氧层破坏</strong>：氟氯烃等破坏平流层臭氧，使紫外线增强，危害生物。</li>
+                            <li><strong>土地荒漠化</strong>：过度放牧、乱砍滥伐导致土地退化。</li>
+                            <li><strong>生物多样性锐减</strong>：栖息地破坏、过度捕猎、外来物种入侵等。</li>
+                            <li><strong>环境污染</strong>：大气污染、水污染、土壤污染、固体废弃物污染。</li>
+                        </ul>
+                    </li>
+                    <li><strong>可持续发展</strong>：在不牺牲未来几代人需要的情况下，满足当代人的需要，追求自然、经济、社会的持久协调。
+                        <ul>
+                            <li>内涵：生态持续（基础）、经济持续（条件）、社会持续（目的）。</li>
+                            <li>措施：节能减排、循环经济、绿色消费、保护生物多样性。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="biodiversity">
+            <div class="knowledge-card">
+                <h2>生物多样性及其保护</h2>
+                <ul>
+                    <li><strong>层次</strong>：
+                        <ul>
+                            <li><strong>遗传多样性</strong>（基因多样性）：同种生物不同种群或个体间的遗传变异。</li>
+                            <li><strong>物种多样性</strong>：生物种类的丰富程度。</li>
+                            <li><strong>生态系统多样性</strong>：生境、生物群落和生态过程的多样性。</li>
+                        </ul>
+                    </li>
+                    <li><strong>价值</strong>：
+                        <ul>
+                            <li><strong>直接价值</strong>：食用（粮食、果蔬）、药用（青蒿素、紫杉醇）、工业原料（木材、橡胶）、科研、美学、旅游等。</li>
+                            <li><strong>间接价值</strong>（生态功能）：调节气候、保持水土、涵养水源、净化环境、传粉、控制害虫等。间接价值远大于直接价值。</li>
+                            <li><strong>潜在价值</strong>：目前尚未发现但可能具有的用途。</li>
+                        </ul>
+                    </li>
+                    <li><strong>保护措施</strong>：
+                        <ul>
+                            <li><strong>就地保护</strong>：建立自然保护区、国家公园、风景名胜区，保护生态系统和物种栖息地。是最有效的保护。</li>
+                            <li><strong>易地保护</strong>：将濒危物种迁至动物园、植物园、水族馆、濒危物种繁育中心进行保护。</li>
+                            <li><strong>利用生物技术</strong>：建立种子库、基因库、精子库等。</li>
+                            <li><strong>加强立法和公众参与</strong>：制定《野生动物保护法》，开展环保教育。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="eco-engineering">
+            <div class="knowledge-card">
+                <h2>生态工程</h2>
+                <ul>
+                    <li><strong>基本原理</strong>（详细解释）：
+                        <ul>
+                            <li><strong>自生原理</strong>：通过有效选择生物组分并合理布设，使系统自我优化、自我更新。如湿地生态系统中配置多种水生植物，增强自净能力。</li>
+                            <li><strong>循环原理</strong>：物质在生态系统中循环利用，废物资源化。如“桑基鱼塘”中蚕沙→鱼→塘泥→桑，实现物质循环。</li>
+                            <li><strong>协调原理</strong>：生物与生物、生物与环境的协调，生物数量不超过环境承载力。如草原放牧量不能超过草场再生能力。</li>
+                            <li><strong>整体原理</strong>：考虑自然、经济、社会整体影响，统一协调。如林业建设要兼顾生态效益、农民生计、社会需求。</li>
+                            <li><strong>系统学和工程学原理</strong>：
+                                <ul>
+                                    <li>系统的结构决定功能：通过优化系统结构改善功能（如增加食物链环节，提高能量利用率）。</li>
+                                    <li>整体功能大于部分之和：如豆科植物与根瘤菌共生固氮，互相促进。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>生态工程实例</strong>：
+                        <ul>
+                            <li><strong>农村综合发展型生态工程</strong>：北京留民营村“农-牧-沼-鱼”模式，以沼气为纽带，种植业、养殖业结合，实现废物资源化，减少污染。</li>
+                            <li><strong>湿地生态恢复工程</strong>：如鄱阳湖湿地恢复，退耕还湖、植被恢复、控制污染，恢复调蓄洪水、净化水质功能。</li>
+                            <li><strong>矿区废弃地生态恢复工程</strong>：表土回填、覆土改良、种植耐性植物（如豆科牧草）、利用微生物恢复土壤活性。</li>
+                            <li><strong>大区域生态系统恢复工程</strong>：“三北”防护林建设，注意树种多样性（避免单一树种病虫害）、因地制宜（协调原理）。</li>
+                            <li><strong>城市环境生态工程</strong>：垃圾分类、污水处理、增加绿化、推广清洁能源，运用整体性原理进行城市规划。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 3. 粒子效果 (调整为自然绿色调) 2e7d32
+        document.addEventListener('DOMContentLoaded', function() {
+      if (window.innerWidth < 768) return; 
+
+      const canvas = document.getElementById('particle-container');
+      const ctx = canvas.getContext('2d');
+      
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      
+      class Particle {
+        constructor() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.size = Math.random() * 1.5 + 0.8;
+          this.speedX = Math.random() * 0.4 - 0.2;
+          this.speedY = Math.random() * 0.4 - 0.2;
+          this.color = '#2e7d32';
+        }
+        
+        reset() {
+          const edge = Math.floor(Math.random() * 4);
+          switch(edge) {
+            case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+            case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+            case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+            case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+          }
+        }
+        
+        update(mouse) {
+          if (mouse.x !== null && mouse.y !== null) {
+            const dx = mouse.x - this.x;
+            const dy = mouse.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < mouse.radius) {
+              const attraction = 0.02;
+              const angle = Math.atan2(dy, dx);
+              this.speedX += Math.cos(angle) * attraction;
+              this.speedY += Math.sin(angle) * attraction;
+            }
+          }
+          this.x += this.speedX;
+          this.y += this.speedY;
+          if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+          ctx.fillStyle = this.color;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      
+      const mouse = { x: null, y: null, radius: 150 };
+      window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+      
+      const particlesArray = [];
+      const particleCount = 25; 
+      
+      function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+      }
+      
+      function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+          for (let b = a + 1; b < particlesArray.length; b++) {
+            const dx = particlesArray[a].x - particlesArray[b].x;
+            const dy = particlesArray[a].y - particlesArray[b].y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < 100) {
+              const opacity = 1 - (distance / 100);
+              ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+              ctx.lineWidth = 0.3;
+              ctx.beginPath();
+              ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+              ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+      
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+      }
+      init();
+      animate();
+    });
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

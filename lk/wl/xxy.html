@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>物理选修一</title>
+    
+    <!-- KaTeX 渲染（物理公式密集） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        /* 无图片，保留样式以备将来 */
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (物理选修一/选择性必修第一册分类) 根据人教版2019目录     -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>物理选修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-dl')">✚ 动量守恒定律</div>
+            <div class="category-content" id="cat-dl">
+                <a href="#dl">动量</a>
+                <a href="#dldl">动量定理</a>
+                <a href="#dlshdl">动量守恒定律</a>
+                <a href="#sy-yzdl">实验：验证动量守恒定律</a>
+                <a href="#txpz">弹性碰撞和非弹性碰撞</a>
+                <a href="#fc">反冲现象 火箭</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-jxzd')">✚ 机械振动</div>
+            <div class="category-content" id="cat-jxzd">
+                <a href="#jhxd">简谐运动</a>
+                <a href="#jhxdms">简谐运动的描述</a>
+                <a href="#jhxdhf">简谐运动的回复力和能量</a>
+                <a href="#dbb">单摆</a>
+                <a href="#sy-db">实验：用单摆测量重力加速度</a>
+                <a href="#sfzd">受迫振动 共振</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-jxb')">✚ 机械波</div>
+            <div class="category-content" id="cat-jxb">
+                <a href="#bdxc">波的形成</a>
+                <a href="#bdms">波的描述</a>
+                <a href="#fszs">波的反射、折射和衍射</a>
+                <a href="#bgs">波的干涉</a>
+                <a href="#dpl">多普勒效应</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-gx')">✚ 光</div>
+            <div class="category-content" id="cat-gx">
+                <a href="#gdzs">光的折射</a>
+                <a href="#qfs">全反射</a>
+                <a href="#ggs">光的干涉</a>
+                <a href="#sy-sf">实验：用双缝干涉测量光的波长</a>
+                <a href="#gys">光的衍射</a>
+                <a href="#gpz">光的偏振 激光</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：物理选修一知识点卡片（纯文字，无图片）根据人教版2019教材内容整理       -->
+    <main>
+        <!-- 第一章 动量守恒定律 -->
+        <h1>第一章 动量守恒定律</h1>
+        
+        <section id="dl">
+            <div class="knowledge-card">
+                <h2>动量</h2>
+                <p>
+                    <b>动量的定义</b>：物体的质量与速度的乘积，公式 \(p = mv\)。动量是矢量，方向与速度方向相同 。<br>
+                    <b>动量的单位</b>：千克米每秒，符号 \(\text{kg} \cdot \text{m/s}\)。<br>
+                    <b>动量的变化量</b>：物体在某段时间内末动量与初动量的矢量差，\(\Delta p = p' - p\)。在一维情况下，选定正方向后可用正负号表示方向 。<br>
+                    <b>寻求碰撞中的不变量</b>：通过实验发现，在光滑水平面上碰撞的两物体，碰撞前后质量与速度的乘积之和（即总动量）保持不变，这是引入动量概念的实验基础  。
+                </p>
+            </div>
+        </section>
+        
+        <section id="dldl">
+            <div class="knowledge-card">
+                <h2>动量定理</h2>
+                <p>
+                    <b>冲量</b>：力与力的作用时间的乘积，公式 \(I = F \Delta t\)。冲量是矢量，方向与力的方向相同。冲量反映了力对时间的累积效应。<br>
+                    <b>动量定理</b>：物体在一个过程中所受合外力的冲量等于它在这个过程始末的动量变化量。公式 \(F \Delta t = mv' - mv\) 或 \(I = \Delta p\) 。<br>
+                    <b>应用</b>：解释生活中的缓冲现象（如跳远时用沙坑、汽车安全气囊等），延长作用时间可减小作用力。<br>
+                    <b>动量定理与牛顿第二定律的关系</b>：牛顿第二定律的动量形式为 \(F = \dfrac{\Delta p}{\Delta t}\)，即物体所受合外力等于动量的变化率 。
+                </p>
+            </div>
+        </section>
+
+        <section id="dlshdl">
+            <div class="knowledge-card">
+                <h2>动量守恒定律</h2>
+                <p>
+                    <b>内容</b>：如果一个系统不受外力，或者所受外力的矢量和为0，这个系统的总动量保持不变    。<br>
+                    <b>表达式</b>：\(m_1v_1 + m_2v_2 = m_1v_1' + m_2v_2'\)（系统由两个物体组成）。<br>
+                    <b>适用条件</b>：<br>
+                    ① 系统不受外力或合外力为零；<br>
+                    ② 系统内力远大于外力（如碰撞、爆炸）；<br>
+                    ③ 系统在某一方向上的合外力为零，则该方向动量守恒。<br>
+                    <b>动量守恒的普适性</b>：动量守恒定律是自然界最普遍的规律之一，不仅适用于宏观物体，也适用于微观粒子  。
+                </p>
+            </div>
+        </section>
+
+        <section id="sy-yzdl">
+            <div class="knowledge-card">
+                <h2>实验：验证动量守恒定律</h2>
+                <p>
+                    <b>实验原理</b>：测出碰撞前后两物体的质量与速度，比较碰撞前后的总动量。<br>
+                    <b>实验方案</b>：<br>
+                    ① 用气垫导轨配合光电门测量滑块速度  ；<br>
+                    ② 用斜槽滚摆法（入射球和被碰球做平抛运动，通过水平位移反映速度）；<br>
+                    ③ 用打点计时器记录纸带测速。<br>
+                    <b>数据处理</b>：验证 \(m_1v_1 + m_2v_2 = m_1v_1' + m_2v_2'\) 在误差允许范围内成立。<br>
+                    <b>注意事项</b>：确保轨道水平（或气垫导轨水平），平衡摩擦力，使合外力为零。
+                </p>
+            </div>
+        </section>
+
+        <section id="txpz">
+            <div class="knowledge-card">
+                <h2>弹性碰撞和非弹性碰撞</h2>
+                <p>
+                    <b>弹性碰撞</b>：碰撞过程中机械能守恒（没有能量损失）。同时满足动量守恒和机械能守恒   。<br>
+                    特例：质量相等的物体发生弹性碰撞时速度交换。<br>
+                    <b>非弹性碰撞</b>：碰撞过程中有机械能损失（如发热、变形）。动量守恒，但机械能不守恒。<br>
+                    <b>完全非弹性碰撞</b>：碰撞后两物体粘在一起共同运动，机械能损失最大  。<br>
+                    <b>恢复系数</b>：\(e = \dfrac{v_2' - v_1'}{v_1 - v_2}\)。\(e=1\)为弹性碰撞；\(0<e<1\)为非弹性碰撞；\(e=0\)为完全非弹性碰撞。
+                </p>
+            </div>
+        </section>
+
+        <section id="fc">
+            <div class="knowledge-card">
+                <h2>反冲现象 火箭</h2>
+                <p>
+                    <b>反冲现象</b>：当一个系统向某一方向射出部分物质时，剩余部分将向相反方向运动的现象   。原理是动量守恒。<br>
+                    <b>实例</b>：火箭发射、喷气式飞机、烟花、射击时的后坐力。<br>
+                    <b>火箭原理</b>：火箭燃料燃烧产生高温高压气体从尾部喷出，使火箭获得向上的推力。火箭的最终速度由多级火箭和喷气速度决定。<br>
+                    <b>火箭速度公式</b>（齐奥尔科夫斯基公式）：\(v = v_e \ln \dfrac{m_0}{m}\)，其中 \(v_e\) 是喷气速度，\(m_0\) 是初始总质量，\(m\) 是燃料烧完后火箭的质量。
+                </p>
+            </div>
+        </section>
+
+        <!-- 第二章 机械振动 -->
+        <h1>第二章 机械振动</h1>
+
+        <section id="jhxd">
+            <div class="knowledge-card">
+                <h2>简谐运动</h2>
+                <p>
+                    <b>机械振动</b>：物体在平衡位置附近所做的往复运动  。<br>
+                    <b>弹簧振子</b>：一个轻质弹簧连接一个质点，不计摩擦和弹簧质量的理想模型。<br>
+                    <b>简谐运动的定义</b>：如果物体的位移与时间的关系遵从正弦函数的规律，即 \(x = A\sin(\omega t + \varphi)\)，这样的运动叫作简谐运动   。<br>
+                    <b>回复力</b>：使物体回到平衡位置的力，方向与位移方向相反，大小与位移成正比。公式 \(F = -kx\)，其中 \(k\) 是比例系数（对弹簧振子即为劲度系数）。<br>
+                    <b>平衡位置</b>：回复力为零的位置。
+                </p>
+            </div>
+        </section>
+
+        <section id="jhxdms">
+            <div class="knowledge-card">
+                <h2>简谐运动的描述</h2>
+                <p>
+                    <b>振幅(A)</b>：振动物体离开平衡位置的最大距离，反映振动的强弱  。<br>
+                    <b>周期(T)和频率(f)</b>：完成一次全振动所用的时间叫周期，单位时间内完成全振动的次数叫频率。\(T = \dfrac{1}{f}\)，单位：秒(s)、赫兹(Hz)。<br>
+                    <b>相位(\(\varphi\))</b>：描述振动步调的物理量。\(x = A\sin(\omega t + \varphi)\) 中的 \(\omega t + \varphi\) 叫相位，\(\varphi\) 叫初相   。<br>
+                    <b>圆频率(\(\omega\))</b>：\(\omega = \dfrac{2\pi}{T} = 2\pi f\)。<br>
+                    <b>简谐运动的表达式</b>：\(x = A\sin(\omega t + \varphi)\) 或 \(x = A\cos(\omega t + \varphi')\)。
+                </p>
+            </div>
+        </section>
+
+        <section id="jhxdhf">
+            <div class="knowledge-card">
+                <h2>简谐运动的回复力和能量</h2>
+                <p>
+                    <b>回复力特征</b>：\(F = -kx\)，是判断简谐运动的依据。<br>
+                    <b>简谐运动的动力学定义</b>：物体在与偏离平衡位置的位移大小成正比、方向总是指向平衡位置的回复力作用下的振动。<br>
+                    <b>简谐运动的能量</b>：系统的动能和势能相互转化，总机械能守恒。总能量 \(E = \dfrac{1}{2}kA^2\)，与振幅的平方成正比   。<br>
+                    <b>弹簧振子的能量变化</b>：在平衡位置动能最大、势能最小；在最大位移处势能最大、动能为零。
+                </p>
+            </div>
+        </section>
+
+        <section id="dbb">
+            <div class="knowledge-card">
+                <h2>单摆</h2>
+                <p>
+                    <b>单摆模型</b>：一根不可伸长的轻细线，一端固定，另一端悬挂一个小球。当细线长度远大于小球半径、小球质量远大于线质量时，可视为单摆。<br>
+                    <b>单摆的回复力</b>：重力沿圆弧切线方向的分力 \(F = -mg\sin\theta \approx -mg\theta = -\dfrac{mg}{l}x\)（小角度下）。可见回复力与位移成正比，方向指向平衡位置，因此单摆在小角度下做简谐运动   。<br>
+                    <b>单摆的周期公式</b>：\(T = 2\pi \sqrt{\dfrac{l}{g}}\)（惠更斯发现），与摆球质量、振幅无关（等时性）  。<br>
+                    <b>应用</b>：利用周期公式测量重力加速度 \(g = \dfrac{4\pi^2 l}{T^2}\)；计时器（摆钟）。
+                </p>
+            </div>
+        </section>
+
+        <section id="sy-db">
+            <div class="knowledge-card">
+                <h2>实验：用单摆测量重力加速度</h2>
+                <p>
+                    <b>实验原理</b>：由单摆周期公式 \(T = 2\pi \sqrt{\dfrac{l}{g}}\) 得 \(g = \dfrac{4\pi^2 l}{T^2}\)，测出摆长 \(l\) 和周期 \(T\) 即可计算 \(g\)   。<br>
+                    <b>摆长测量</b>：摆线长度用刻度尺测量，小球直径用游标卡尺测量，摆长 \(l = l_{\text{线}} + \dfrac{d}{2}\)。<br>
+                    <b>周期测量</b>：用秒表测量单摆完成30-50次全振动的时间，除以次数得到周期。为了减小误差，应在摆球通过平衡位置时开始计时。<br>
+                    <b>数据处理</b>：可用图像法，作 \(l-T^2\) 图像，斜率 \(k = \dfrac{g}{4\pi^2}\)，求出 \(g = 4\pi^2 k\)。
+                </p>
+            </div>
+        </section>
+
+        <section id="sfzd">
+            <div class="knowledge-card">
+                <h2>受迫振动 共振</h2>
+                <p>
+                    <b>固有频率</b>：系统自由振动时的频率，由系统自身性质决定。<br>
+                    <b>阻尼振动</b>：振幅随时间逐渐减小的振动。系统能量减少，最终停止。<br>
+                    <b>受迫振动</b>：系统在周期性外力（驱动力）作用下的振动。稳定时受迫振动的频率等于驱动力的频率，与系统的固有频率无关   。<br>
+                    <b>共振</b>：当驱动力的频率等于系统的固有频率时，受迫振动的振幅达到最大，这种现象叫作共振   。<br>
+                    <b>共振曲线</b>：振幅-驱动力频率图像，在 \(f_{\text{驱}} = f_{\text{固}}\) 处出现峰值。<br>
+                    <b>共振的应用与防止</b>：应用（共振筛、共振音响、核磁共振）；防止（军队过桥便步走、机器底座减振）。
+                </p>
+            </div>
+        </section>
+
+        <!-- 第三章 机械波 -->
+        <h1>第三章 机械波</h1>
+
+        <section id="bdxc">
+            <div class="knowledge-card">
+                <h2>波的形成</h2>
+                <p>
+                    <b>机械波的形成</b>：机械振动在介质中的传播形成机械波。需要波源和介质    。<br>
+                    <b>横波</b>：质点的振动方向与波的传播方向垂直。凸起处叫波峰，凹下处叫波谷    。<br>
+                    <b>纵波</b>：质点的振动方向与波的传播方向在同一直线上。质点分布最密处叫密部，最疏处叫疏部。声波是纵波    。<br>
+                    <b>波传播的特点</b>：<br>
+                    ① 各质点只在平衡位置附近振动，并不随波迁移  ；<br>
+                    ② 波传播的是振动形式、能量和信息    ；<br>
+                    ③ 介质中各质点的起振方向都与波源相同；<br>
+                    ④ 各质点的振动频率等于波源的频率，与介质无关    ；<br>
+                    ⑤ 离波源越远的质点，振动越滞后。
+                </p>
+            </div>
+        </section>
+
+        <section id="bdms">
+            <div class="knowledge-card">
+                <h2>波的描述</h2>
+                <p>
+                    <b>波长(\(\lambda\))</b>：在波的传播方向上，振动相位总是相同的两个相邻质点间的距离   。<br>
+                    <b>频率(f)</b>：波的频率等于波源振动的频率，与介质无关。<br>
+                    <b>波速(v)</b>：机械波在介质中传播的速度。\(v = \dfrac{\lambda}{T} = \lambda f\)。<br>
+                    <b>波速的决定因素</b>：由介质的性质决定，与波的频率、波长无关。同一介质中，不同频率的波速相同。<br>
+                    <b>波的图像</b>：表示某一时刻介质中各质点相对平衡位置的位移。横轴表示各质点的平衡位置，纵轴表示位移  。<br>
+                    <b>波的图像与振动图像的区别</b>：波的图像描述多个质点在某一时刻的位移，振动图像描述一个质点在不同时刻的位移。
+                </p>
+            </div>
+        </section>
+
+        <section id="fszs">
+            <div class="knowledge-card">
+                <h2>波的反射、折射和衍射</h2>
+                <p>
+                    <b>波的反射</b>：波遇到障碍物时会返回原介质传播。反射角等于入射角   。<br>
+                    <b>波的折射</b>：波从一种介质进入另一种介质时，传播方向发生改变。折射定律：\(\dfrac{\sin i}{\sin r} = \dfrac{v_1}{v_2}\)。<br>
+                    <b>波的衍射</b>：波绕过障碍物继续传播的现象   。<br>
+                    <b>发生明显衍射的条件</b>：障碍物或孔的尺寸与波长相比差不多，甚至比波长更小  。<br>
+                    <b>惠更斯原理</b>：介质中任一波面上的各点，都可以看作发射子波的波源，其后任意时刻，这些子波在波前进方向的包络面就是新的波面。
+                </p>
+            </div>
+        </section>
+
+        <section id="bgs">
+            <div class="knowledge-card">
+                <h2>波的干涉</h2>
+                <p>
+                    <b>波的叠加原理</b>：几列波相遇时能够保持各自的状态继续传播，在重叠的区域里，介质的质点同时参与这几列波引起的振动，位移等于各列波单独引起的位移的矢量和   。<br>
+                    <b>波的干涉</b>：频率相同、相位差恒定、振动方向相同的两列波叠加时，某些区域的振动始终加强，某些区域的振动始终减弱，并且加强区和减弱区相互间隔的现象     。<br>
+                    <b>产生稳定干涉的条件</b>：两列波频率相同、相位差恒定、振动方向相同（或称为相干波源）    。<br>
+                    <b>振动加强和减弱的条件</b>（设两波源到某点的路程差为 \(\Delta r\)）：<br>
+                    ① 加强点：\(\Delta r = k\lambda\) (\(k=0,1,2,\ldots\))；<br>
+                    ② 减弱点：\(\Delta r = (2k+1)\dfrac{\lambda}{2}\) (\(k=0,1,2,\ldots\))。<br>
+                    <b>干涉图样</b>：水波干涉实验中可见稳定的明暗相间条纹。
+                </p>
+            </div>
+        </section>
+
+        <section id="dpl">
+            <div class="knowledge-card">
+                <h2>多普勒效应</h2>
+                <p>
+                    <b>多普勒效应</b>：当波源与观察者相互靠近或远离时，观察者接收到的波的频率与波源频率不同的现象   。<br>
+                    <b>规律</b>：<br>
+                    ① 波源与观察者相互靠近时，观察者接收到的频率增大；<br>
+                    ② 波源与观察者相互远离时，观察者接收到的频率减小。<br>
+                    <b>实例</b>：火车鸣笛驶近时音调变高，驶离时音调变低；多普勒测速仪；彩超检查血流速度；天文学家利用红移现象判断宇宙膨胀。
+                </p>
+            </div>
+        </section>
+
+        <!-- 第四章 光 -->
+        <h1>第四章 光</h1>
+
+        <section id="gdzs">
+            <div class="knowledge-card">
+                <h2>光的折射</h2>
+                <p>
+                    <b>光的折射定律</b>：折射光线位于入射光线和法线所决定的平面内，折射光线与入射光线分居法线两侧；入射角的正弦与折射角的正弦之比为常数。公式 \(\dfrac{\sin i}{\sin r} = n_{12}\)，其中 \(n_{12}\) 是比例常数    。<br>
+                    <b>折射率</b>：光从真空射入某种介质时，\(\dfrac{\sin i}{\sin r} = n\)，\(n\) 叫作这种介质的绝对折射率，简称折射率  。<br>
+                    <b>折射率与光速的关系</b>：\(n = \dfrac{c}{v}\)，其中 \(c\) 是真空中的光速，\(v\) 是介质中的光速。任何介质的折射率都大于1  。<br>
+                    <b>折射率与波长的关系</b>：在同一介质中，频率越高的光折射率越大，波长越短  。
+                </p>
+            </div>
+        </section>
+
+        <section id="qfs">
+            <div class="knowledge-card">
+                <h2>全反射</h2>
+                <p>
+                    <b>全反射现象</b>：光从光密介质射向光疏介质时，当入射角增大到某一角度，折射光线完全消失，只剩下反射光线的现象     。<br>
+                    <b>发生全反射的条件</b>：① 光从光密介质射入光疏介质；② 入射角大于或等于临界角  。<br>
+                    <b>临界角(C)</b>：折射角等于90°时的入射角。公式 \(\sin C = \dfrac{1}{n}\)（其中 \(n\) 为光密介质相对光疏介质的折射率）。<br>
+                    <b>全反射的应用</b>：光导纤维（内芯折射率大于外套折射率）、全反射棱镜（等腰直角棱镜）、光纤通信   。
+                </p>
+            </div>
+        </section>
+
+        <section id="ggs">
+            <div class="knowledge-card">
+                <h2>光的干涉</h2>
+                <p>
+                    <b>光的干涉现象</b>：两列光波相遇时，在重叠区域形成稳定的明暗相间条纹的现象     。<br>
+                    <b>双缝干涉</b>（杨氏双缝实验）：<br>
+                    ① 单色光照射时，屏上出现等间距的明暗相间条纹；<br>
+                    ② 白光照射时，屏上出现彩色条纹，中央为白色亮条纹  。<br>
+                    <b>干涉条纹间距公式</b>：\(\Delta x = \dfrac{l}{d}\lambda\)，其中 \(l\) 是双缝到屏的距离，\(d\) 是双缝间距，\(\lambda\) 是光的波长  。<br>
+                    <b>产生稳定干涉的条件</b>：两列光波频率相同、相位差恒定、振动方向相同    。<br>
+                    <b>薄膜干涉</b>：由薄膜前后表面反射的光叠加而成。实例：肥皂泡上的彩色条纹、油膜上的彩色条纹、增透膜  。
+                </p>
+            </div>
+        </section>
+
+        <section id="sy-sf">
+            <div class="knowledge-card">
+                <h2>实验：用双缝干涉测量光的波长</h2>
+                <p>
+                    <b>实验原理</b>：根据双缝干涉条纹间距公式 \(\Delta x = \dfrac{l}{d}\lambda\)，得 \(\lambda = \dfrac{d}{l} \Delta x\)。测出双缝间距 \(d\)、双缝到屏的距离 \(l\) 和条纹间距 \(\Delta x\)，即可计算波长     。<br>
+                    <b>条纹间距的测量</b>：用测量头测量多条亮条纹（或暗条纹）的间距，再除以条纹数得到 \(\Delta x\)。为了减小误差，一般测量 \(n\) 条条纹的总宽度 \(a\)，则 \(\Delta x = \dfrac{a}{n-1}\)。<br>
+                    <b>实验器材</b>：光源、滤光片、单缝、双缝、遮光筒、毛玻璃屏、测量头。<br>
+                    <b>注意事项</b>：实验前应调节共轴，使光源、滤光片、单缝、双缝的中心在一条直线上。
+                </p>
+            </div>
+        </section>
+
+        <section id="gys">
+            <div class="knowledge-card">
+                <h2>光的衍射</h2>
+                <p>
+                    <b>光的衍射现象</b>：光离开直线路径绕到障碍物阴影里去的现象     。<br>
+                    <b>发生明显衍射的条件</b>：障碍物或孔的尺寸跟光的波长相比差不多，甚至比光的波长还要小    。<br>
+                    <b>单缝衍射</b>：<br>
+                    ① 单色光照射时，中央为亮条纹，两侧为明暗相间的条纹，中央条纹最宽最亮  ；<br>
+                    ② 白光照射时，中央为白色亮条纹，两侧为彩色条纹。<br>
+                    <b>圆孔衍射</b>：光通过小圆孔后出现明暗相间的环形条纹。<br>
+                    <b>衍射与干涉的区别</b>：干涉是相干光叠加，条纹等间距；衍射是光绕过障碍物，条纹中央最宽。
+                </p>
+            </div>
+        </section>
+
+        <section id="gpz">
+            <div class="knowledge-card">
+                <h2>光的偏振 激光</h2>
+                <p>
+                    <b>光的偏振</b>：光矢量只沿某一特定方向振动的光叫作偏振光。光的偏振现象证明光是横波     。<br>
+                    <b>自然光与偏振光</b>：<br>
+                    ① 自然光：在与光传播方向垂直的平面内，光矢量沿各个方向振动，且振幅相等；<br>
+                    ② 偏振光：光矢量只在某一固定方向振动。<br>
+                    <b>起偏器和检偏器</b>：使自然光变成偏振光的器件叫起偏器；检验光是否为偏振光的器件叫检偏器。当起偏器和检偏器的透振方向平行时，透射光最强；垂直时，透射光最弱（几乎为零）。<br>
+                    <b>偏振的应用</b>：偏振滤光片、立体电影（3D眼镜）、液晶显示、车灯防眩光。<br>
+                    <b>激光的特性</b>：<br>
+                    ① 相干性好（可用于干涉、全息照相）；<br>
+                    ② 平行度好（方向性强，可用于测距、准直）；<br>
+                    ③ 亮度高（能量集中，可用于切割、焊接、医疗）     。<br>
+                    <b>激光的应用</b>：光纤通信、激光测距、激光打印、激光手术、激光核聚变。
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+          // 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

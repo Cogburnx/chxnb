@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>初中数学·七年级下册（详细版）</title>
+    
+    <!-- KaTeX 渲染 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2c3e66;      /* 深蓝紫色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #eef2f9;     /* 浅蓝灰背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #2c3e66;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #2c3e66;
+        }
+        .category-title:hover { background: rgba(44, 62, 102, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #3c4a6b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+        .category-content a.active {
+            color: #2c3e66;
+            font-weight: 600;
+            background-color: rgba(44, 62, 102, 0.12);
+            border-left: 3px solid #2c3e66;
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #3c4a6b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e6ecf5;
+            border: 2px dashed #8fa6c2;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2c3e66;
+        }
+
+        body.collapsed nav { padding: 20px 5px; }
+        body.collapsed .sidebar-header h2 { opacity: 0; width: 0; margin: 0; pointer-events: none; }
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home { display: none !important; }
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e66;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #8fa6c2;
+            color: #2c3e66;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #cfdfef;
+            padding-bottom: 10px;
+            color: #2c3e66;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 170px 1fr; }
+            body.collapsed { grid-template-columns: 55px 1fr; }
+            nav { padding: 15px 8px; }
+            .sidebar-header h2 { font-size: 16px; }
+            #toggleSidebar { font-size: 22px; width: 28px; height: 28px; }
+            .category-title { font-size: 14px; padding: 6px 4px; }
+            .category-content a { font-size: 12px; padding: 4px 0; }
+            main { padding: 15px 15px; }
+            h1 { font-size: 22px; margin: 20px 0; }
+            body.collapsed .category-title::before { font-size: 18px; }
+        }
+        @media (max-width: 480px) {
+            body { grid-template-columns: 140px 1fr; }
+            body.collapsed { grid-template-columns: 48px 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>数学·七年级下册</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch5')">✚ 第五章 相交线与平行线</div>
+            <div class="category-content" id="cat-ch5">
+                <a href="#sec5-1">5.1 相交线</a>
+                <a href="#sec5-2">5.2 平行线及其判定</a>
+                <a href="#sec5-3">5.3 平行线的性质</a>
+                <a href="#sec5-4">5.4 平移</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch6')">✚ 第六章 实数</div>
+            <div class="category-content" id="cat-ch6">
+                <a href="#sec6-1">6.1 平方根</a>
+                <a href="#sec6-2">6.2 立方根</a>
+                <a href="#sec6-3">6.3 实数</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch7')">✚ 第七章 平面直角坐标系</div>
+            <div class="category-content" id="cat-ch7">
+                <a href="#sec7-1">7.1 平面直角坐标系</a>
+                <a href="#sec7-2">7.2 坐标方法的简单应用</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch8')">✚ 第八章 二元一次方程组</div>
+            <div class="category-content" id="cat-ch8">
+                <a href="#sec8-1">8.1 二元一次方程组</a>
+                <a href="#sec8-2">8.2 消元——解二元一次方程组</a>
+                <a href="#sec8-3">8.3 实际问题与二元一次方程组</a>
+                <a href="#sec8-4">8.4 三元一次方程组的解法</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch9')">✚ 第九章 不等式与不等式组</div>
+            <div class="category-content" id="cat-ch9">
+                <a href="#sec9-1">9.1 不等式</a>
+                <a href="#sec9-2">9.2 一元一次不等式</a>
+                <a href="#sec9-3">9.3 一元一次不等式组</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch10')">✚ 第十章 数据的收集、整理与描述</div>
+            <div class="category-content" id="cat-ch10">
+                <a href="#sec10-1">10.1 统计调查</a>
+                <a href="#sec10-2">10.2 直方图</a>
+                <a href="#sec10-3">10.3 课题学习 从数据谈节水</a>
+            </div>
+        </div>
+        
+        <a href="/kz/cz/cz.html" class="back-home">返回首页</a>
+        <div class="ad-space">数学 · 严谨的逻辑之美</div>
+    </nav>
+    
+    <main>
+        <!-- 第五章 相交线与平行线 -->
+        <h1>第五章 相交线与平行线</h1>
+        <section id="sec5-1">
+            <div class="knowledge-card">
+                <h2>5.1 相交线</h2>
+                <ul>
+                    <li><strong>邻补角</strong>：有一条公共边，另一边互为反向延长线的两个角，叫做邻补角。邻补角互补（和为180°）。</li>
+                    <li><strong>对顶角</strong>：一个角的两边分别是另一个角的两边的反向延长线，这两个角叫做对顶角。对顶角相等。</li>
+                    <li><strong>垂线</strong>：
+                        <ul>
+                            <li>当两条直线相交所成的四个角中，有一个角是直角时，这两条直线互相垂直，其中一条直线叫做另一条直线的垂线，交点叫垂足。</li>
+                            <li>垂线的性质：在同一平面内，过一点有且只有一条直线与已知直线垂直。</li>
+                            <li>连接直线外一点与直线上各点的所有线段中，垂线段最短。简单说成：垂线段最短。</li>
+                            <li>点到直线的距离：直线外一点到这条直线的垂线段的长度，叫做点到直线的距离。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec5-2">
+            <div class="knowledge-card">
+                <h2>5.2 平行线及其判定</h2>
+                <ul>
+                    <li><strong>平行线</strong>：在同一平面内，不相交的两条直线叫做平行线。平行线用符号“∥”表示。</li>
+                    <li><strong>平行公理</strong>：经过直线外一点，有且只有一条直线与这条直线平行。</li>
+                    <li><strong>平行公理的推论</strong>：如果两条直线都与第三条直线平行，那么这两条直线也互相平行。</li>
+                    <li><strong>平行线的判定方法</strong>：
+                        <ol>
+                            <li>同位角相等，两直线平行。</li>
+                            <li>内错角相等，两直线平行。</li>
+                            <li>同旁内角互补，两直线平行。</li>
+                            <li>平行于同一条直线的两直线平行（公理推论）。</li>
+                            <li>垂直于同一条直线的两直线平行（在同一平面内）。</li>
+                        </ol>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec5-3">
+            <div class="knowledge-card">
+                <h2>5.3 平行线的性质</h2>
+                <ul>
+                    <li><strong>平行线的性质</strong>：
+                        <ol>
+                            <li>两直线平行，同位角相等。</li>
+                            <li>两直线平行，内错角相等。</li>
+                            <li>两直线平行，同旁内角互补。</li>
+                        </ol>
+                    </li>
+                    <li><strong>命题</strong>：判断一件事情的语句，叫做命题。命题由题设和结论两部分组成，通常写成“如果……那么……”的形式。正确的命题叫真命题，错误的命题叫假命题。经过推理证实得到的真命题叫做定理。</li>
+                    <li><strong>平移</strong>：把一个图形整体沿某一直线方向移动，会得到一个新的图形，新图形与原图形的形状和大小完全相同。图形的这种移动，叫做平移。新图形中的每一点，都是由原图形中的某一点移动后得到的，这两个点是对应点。连接各组对应点的线段平行（或在同一直线上）且相等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec5-4">
+            <div class="knowledge-card">
+                <h2>5.4 平移</h2>
+                <ul>
+                    <li><strong>平移的要素</strong>：平移方向、平移距离。</li>
+                    <li><strong>平移的性质</strong>：
+                        <ul>
+                            <li>平移前后的图形形状、大小完全相同（全等）。</li>
+                            <li>对应点连线平行（或在同一直线上）且相等。</li>
+                            <li>对应线段平行（或在同一直线上）且相等，对应角相等。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第六章 实数 -->
+        <h1>第六章 实数</h1>
+        <section id="sec6-1">
+            <div class="knowledge-card">
+                <h2>6.1 平方根</h2>
+                <ul>
+                    <li><strong>算术平方根</strong>：如果一个正数x的平方等于a，即 \(x^2=a\)，那么这个正数x叫做a的算术平方根。a的算术平方根记为 \(\sqrt{a}\)，读作“根号a”，a叫做被开方数。0的算术平方根是0。</li>
+                    <li><strong>平方根</strong>：如果一个数x的平方等于a，即 \(x^2=a\)，那么这个数x叫做a的平方根（二次方根）。正数a有两个平方根，它们互为相反数，记作 \(\pm\sqrt{a}\)；0的平方根是0；负数没有平方根。</li>
+                    <li><strong>开平方</strong>：求一个数a的平方根的运算，叫做开平方。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec6-2">
+            <div class="knowledge-card">
+                <h2>6.2 立方根</h2>
+                <ul>
+                    <li><strong>立方根</strong>：如果一个数x的立方等于a，即 \(x^3=a\)，那么这个数x叫做a的立方根（三次方根）。a的立方根记作 \(\sqrt[3]{a}\)。正数的立方根是正数，负数的立方根是负数，0的立方根是0。</li>
+                    <li><strong>开立方</strong>：求一个数a的立方根的运算，叫做开立方。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec6-3">
+            <div class="knowledge-card">
+                <h2>6.3 实数</h2>
+                <ul>
+                    <li><strong>无理数</strong>：无限不循环小数叫做无理数。</li>
+                    <li><strong>实数</strong>：有理数和无理数统称实数。
+                        <ul>
+                            <li>分类：实数分为正实数、0、负实数；或分为有理数和无理数。</li>
+                            <li>实数的相反数、绝对值与有理数类似。数a的相反数是-a，绝对值|a|等于a（a≥0）或-a（a<0）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>实数与数轴</strong>：每个实数都可以用数轴上的一个点来表示；反过来，数轴上的每一个点都表示一个实数。实数和数轴上的点一一对应。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第七章 平面直角坐标系 -->
+        <h1>第七章 平面直角坐标系</h1>
+        <section id="sec7-1">
+            <div class="knowledge-card">
+                <h2>7.1 平面直角坐标系</h2>
+                <ul>
+                    <li><strong>有序数对</strong>：有顺序的两个数a与b组成的数对，叫做有序数对，记作(a,b)。</li>
+                    <li><strong>平面直角坐标系</strong>：在平面内画两条互相垂直、原点重合的数轴，组成平面直角坐标系。水平的数轴称为x轴或横轴，竖直的数轴称为y轴或纵轴，两轴的交点是原点。</li>
+                    <li><strong>点的坐标</strong>：对于平面内任意一点P，过点P分别向x轴、y轴作垂线，垂足在x轴、y轴上对应的数a、b分别叫做点P的横坐标、纵坐标，有序数对(a,b)叫做点P的坐标。</li>
+                    <li><strong>象限</strong>：坐标平面被两条坐标轴分成四个部分，每个部分叫做象限。第一象限（+，+），第二象限（-，+），第三象限（-，-），第四象限（+，-）。坐标轴上的点不属于任何象限。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec7-2">
+            <div class="knowledge-card">
+                <h2>7.2 坐标方法的简单应用</h2>
+                <ul>
+                    <li><strong>用坐标表示地理位置</strong>：建立坐标系，确定原点、正方向、单位长度，用坐标表示各地点的位置。</li>
+                    <li><strong>用坐标表示平移</strong>：
+                        <ul>
+                            <li>点的平移：在平面直角坐标系中，将点(x,y)向右（或左）平移a个单位长度，对应点的横坐标加（或减）a，纵坐标不变；将点(x,y)向上（或下）平移b个单位长度，对应点的纵坐标加（或减）b，横坐标不变。</li>
+                            <li>图形的平移：图形上各点的坐标变化规律与点的平移相同，图形形状、大小不变。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第八章 二元一次方程组 -->
+        <h1>第八章 二元一次方程组</h1>
+        <section id="sec8-1">
+            <div class="knowledge-card">
+                <h2>8.1 二元一次方程组</h2>
+                <ul>
+                    <li><strong>二元一次方程</strong>：含有两个未知数，并且含有未知数的项的次数都是1的方程叫做二元一次方程。一般形式：\(ax+by=c\)（a,b≠0）。</li>
+                    <li><strong>二元一次方程的解</strong>：使二元一次方程两边的值相等的两个未知数的值，叫做二元一次方程的解。一般地，一个二元一次方程有无数个解。</li>
+                    <li><strong>二元一次方程组</strong>：把具有相同未知数的两个二元一次方程合在一起，就组成了一个二元一次方程组。</li>
+                    <li><strong>二元一次方程组的解</strong>：二元一次方程组中两个方程的公共解，叫做这个二元一次方程组的解。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec8-2">
+            <div class="knowledge-card">
+                <h2>8.2 消元——解二元一次方程组</h2>
+                <ul>
+                    <li><strong>消元思想</strong>：将未知数的个数由多化少、逐一解决的思想，叫做消元思想。</li>
+                    <li><strong>代入消元法</strong>：把二元一次方程组中一个方程的一个未知数用含另一个未知数的式子表示出来，再代入另一个方程，实现消元，进而求得这个二元一次方程组的解。这种方法叫做代入消元法，简称代入法。</li>
+                    <li><strong>加减消元法</strong>：当二元一次方程组的两个方程中同一未知数的系数相反或相等时，把这两个方程的两边分别相加或相减，就能消去这个未知数，得到一个一元一次方程。这种方法叫做加减消元法，简称加减法。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec8-3">
+            <div class="knowledge-card">
+                <h2>8.3 实际问题与二元一次方程组</h2>
+                <ul>
+                    <li><strong>列方程组解应用题的一般步骤</strong>：
+                        <ol>
+                            <li>审清题意，找出相等关系；</li>
+                            <li>设未知数（直接或间接设）；</li>
+                            <li>根据相等关系列出方程组；</li>
+                            <li>解方程组；</li>
+                            <li>检验解是否符合实际意义；</li>
+                            <li>写出答案。</li>
+                        </ol>
+                    </li>
+                    <li><strong>常见类型</strong>：和差倍分问题、行程问题、工程问题、利润问题、配套问题等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec8-4">
+            <div class="knowledge-card">
+                <h2>8.4 三元一次方程组的解法</h2>
+                <ul>
+                    <li><strong>三元一次方程</strong>：含有三个未知数，并且含有未知数的项的次数都是1的方程叫做三元一次方程。</li>
+                    <li><strong>三元一次方程组</strong>：含有三个未知数，每个方程中含未知数的项的次数都是1，并且一共有三个方程，这样的方程组叫做三元一次方程组。</li>
+                    <li><strong>解法</strong>：通过“代入”或“加减”进行消元，把“三元”化为“二元”，再化为“一元”，逐步求解。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第九章 不等式与不等式组 -->
+        <h1>第九章 不等式与不等式组</h1>
+        <section id="sec9-1">
+            <div class="knowledge-card">
+                <h2>9.1 不等式</h2>
+                <ul>
+                    <li><strong>不等式</strong>：用符号“<”或“>”表示大小关系的式子，叫做不等式。像a≥b、a≤b这样的式子也叫做不等式。</li>
+                    <li><strong>不等式的解</strong>：使不等式成立的未知数的值叫做不等式的解。一般地，一个含有未知数的不等式有无数个解。</li>
+                    <li><strong>不等式的解集</strong>：一个含有未知数的不等式的所有的解，组成这个不等式的解集。求不等式的解集的过程叫做解不等式。</li>
+                    <li><strong>不等式的性质</strong>：
+                        <ul>
+                            <li>性质1：不等式两边加（或减）同一个数（或式子），不等号的方向不变。即如果a>b，那么a±c > b±c。</li>
+                            <li>性质2：不等式两边乘（或除以）同一个正数，不等号的方向不变。即如果a>b，c>0，那么ac>bc（或a/c > b/c）。</li>
+                            <li>性质3：不等式两边乘（或除以）同一个负数，不等号的方向改变。即如果a>b，c<0，那么ac<bc（或a/c < b/c）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec9-2">
+            <div class="knowledge-card">
+                <h2>9.2 一元一次不等式</h2>
+                <ul>
+                    <li><strong>一元一次不等式</strong>：含有一个未知数，未知数的次数是1的不等式，叫做一元一次不等式。</li>
+                    <li><strong>解一元一次不等式的一般步骤</strong>：去分母、去括号、移项、合并同类项、系数化为1（注意不等号方向是否改变）。</li>
+                    <li><strong>在数轴上表示解集</strong>：大于向右，小于向左；有等号用实心圆点，无等号用空心圆圈。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec9-3">
+            <div class="knowledge-card">
+                <h2>9.3 一元一次不等式组</h2>
+                <ul>
+                    <li><strong>一元一次不等式组</strong>：把几个一元一次不等式合起来，组成一个一元一次不等式组。</li>
+                    <li><strong>不等式组的解集</strong>：几个不等式的解集的公共部分，叫做由它们所组成的不等式组的解集。</li>
+                    <li><strong>解不等式组</strong>：分别求出不等式组中每个不等式的解集，再取它们的公共部分。</li>
+                    <li><strong>口诀</strong>：同大取大，同小取小，大小小大中间找，大大小小无处找。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第十章 数据的收集、整理与描述 -->
+        <h1>第十章 数据的收集、整理与描述</h1>
+        <section id="sec10-1">
+            <div class="knowledge-card">
+                <h2>10.1 统计调查</h2>
+                <ul>
+                    <li><strong>全面调查</strong>：考察全体对象的调查叫做全面调查（普查）。</li>
+                    <li><strong>抽样调查</strong>：只抽取一部分对象进行调查，然后根据调查数据推断全体对象的情况，叫做抽样调查。总体：要考察的全体对象；个体：组成总体的每一个考察对象；样本：被抽取的个体组成一个样本；样本容量：样本中个体的数目。</li>
+                    <li><strong>简单随机抽样</strong>：抽取样本时，总体中的每一个个体都有相等的机会被抽到，这样的抽样方法叫简单随机抽样。</li>
+                    <li><strong>数据的整理</strong>：常用统计图有条形统计图、扇形统计图、折线统计图。扇形统计图中，扇形圆心角度数=该部分百分比×360°。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec10-2">
+            <div class="knowledge-card">
+                <h2>10.2 直方图</h2>
+                <ul>
+                    <li><strong>组距与频数</strong>：把数据分组，组内数据的个数称为频数，组与组之间的距离称为组距。频数分布直方图可以直观显示各组频数分布情况。</li>
+                    <li><strong>绘制频数分布直方图的步骤</strong>：
+                        <ol>
+                            <li>计算最大值与最小值的差（极差）；</li>
+                            <li>决定组距和组数（组数=极差/组距，一般取整数）；</li>
+                            <li>列频数分布表；</li>
+                            <li>画频数分布直方图（横轴表示数据，纵轴表示频数，用小长方形的高表示频数）。</li>
+                        </ol>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec10-3">
+            <div class="knowledge-card">
+                <h2>10.3 课题学习 从数据谈节水</h2>
+                <ul>
+                    <li><strong>课题目标</strong>：通过收集、整理、描述、分析数据，了解水资源现状，增强节水意识。</li>
+                    <li><strong>活动步骤</strong>：
+                        <ol>
+                            <li>调查家庭或社区用水情况；</li>
+                            <li>整理数据，制作统计图表；</li>
+                            <li>分析数据，发现节水问题；</li>
+                            <li>提出节水建议。</li>
+                        </ol>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particle-container');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.2 + 0.6;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = '#2c3e66';
+                }
+                update(mouse) {
+                    if (mouse.x !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < mouse.radius) {
+                            const force = (mouse.radius - distance) / mouse.radius;
+                            const angle = Math.atan2(dy, dx);
+                            this.speedX += Math.cos(angle) * force * 0.03;
+                            this.speedY += Math.sin(angle) * force * 0.03;
+                        }
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            const mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            
+            const particlesArray = Array.from({ length: 40 }, () => new Particle());
+
+            function connect() {
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a+1; b < particlesArray.length; b++) {
+                        const dx = particlesArray[a].x - particlesArray[b].x;
+                        const dy = particlesArray[a].y - particlesArray[b].y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < 100) {
+                            ctx.strokeStyle = `rgba(44, 62, 102, ${1 - distance/100})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+                connect();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => { requestAnimationFrame(updateActiveNav); });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

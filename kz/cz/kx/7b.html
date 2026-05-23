@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>初中科学·七年级下册（详细版）</title>
+    
+    <!-- KaTeX 渲染 (用于公式) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2c7da0;      /* 科学蓝色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e6f4ff;     /* 浅蓝背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #2c7da0;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #2c7da0;
+        }
+        .category-title:hover { background: rgba(44, 125, 160, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #1e5a73;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+        .category-content a.active {
+            color: #2c7da0;
+            font-weight: 600;
+            background-color: rgba(44, 125, 160, 0.12);
+            border-left: 3px solid #2c7da0;
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #1e5a73;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e0f0f5;
+            border: 2px dashed #7fb4c4;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2c7da0;
+        }
+
+        body.collapsed nav { padding: 20px 5px; }
+        body.collapsed .sidebar-header h2 { opacity: 0; width: 0; margin: 0; pointer-events: none; }
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home { display: none !important; }
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c7da0;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #7fb4c4;
+            color: #2c7da0;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #c2dfe9;
+            padding-bottom: 10px;
+            color: #2c7da0;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 170px 1fr; }
+            body.collapsed { grid-template-columns: 55px 1fr; }
+            nav { padding: 15px 8px; }
+            .sidebar-header h2 { font-size: 16px; }
+            #toggleSidebar { font-size: 22px; width: 28px; height: 28px; }
+            .category-title { font-size: 14px; padding: 6px 4px; }
+            .category-content a { font-size: 12px; padding: 4px 0; }
+            main { padding: 15px 15px; }
+            h1 { font-size: 22px; margin: 20px 0; }
+            body.collapsed .category-title::before { font-size: 18px; }
+        }
+        @media (max-width: 480px) {
+            body { grid-template-columns: 140px 1fr; }
+            body.collapsed { grid-template-columns: 48px 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>科学·七年级下册</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch1')">✚ 第一章 代代相传的生命</div>
+            <div class="category-content" id="cat-ch1">
+                <a href="#sec1-1">1.1 新生命的诞生</a>
+                <a href="#sec1-2">1.2 走向成熟</a>
+                <a href="#sec1-3">1.3 动物的生长时期</a>
+                <a href="#sec1-4">1.4 植物的一生</a>
+                <a href="#sec1-5">1.5 植物生殖方式的多样性</a>
+                <a href="#sec1-6">1.6 细菌和真菌的繁殖</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch2')">✚ 第二章 对环境的察觉</div>
+            <div class="category-content" id="cat-ch2">
+                <a href="#sec2-1">2.1 感觉世界</a>
+                <a href="#sec2-2">2.2 声音的产生和传播</a>
+                <a href="#sec2-3">2.3 耳和听觉</a>
+                <a href="#sec2-4">2.4 光和颜色</a>
+                <a href="#sec2-5">2.5 光的反射和折射</a>
+                <a href="#sec2-6">2.6 透镜和视觉</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch3')">✚ 第三章 运动和力</div>
+            <div class="category-content" id="cat-ch3">
+                <a href="#sec3-1">3.1 机械运动</a>
+                <a href="#sec3-2">3.2 力的存在</a>
+                <a href="#sec3-3">3.3 重力</a>
+                <a href="#sec3-4">3.4 牛顿第一定律</a>
+                <a href="#sec3-5">3.5 二力平衡</a>
+                <a href="#sec3-6">3.6 摩擦力</a>
+                <a href="#sec3-7">3.7 压强</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch4')">✚ 第四章 地球和宇宙</div>
+            <div class="category-content" id="cat-ch4">
+                <a href="#sec4-1">4.1 太阳和月球</a>
+                <a href="#sec4-2">4.2 地球的自转</a>
+                <a href="#sec4-3">4.3 地球的绕日运动</a>
+                <a href="#sec4-4">4.4 月相</a>
+                <a href="#sec4-5">4.5 日食和月食</a>
+                <a href="#sec4-6">4.6 太阳系</a>
+                <a href="#sec4-7">4.7 探索宇宙</a>
+            </div>
+        </div>
+        
+        <a href="/kz/cz/cz.html" class="back-home">返回首页</a>
+        <div class="ad-space">探索科学 · 认知世界</div>
+    </nav>
+    
+    <main>
+        <!-- 第一章 代代相传的生命 -->
+        <h1>第一章 代代相传的生命</h1>
+        <section id="sec1-1">
+            <div class="knowledge-card">
+                <h2>1.1 新生命的诞生</h2>
+                <ul>
+                    <li><strong>人的生殖系统</strong>：
+                        <ul>
+                            <li>男性生殖系统：睾丸（产生精子和分泌雄性激素）、附睾、输精管等。</li>
+                            <li>女性生殖系统：卵巢（产生卵细胞和分泌雌性激素）、输卵管（受精场所）、子宫（胚胎发育场所）、阴道。</li>
+                        </ul>
+                    </li>
+                    <li><strong>受精与胚胎发育</strong>：
+                        <ul>
+                            <li>受精：精子和卵细胞在输卵管中结合形成受精卵的过程。</li>
+                            <li>胚胎发育：受精卵不断分裂形成胚泡，植入子宫内膜；胚胎通过胎盘和脐带从母体获得营养和氧气，排出废物。</li>
+                            <li>分娩：成熟的胎儿从母体阴道产出的过程。从受精卵到胎儿发育成熟约需38周（266天）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>母乳喂养的意义</strong>：母乳含有婴儿所需营养和抗体，利于婴儿健康发育，增进母婴感情。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-2">
+            <div class="knowledge-card">
+                <h2>1.2 走向成熟</h2>
+                <ul>
+                    <li><strong>青春期发育</strong>：人生第二个生长发育高峰期，以生殖器官的发育和第二性征的出现为特征。
+                        <ul>
+                            <li>男性：睾丸分泌雄性激素，出现喉结、胡须、遗精等。</li>
+                            <li>女性：卵巢分泌雌性激素，出现月经、乳房发育等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>青春期的心理变化</strong>：独立意识增强，情绪多变，性意识萌动。要正确对待，学会自我调节，健康度过青春期。</li>
+                    <li><strong>衰老与死亡</strong>：细胞衰老导致个体衰老，是生命发展的必然规律。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-3">
+            <div class="knowledge-card">
+                <h2>1.3 动物的生长时期</h2>
+                <ul>
+                    <li><strong>动物的生命周期</strong>：出生→生长发育→生殖→死亡。</li>
+                    <li><strong>昆虫的发育</strong>：
+                        <ul>
+                            <li>完全变态：卵→幼虫→蛹→成虫（如家蚕、蝴蝶）。幼虫与成虫形态、生活习性差异大。</li>
+                            <li>不完全变态：卵→若虫→成虫（如蝗虫、蟋蟀）。若虫与成虫形态相似，生活习性相近。</li>
+                        </ul>
+                    </li>
+                    <li><strong>两栖动物的发育</strong>：青蛙的发育为变态发育（卵→蝌蚪→幼蛙→成蛙），幼体生活在水中，成体水陆两栖。</li>
+                    <li><strong>鸟类的发育</strong>：体内受精，卵生，胚胎在卵中发育。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-4">
+            <div class="knowledge-card">
+                <h2>1.4 植物的一生</h2>
+                <ul>
+                    <li><strong>种子的结构</strong>：
+                        <ul>
+                            <li>菜豆种子（双子叶）：种皮、胚（胚芽、胚轴、胚根、子叶2片），子叶储存营养。</li>
+                            <li>玉米种子（单子叶）：果皮和种皮、胚乳、胚（胚芽、胚轴、胚根、子叶1片），胚乳储存营养。</li>
+                        </ul>
+                    </li>
+                    <li><strong>种子萌发的条件</strong>：
+                        <ul>
+                            <li>自身条件：完整有活力的胚，供胚发育的营养物质，不在休眠期。</li>
+                            <li>外界条件：适宜的温度、一定的水分、充足的空气。</li>
+                        </ul>
+                    </li>
+                    <li><strong>芽的发育</strong>：芽中的分生组织使芽轴伸长，叶原基发育成幼叶，芽原基发育成侧芽。</li>
+                    <li><strong>花的结构</strong>：花柄、花托、花萼、花冠、雄蕊（花药、花丝）、雌蕊（柱头、花柱、子房）。子房内有胚珠。</li>
+                    <li><strong>果实和种子的形成</strong>：传粉受精后，子房发育成果实，子房壁发育成果皮，胚珠发育成种子，受精卵发育成胚。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-5">
+            <div class="knowledge-card">
+                <h2>1.5 植物生殖方式的多样性</h2>
+                <ul>
+                    <li><strong>有性生殖</strong>：经过两性生殖细胞结合形成受精卵，再由受精卵发育成新个体。如种子繁殖。优点：后代变异大，适应环境能力强。</li>
+                    <li><strong>无性生殖</strong>：不经过两性生殖细胞结合，直接由母体产生新个体。
+                        <ul>
+                            <li>营养繁殖：利用植物营养器官（根、茎、叶）进行繁殖，如扦插、嫁接、压条。优点：保持母本优良性状，繁殖速度快。</li>
+                            <li>组织培养：利用植物细胞的全能性，在无菌条件下培养成完整植株。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-6">
+            <div class="knowledge-card">
+                <h2>1.6 细菌和真菌的繁殖</h2>
+                <ul>
+                    <li><strong>细菌的繁殖</strong>：分裂生殖（二分裂），繁殖速度快。条件适宜时每20-30分钟分裂一次。</li>
+                    <li><strong>真菌的繁殖</strong>：
+                        <ul>
+                            <li>酵母菌：出芽生殖（环境良好时），也能进行孢子生殖。</li>
+                            <li>霉菌（如青霉、曲霉）：孢子生殖，由菌丝产生孢子。</li>
+                            <li>蘑菇：孢子生殖，由菌褶中的孢子散出繁殖。</li>
+                        </ul>
+                    </li>
+                    <li><strong>微生物与人类关系</strong>：有益（发酵食品、抗生素、生态分解）和有害（致病、食物腐败）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 对环境的察觉 -->
+        <h1>第二章 对环境的察觉</h1>
+        <section id="sec2-1">
+            <div class="knowledge-card">
+                <h2>2.1 感觉世界</h2>
+                <ul>
+                    <li><strong>感觉器官</strong>：眼、耳、鼻、舌、皮肤等，感受外界刺激并产生神经冲动。</li>
+                    <li><strong>皮肤感觉</strong>：触觉、痛觉、冷热觉等，不同部位敏感度不同（指尖、唇等敏感）。</li>
+                    <li><strong>嗅觉与味觉</strong>：鼻腔内嗅觉细胞感受气味分子；舌上味蕾感受酸、甜、苦、咸、鲜（第五味觉）。嗅觉和味觉相互影响。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-2">
+            <div class="knowledge-card">
+                <h2>2.2 声音的产生和传播</h2>
+                <ul>
+                    <li><strong>声音的产生</strong>：声音由物体的振动产生。振动停止，发声停止。</li>
+                    <li><strong>声音的传播</strong>：需要介质（固体、液体、气体），真空不能传声。声音以声波形式传播。</li>
+                    <li><strong>声速</strong>：在15℃空气中约为340m/s，固体中最快，液体次之，气体最慢。</li>
+                    <li><strong>回声</strong>：声音遇到障碍物反射回来形成回声。利用回声测距：\(s = \frac{vt}{2}\)。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-3">
+            <div class="knowledge-card">
+                <h2>2.3 耳和听觉</h2>
+                <ul>
+                    <li><strong>耳的结构</strong>：
+                        <ul>
+                            <li>外耳：耳廓、外耳道（收集、传导声波）。</li>
+                            <li>中耳：鼓膜、听小骨（三块）、咽鼓管（平衡气压）。</li>
+                            <li>内耳：耳蜗（听觉感受器）、前庭和半规管（平衡感受器）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>听觉的形成</strong>：声波→外耳道→鼓膜振动→听小骨放大→耳蜗→听觉神经→大脑听觉中枢。</li>
+                    <li><strong>听觉保护</strong>：避免巨大声响（张开口或堵耳）、减少噪声、不用硬物掏耳等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-4">
+            <div class="knowledge-card">
+                <h2>2.4 光和颜色</h2>
+                <ul>
+                    <li><strong>光源</strong>：能够自行发光的物体。如太阳、点燃的蜡烛、电灯等。</li>
+                    <li><strong>光的传播</strong>：在均匀介质中沿直线传播。证据：小孔成像、影子的形成、日食月食等。</li>
+                    <li><strong>光速</strong>：真空中约3×10⁸ m/s，空气中近似此值。</li>
+                    <li><strong>光的色散</strong>：白光通过三棱镜分解成红、橙、黄、绿、蓝、靛、紫七种色光。白光由各种色光混合而成。</li>
+                    <li><strong>物体的颜色</strong>：
+                        <ul>
+                            <li>透明物体颜色由透过的色光决定。</li>
+                            <li>不透明物体颜色由反射的色光决定。</li>
+                        </ul>
+                    </li>
+                    <li><strong>看不见的光</strong>：红外线（热作用强）、紫外线（杀菌、使荧光物质发光）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-5">
+            <div class="knowledge-card">
+                <h2>2.5 光的反射和折射</h2>
+                <ul>
+                    <li><strong>光的反射</strong>：光射到物体表面被反射回来的现象。
+                        <ul>
+                            <li>反射定律：反射光线、入射光线、法线在同一平面内；反射光线和入射光线分居法线两侧；反射角等于入射角。</li>
+                            <li>镜面反射：平行光射到平滑表面，反射光平行射出（如镜子、平静水面）。</li>
+                            <li>漫反射：平行光射到粗糙表面，反射光向各个方向，使人能从不同角度看到物体。</li>
+                        </ul>
+                    </li>
+                    <li><strong>平面镜成像</strong>：正立等大的虚像，像与物关于镜面对称。应用：潜望镜、穿衣镜等。</li>
+                    <li><strong>光的折射</strong>：光从一种介质斜射入另一种介质时，传播方向发生改变的现象。
+                        <ul>
+                            <li>折射规律：折射光线、入射光线、法线在同一平面内；折射光线和入射光线分居法线两侧；光从空气斜射入水或玻璃中时，折射角小于入射角；反之折射角大于入射角。</li>
+                            <li>现象：池水变浅、筷子弯折、海市蜃楼等。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-6">
+            <div class="knowledge-card">
+                <h2>2.6 透镜和视觉</h2>
+                <ul>
+                    <li><strong>凸透镜和凹透镜</strong>：
+                        <ul>
+                            <li>凸透镜：中间厚边缘薄，对光有会聚作用。焦点、焦距概念。</li>
+                            <li>凹透镜：中间薄边缘厚，对光有发散作用。</li>
+                        </ul>
+                    </li>
+                    <li><strong>凸透镜成像规律</strong>：
+                        <ul>
+                            <li>u > 2f：倒立缩小的实像，应用照相机。</li>
+                            <li>u = 2f：倒立等大的实像，测焦距。</li>
+                            <li>f < u < 2f：倒立放大的实像，应用投影仪。</li>
+                            <li>u = f：不成像。</li>
+                            <li>u < f：正立放大的虚像，应用放大镜。</li>
+                        </ul>
+                    </li>
+                    <li><strong>眼睛的结构与视觉</strong>：
+                        <ul>
+                            <li>晶状体相当于凸透镜，视网膜相当于光屏。</li>
+                            <li>近视：晶状体曲度过大或眼球前后径过长，像成在视网膜前，用凹透镜矫正。</li>
+                            <li>远视：晶状体曲度过小或眼球前后径过短，像成在视网膜后，用凸透镜矫正。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 运动和力 -->
+        <h1>第三章 运动和力</h1>
+        <section id="sec3-1">
+            <div class="knowledge-card">
+                <h2>3.1 机械运动</h2>
+                <ul>
+                    <li><strong>参照物</strong>：判断物体运动时被选作标准的物体。运动和静止是相对的。</li>
+                    <li><strong>速度</strong>：描述物体运动快慢的物理量。公式 \(v = \frac{s}{t}\)，单位m/s、km/h。匀速直线运动速度不变。</li>
+                    <li><strong>平均速度</strong>：粗略描述运动快慢，总路程除以总时间。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-2">
+            <div class="knowledge-card">
+                <h2>3.2 力的存在</h2>
+                <ul>
+                    <li><strong>力的作用效果</strong>：力可以改变物体的形状，也可以改变物体的运动状态（速度大小或方向）。</li>
+                    <li><strong>力的三要素</strong>：大小、方向、作用点。力的图示：用带箭头的线段表示。</li>
+                    <li><strong>力的测量</strong>：弹簧测力计，原理：在弹性限度内，弹簧的伸长量与拉力成正比。</li>
+                    <li><strong>力的作用是相互的</strong>：一个物体对另一个物体施力时，同时也受到后者对它的力。作用力和反作用力大小相等、方向相反、作用在不同物体上。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-3">
+            <div class="knowledge-card">
+                <h2>3.3 重力</h2>
+                <ul>
+                    <li><strong>重力</strong>：由于地球吸引而使物体受到的力。方向竖直向下。重力与质量的关系：\(G = mg\)，g=9.8N/kg（粗略取10N/kg）。</li>
+                    <li><strong>重心</strong>：重力作用等效点，在物体的几何中心附近。形状规则、质量分布均匀的物体重心在几何中心。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-4">
+            <div class="knowledge-card">
+                <h2>3.4 牛顿第一定律</h2>
+                <ul>
+                    <li><strong>牛顿第一定律</strong>：一切物体在没有受到外力作用时，总保持静止状态或匀速直线运动状态。说明力是改变物体运动状态的原因，不是维持运动的原因。</li>
+                    <li><strong>惯性</strong>：物体保持原来运动状态不变的性质。一切物体都有惯性，惯性只与质量有关。惯性现象：汽车刹车乘客前倾、拍打衣服去灰尘等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-5">
+            <div class="knowledge-card">
+                <h2>3.5 二力平衡</h2>
+                <ul>
+                    <li><strong>平衡状态</strong>：物体保持静止或匀速直线运动状态。受平衡力作用。</li>
+                    <li><strong>二力平衡条件</strong>：作用在同一物体上，大小相等，方向相反，作用在同一直线上。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-6">
+            <div class="knowledge-card">
+                <h2>3.6 摩擦力</h2>
+                <ul>
+                    <li><strong>摩擦力</strong>：两个相互接触的物体，当它们发生相对运动或有相对运动趋势时，在接触面上产生的阻碍相对运动的力。包括静摩擦力、滑动摩擦力、滚动摩擦力。</li>
+                    <li><strong>影响滑动摩擦力大小的因素</strong>：压力大小、接触面的粗糙程度。与接触面积、速度无关。</li>
+                    <li><strong>增大/减小摩擦的方法</strong>：
+                        <ul>
+                            <li>增大：增大压力、增加接触面粗糙程度（如轮胎花纹）。</li>
+                            <li>减小：减小压力、使接触面光滑、变滑动为滚动、加润滑油、气垫等。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-7">
+            <div class="knowledge-card">
+                <h2>3.7 压强</h2>
+                <ul>
+                    <li><strong>压强</strong>：物体所受压力与受力面积之比。公式 \(p = \frac{F}{S}\)，单位帕斯卡（Pa），1Pa=1N/m²。</li>
+                    <li><strong>增大压强的方法</strong>：增大压力或减小受力面积（如刀刃、钉子尖）。</li>
+                    <li><strong>减小压强的方法</strong>：减小压力或增大受力面积（如坦克履带、书包宽背带）。</li>
+                    <li><strong>液体压强</strong>：液体内部向各个方向都有压强，深度越大压强越大，同一深度各方向压强相等。公式 \(p = \rho g h\)。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 地球和宇宙 -->
+        <h1>第四章 地球和宇宙</h1>
+        <section id="sec4-1">
+            <div class="knowledge-card">
+                <h2>4.1 太阳和月球</h2>
+                <ul>
+                    <li><strong>太阳</strong>：太阳系的中心恒星，巨大气体球（氢、氦）。太阳活动：黑子（光球层，周期约11年）、耀斑（色球层）、太阳风（日冕层）。太阳活动影响地球气候、无线电通信、产生极光等。</li>
+                    <li><strong>月球</strong>：地球唯一的天然卫星，表面布满环形山，无大气、无水。月球的引力约为地球的1/6。月球本身不发光，反射太阳光。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-2">
+            <div class="knowledge-card">
+                <h2>4.2 地球的自转</h2>
+                <ul>
+                    <li><strong>自转方向</strong>：自西向东，从北极上空看逆时针，南极上空看顺时针。</li>
+                    <li><strong>自转周期</strong>：约24小时（一天）。</li>
+                    <li><strong>自转的地理意义</strong>：昼夜交替、地方时差异、日月星辰的东升西落。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-3">
+            <div class="knowledge-card">
+                <h2>4.3 地球的绕日运动</h2>
+                <ul>
+                    <li><strong>公转方向</strong>：自西向东。</li>
+                    <li><strong>公转周期</strong>：约365.25天（一年）。</li>
+                    <li><strong>公转的地理意义</strong>：四季更替、正午太阳高度变化、昼夜长短变化、五带划分。</li>
+                    <li><strong>黄赤交角</strong>：黄道面与赤道面的夹角约23.5°，导致太阳直射点在南、北回归线之间往返移动。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-4">
+            <div class="knowledge-card">
+                <h2>4.4 月相</h2>
+                <ul>
+                    <li><strong>月相</strong>：月球圆缺变化的各种形状。由于日、地、月相对位置变化引起。</li>
+                    <li><strong>月相变化规律</strong>：新月（初一）→上弦月（初七初八）→满月（十五）→下弦月（廿二廿三）→新月。月相变化周期约29.53天（朔望月）。</li>
+                    <li><strong>记忆口诀</strong>：上上上西西（上弦月出现在上半夜，西边亮，西边天空），下下下东东（下弦月出现在下半夜，东边亮，东边天空）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-5">
+            <div class="knowledge-card">
+                <h2>4.5 日食和月食</h2>
+                <ul>
+                    <li><strong>日食</strong>：月球运行到太阳和地球之间，三者成一直线时，月球挡住太阳光。发生在农历初一，有日全食、日环食、日偏食。不是每月都发生，因为月地轨道有夹角。</li>
+                    <li><strong>月食</strong>：地球运行到太阳和月球之间，三者成一直线时，地球挡住太阳光，月球进入地球阴影。发生在农历十五，有月全食、月偏食。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-6">
+            <div class="knowledge-card">
+                <h2>4.6 太阳系</h2>
+                <ul>
+                    <li><strong>八大行星</strong>：水星、金星、地球、火星、木星、土星、天王星、海王星（离太阳由近及远）。</li>
+                    <li><strong>分类</strong>：类地行星（水、金、地、火）、巨行星（木、土）、远日行星（天王、海王）。</li>
+                    <li><strong>小行星带</strong>：位于火星和木星之间。</li>
+                    <li><strong>彗星</strong>：拖着长尾，绕太阳运行，著名的哈雷彗星周期约76年。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-7">
+            <div class="knowledge-card">
+                <h2>4.7 探索宇宙</h2>
+                <ul>
+                    <li><strong>银河系</strong>：太阳系所在的星系，由大量恒星组成，呈铁饼状，直径约10万光年。</li>
+                    <li><strong>宇宙的层次</strong>：地月系→太阳系→银河系→宇宙。宇宙由大量星系（如河外星系）构成，无限而宏大。</li>
+                    <li><strong>人类探索宇宙的工具</strong>：天文望远镜、空间探测器、载人航天等。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particle-container');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.2 + 0.6;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = '#2c7da0';
+                }
+                update(mouse) {
+                    if (mouse.x !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < mouse.radius) {
+                            const force = (mouse.radius - distance) / mouse.radius;
+                            const angle = Math.atan2(dy, dx);
+                            this.speedX += Math.cos(angle) * force * 0.03;
+                            this.speedY += Math.sin(angle) * force * 0.03;
+                        }
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            const mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            
+            const particlesArray = Array.from({ length: 40 }, () => new Particle());
+
+            function connect() {
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a+1; b < particlesArray.length; b++) {
+                        const dx = particlesArray[a].x - particlesArray[b].x;
+                        const dy = particlesArray[a].y - particlesArray[b].y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < 100) {
+                            ctx.strokeStyle = `rgba(44, 125, 160, ${1 - distance/100})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+                connect();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => { requestAnimationFrame(updateActiveNav); });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

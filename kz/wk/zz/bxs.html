@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>政治必修三 · 政治与法治（详细版）</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #b22222;      /* 政治深红色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fcf8e8;     /* 浅黄底色 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #b22222;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #b22222;
+        }
+        .category-title:hover { background: rgba(178, 34, 34, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #5a3e2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮红色 */
+        .category-content a.active {
+            color: #b22222;
+            font-weight: 600;
+            background-color: rgba(178, 34, 34, 0.12);
+            border-left: 3px solid #b22222;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #5a3e2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f7f0d6;
+            border: 2px dashed #e5b73b;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #b22222;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #b22222;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5b73b;
+            color: #b22222;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #f0d9b5;
+            padding-bottom: 10px;
+            color: #b22222;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 概念强调 */
+        .concept {
+            font-weight: 600;
+            color: #b22222;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (浅黄背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (政治必修三分类) 依据统编版必修3《政治与法治》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>政治必修三</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一单元 中国共产党的领导 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit1')">✚ 第一单元 中国共产党的领导</div>
+            <div class="category-content" id="cat-unit1">
+                <a href="#lesson1-1">第一课 第1框 中华人民共和国成立前各种政治力量</a>
+                <a href="#lesson1-2">第一课 第2框 中国共产党领导人民站起来、富起来、强起来</a>
+                <a href="#lesson2-1">第二课 第1框 始终坚持以人民为中心</a>
+                <a href="#lesson2-2">第二课 第2框 始终走在时代前列</a>
+                <a href="#lesson3-1">第三课 第1框 坚持党的领导</a>
+                <a href="#lesson3-2">第三课 第2框 巩固党的执政地位</a>
+            </div>
+        </div>
+        
+        <!-- 第二单元 人民当家作主 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit2')">✚ 第二单元 人民当家作主</div>
+            <div class="category-content" id="cat-unit2">
+                <a href="#lesson4-1">第四课 第1框 人民民主专政的本质：人民当家作主</a>
+                <a href="#lesson4-2">第四课 第2框 坚持人民民主专政</a>
+                <a href="#lesson5-1">第五课 第1框 人民代表大会：我国的国家权力机关</a>
+                <a href="#lesson5-2">第五课 第2框 人民代表大会制度：我国的根本政治制度</a>
+                <a href="#lesson6-1">第六课 第1框 中国共产党领导的多党合作和政治协商制度</a>
+                <a href="#lesson6-2">第六课 第2框 民族区域自治制度</a>
+                <a href="#lesson6-3">第六课 第3框 基层群众自治制度</a>
+            </div>
+        </div>
+        
+        <!-- 第三单元 全面依法治国 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit3')">✚ 第三单元 全面依法治国</div>
+            <div class="category-content" id="cat-unit3">
+                <a href="#lesson7-1">第七课 第1框 我国法治建设的历程</a>
+                <a href="#lesson7-2">第七课 第2框 全面依法治国的总目标与原则</a>
+                <a href="#lesson8-1">第八课 第1框 法治国家</a>
+                <a href="#lesson8-2">第八课 第2框 法治政府</a>
+                <a href="#lesson8-3">第八课 第3框 法治社会</a>
+                <a href="#lesson9-1">第九课 第1框 科学立法</a>
+                <a href="#lesson9-2">第九课 第2框 严格执法</a>
+                <a href="#lesson9-3">第九课 第3框 公正司法</a>
+                <a href="#lesson9-4">第九课 第4框 全民守法</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">党的领导 · 人民当家作主 · 依法治国</div>
+    </nav>
+    
+    <!-- 主要内容：详细版政治必修三知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一单元 中国共产党的领导 -->
+        <h1>第一单元 中国共产党的领导</h1>
+        
+        <section id="lesson1-1">
+            <div class="knowledge-card">
+                <h2>第一课 第1框 中华人民共和国成立前各种政治力量</h2>
+                <ul>
+                    <li><strong>近代中国的基本国情</strong>：鸦片战争后，中国逐步成为半殖民地半封建社会。半殖民地半封建社会的基本国情决定了近代中国社会的主要矛盾是帝国主义和中华民族的矛盾、封建主义和人民大众的矛盾。</li>
+                    <li><strong>近代中国两大历史任务</strong>：争取民族独立、人民解放，实现国家富强、人民幸福。</li>
+                    <li><strong>各种政治力量的救国方案</strong>：农民阶级（太平天国、义和团）、地主阶级改良派（洋务运动）、资产阶级维新派（戊戌变法）、资产阶级革命派（辛亥革命）都未能改变旧中国的社会性质，证明资本主义道路在中国走不通。</li>
+                    <li><strong>中国共产党成立的意义</strong>：1921年中国共产党成立，深刻改变了近代以后中华民族发展的方向和进程，深刻改变了中国人民和中华民族的前途和命运，深刻改变了世界发展的趋势和格局。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson1-2">
+            <div class="knowledge-card">
+                <h2>第一课 第2框 中国共产党领导人民站起来、富起来、强起来</h2>
+                <ul>
+                    <li><strong>建立新中国，中国人民站起来了</strong>：1949年中华人民共和国成立，实现了中国从几千年封建专制政治向人民民主的伟大飞跃，中国人民掌握了自己的命运。</li>
+                    <li><strong>社会主义建设时期的成就</strong>：确立了社会主义基本制度，成功实现了中国历史上最深刻最伟大的社会变革，为当代中国一切发展进步奠定了根本政治前提和制度基础。</li>
+                    <li><strong>改革开放，走向民富国强</strong>：1978年党的十一届三中全会开启改革开放，极大地解放和发展了社会生产力，人民生活显著改善，综合国力显著增强。</li>
+                    <li><strong>进入新时代，踏上新征程</strong>：党的十八大以来，中国特色社会主义进入新时代，中华民族迎来了从站起来、富起来到强起来的伟大飞跃。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2-1">
+            <div class="knowledge-card">
+                <h2>第二课 第1框 始终坚持以人民为中心</h2>
+                <ul>
+                    <li><strong>党的性质和宗旨</strong>：中国共产党是中国工人阶级的先锋队，同时是中国人民和中华民族的先锋队。党的根本宗旨是全心全意为人民服务。党的性质和宗旨决定了党除了工人阶级和最广大人民的根本利益，没有自己特殊的利益。</li>
+                    <li><strong>党的执政理念</strong>：立党为公、执政为民。党在任何时候都把人民利益放在第一位，保持同人民群众的血肉联系，与人民同甘共苦。</li>
+                    <li><strong>践行以人民为中心的发展思想</strong>：必须坚持人民主体地位，把党的群众路线贯彻到治国理政全部活动之中，把人民对美好生活的向往作为奋斗目标，依靠人民创造历史伟业。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2-2">
+            <div class="knowledge-card">
+                <h2>第二课 第2框 始终走在时代前列</h2>
+                <ul>
+                    <li><strong>党的指导思想与时俱进</strong>：中国共产党以马克思列宁主义、毛泽东思想、邓小平理论、“三个代表”重要思想、科学发展观、习近平新时代中国特色社会主义思想作为自己的行动指南。这些理论成果是一脉相承又与时俱进的。</li>
+                    <li><strong>坚持解放思想、实事求是、与时俱进、求真务实</strong>：这是中国共产党始终走在时代前列、永葆生机活力的法宝。</li>
+                    <li><strong>发挥共产党员的先锋模范作用</strong>：共产党员坚定马克思主义信仰，践行全心全意为人民服务的根本宗旨，通过自己的骨干、带头和桥梁作用，影响和带动身边群众。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson3-1">
+            <div class="knowledge-card">
+                <h2>第三课 第1框 坚持党的领导</h2>
+                <ul>
+                    <li><strong>党的领导的重要性</strong>：中国共产党领导是中国特色社会主义最本质的特征，是中国特色社会主义制度的最大优势，是党和国家的根本所在、命脉所在，是全国各族人民的利益所系、命运所系。</li>
+                    <li><strong>党的领导方式</strong>：政治领导、思想领导、组织领导。
+                        <ul>
+                            <li>政治领导：制定正确的路线、方针、政策，确保国家发展的社会主义方向。</li>
+                            <li>思想领导：开展思想宣传教育，用党的理论武装党员和群众。</li>
+                            <li>组织领导：发挥党组织和党员的作用，培养选拔干部，保证党的决定贯彻落实。</li>
+                        </ul>
+                    </li>
+                    <li><strong>新时代坚持和加强党的全面领导</strong>：党要总揽全局、协调各方，不断提高党的执政能力和领导水平，确保党始终成为中国特色社会主义事业的坚强领导核心。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson3-2">
+            <div class="knowledge-card">
+                <h2>第三课 第2框 巩固党的执政地位</h2>
+                <ul>
+                    <li><strong>坚持党要管党、全面从严治党</strong>：这是党的建设的一贯方针和要求。治国必先治党，治党务必从严。全面从严治党，核心是加强党的领导，基础在全面，关键在严，要害在治。</li>
+                    <li><strong>加强党的执政能力建设</strong>：不断增强党的政治领导力、思想引领力、群众组织力、社会号召力，提高党的执政本领。</li>
+                    <li><strong>推进党的自我革命</strong>：勇于自我革命是党最鲜明的品格。要坚持自我净化、自我完善、自我革新、自我提高，永葆党的先进性和纯洁性。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二单元 人民当家作主 -->
+        <h1>第二单元 人民当家作主</h1>
+        
+        <section id="lesson4-1">
+            <div class="knowledge-card">
+                <h2>第四课 第1框 人民民主专政的本质：人民当家作主</h2>
+                <ul>
+                    <li><strong>我国的国体</strong>：中华人民共和国是工人阶级领导的、以工农联盟为基础的人民民主专政的社会主义国家。人民民主专政是我国的国体，在社会主义制度中具有根本性意义。</li>
+                    <li><strong>人民民主的特点</strong>：
+                        <ul>
+                            <li>最广泛的民主：民主权利覆盖全体人民，民主权利内容广泛。</li>
+                            <li>最真实的民主：有制度和法律保障，真正落到实处。</li>
+                            <li>最管用的民主：体现人民意志，保障人民权益，激发人民创造力。</li>
+                        </ul>
+                    </li>
+                    <li><strong>坚持人民民主专政的意义</strong>：只有保证人民依法享有广泛的权利和自由，尊重和保障人权，才能调动亿万人民群众投身于社会主义现代化建设的积极性。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson4-2">
+            <div class="knowledge-card">
+                <h2>第四课 第2框 坚持人民民主专政</h2>
+                <ul>
+                    <li><strong>国家职能</strong>：
+                        <ul>
+                            <li>对内职能：维护国家稳定，促进社会发展。依法打击危害社会主义制度的破坏活动，维护社会治安，维护国家利益；组织社会主义经济建设、政治建设、文化建设、社会建设和生态文明建设。</li>
+                            <li>对外职能：防御外来侵略，保卫国家安全。</li>
+                        </ul>
+                    </li>
+                    <li><strong>坚持人民民主专政的要求</strong>：既要充分发扬民主，又要对极少数敌对分子实行专政；必须履行好国家各项职能，为社会主义现代化建设提供可靠保障。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson5-1">
+            <div class="knowledge-card">
+                <h2>第五课 第1框 人民代表大会：我国的国家权力机关</h2>
+                <ul>
+                    <li><strong>人民行使国家权力的机关</strong>：人民行使国家权力的机关是全国人民代表大会和地方各级人民代表大会。人民代表大会是国家权力机关，代表人民统一行使国家权力。</li>
+                    <li><strong>全国人民代表大会</strong>：是最高国家权力机关，在我国国家机构中居于最高地位。行使最高立法权、最高决定权、最高任免权、最高监督权。</li>
+                    <li><strong>人大代表</strong>：
+                        <ul>
+                            <li>产生：由民主选举产生（直接选举和间接选举）。</li>
+                            <li>权利：提案权、审议权、表决权、质询权。</li>
+                            <li>义务：与人民群众保持密切联系，听取和反映人民意见，为人民服务，对人民负责，接受人民监督。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson5-2">
+            <div class="knowledge-card">
+                <h2>第五课 第2框 人民代表大会制度：我国的根本政治制度</h2>
+                <ul>
+                    <li><strong>人民代表大会制度的含义</strong>：人民代表大会制度是按照民主集中制原则，由人民选举代表组成人民代表大会作为国家权力机关，统一管理国家事务的政治制度。它是我国的根本政治制度。</li>
+                    <li><strong>民主集中制</strong>：
+                        <ul>
+                            <li>在人民代表大会与人民的关系上：人大代表由民主选举产生，对人民负责，受人民监督。</li>
+                            <li>在人民代表大会与其他国家机关的关系上：国家行政机关、监察机关、审判机关、检察机关都由人民代表大会产生，对它负责，受它监督。</li>
+                            <li>在中央和地方国家机构的关系上：在中央统一领导下，合理划分中央和地方国家机构的职权。</li>
+                        </ul>
+                    </li>
+                    <li><strong>人民代表大会制度的优势</strong>：保障了人民当家作主；动员了全体人民投身于社会主义建设；保证了国家机关协调高效运转；维护了国家统一和民族团结。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson6-1">
+            <div class="knowledge-card">
+                <h2>第六课 第1框 中国共产党领导的多党合作和政治协商制度</h2>
+                <ul>
+                    <li><strong>基本内容和特点</strong>：
+                        <ul>
+                            <li>中国共产党是执政党，各民主党派是参政党，它们是通力合作的友党关系。</li>
+                            <li>坚持中国共产党的领导是多党合作的首要前提和根本保证。</li>
+                            <li>多党合作的基本方针：长期共存、互相监督、肝胆相照、荣辱与共。</li>
+                            <li>多党合作的根本活动准则：遵守宪法和法律。</li>
+                            <li>多党合作的重要机构：中国人民政治协商会议（人民政协）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>人民政协</strong>：
+                        <ul>
+                            <li>性质：中国人民爱国统一战线组织，是中国共产党领导的多党合作和政治协商的重要机构，是我国政治生活中发扬社会主义民主的重要形式，是国家治理体系的重要组成部分。</li>
+                            <li>职能：政治协商、民主监督、参政议政。</li>
+                        </ul>
+                    </li>
+                    <li><strong>制度优势</strong>：有利于发展社会主义民主政治，有利于推进中国特色社会主义建设，有利于推进祖国和平统一大业。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson6-2">
+            <div class="knowledge-card">
+                <h2>第六课 第2框 民族区域自治制度</h2>
+                <ul>
+                    <li><strong>社会主义民族关系</strong>：平等团结互助和谐。</li>
+                    <li><strong>民族原则</strong>：坚持民族平等、民族团结、各民族共同繁荣的方针。</li>
+                    <li><strong>民族区域自治制度</strong>：
+                        <ul>
+                            <li>含义：在国家统一领导下，在各少数民族聚居的地方实行区域自治，设立自治机关，行使自治权的制度。</li>
+                            <li>自治地方：自治区、自治州、自治县三级。</li>
+                            <li>自治机关：自治地方的人民代表大会和人民政府，依法行使自治权。</li>
+                            <li>地位：是我国的一项基本政治制度。</li>
+                        </ul>
+                    </li>
+                    <li><strong>制度优势</strong>：有利于维护国家统一和安全；有利于保障少数民族人民当家作主；有利于发展平等团结互助和谐的社会主义民族关系；有利于促进社会主义现代化建设事业蓬勃发展。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson6-3">
+            <div class="knowledge-card">
+                <h2>第六课 第3框 基层群众自治制度</h2>
+                <ul>
+                    <li><strong>基层群众自治的含义</strong>：人民群众在城乡基层党组织领导下，在居住地范围内，依托基层群众自治组织，依法直接行使民主权利，实行自我管理、自我服务、自我教育、自我监督的制度。</li>
+                    <li><strong>组织形式</strong>：
+                        <ul>
+                            <li>农村：村民委员会（村民自我管理、自我教育、自我服务的基层群众性自治组织）。</li>
+                            <li>城市：居民委员会（居民自我管理、自我教育、自我服务的基层群众性自治组织）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>村民自治的内容</strong>：民主选举、民主协商、民主决策、民主管理、民主监督。</li>
+                    <li><strong>基层群众自治制度的意义</strong>：
+                        <ul>
+                            <li>是社会主义民主政治建设的基础性工程。</li>
+                            <li>调动了广大村民（居民）参与基层事务的积极性，提高了民主素养。</li>
+                            <li>是人民当家作主的有效途径。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三单元 全面依法治国 -->
+        <h1>第三单元 全面依法治国</h1>
+        
+        <section id="lesson7-1">
+            <div class="knowledge-card">
+                <h2>第七课 第1框 我国法治建设的历程</h2>
+                <ul>
+                    <li><strong>法律的历史发展</strong>：法律是人类社会发展到一定历史阶段的产物。古代法律（如《汉谟拉比法典》《唐律疏议》）体现统治阶级意志。</li>
+                    <li><strong>马克思主义法治理论</strong>：法律是统治阶级意志的体现，由社会物质生活条件决定。</li>
+                    <li><strong>新中国法治建设的成就</strong>：
+                        <ul>
+                            <li>形成了以宪法为核心的中国特色社会主义法律体系。</li>
+                            <li>依法行政和公正司法水平不断提高。</li>
+                            <li>人权的法治保障取得巨大成就。</li>
+                            <li>国家治理体系和治理能力现代化深入推进。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson7-2">
+            <div class="knowledge-card">
+                <h2>第七课 第2框 全面依法治国的总目标与原则</h2>
+                <ul>
+                    <li><strong>全面依法治国的总目标</strong>：建设中国特色社会主义法治体系，建设社会主义法治国家。即在中国共产党领导下，坚持中国特色社会主义制度，贯彻习近平法治思想，形成完备的法律规范体系、高效的法治实施体系、严密的法治监督体系、有力的法治保障体系，形成完善的党内法规体系，坚持依法治国、依法执政、依法行政共同推进，坚持法治国家、法治政府、法治社会一体建设，实现科学立法、严格执法、公正司法、全民守法，促进国家治理体系和治理能力现代化。</li>
+                    <li><strong>全面依法治国的原则</strong>：
+                        <ul>
+                            <li>坚持中国共产党的领导。</li>
+                            <li>坚持人民主体地位。</li>
+                            <li>坚持法律面前人人平等。</li>
+                            <li>坚持依法治国和以德治国相结合。</li>
+                            <li>坚持从中国实际出发。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson8-1">
+            <div class="knowledge-card">
+                <h2>第八课 第1框 法治国家</h2>
+                <ul>
+                    <li><strong>法治国家的内涵</strong>：法治国家，就是实行依法治国、依宪治国、依法执政、依宪执政的国家。坚持宪法法律至上、坚持良法之治、尊重和保障人权、规范国家权力运行。</li>
+                    <li><strong>建设法治国家的要求</strong>：
+                        <ul>
+                            <li>推进宪法实施，维护宪法权威。</li>
+                            <li>建立完备的法律体系，实现国家治理有法可依。</li>
+                            <li>完善法律实施机制，确保法律有效实施。</li>
+                        </ul>
+                    </li>
+                    <li><strong>建设法治国家的意义</strong>：能够有效规范权力运行，保障公民合法权益；能够推动国家治理体系和治理能力现代化，实现国家长治久安。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson8-2">
+            <div class="knowledge-card">
+                <h2>第八课 第2框 法治政府</h2>
+                <ul>
+                    <li><strong>法治政府的内涵</strong>：职能科学、权责法定、执法严明、公开公正、智能高效、廉洁诚信、人民满意的政府。</li>
+                    <li><strong>建设法治政府的要求</strong>：
+                        <ul>
+                            <li>依法全面履行政府职能。</li>
+                            <li>完善依法行政制度体系。</li>
+                            <li>推进行政决策科学化、民主化、法治化。</li>
+                            <li>坚持严格规范公正文明执法。</li>
+                            <li>强化对行政权力的制约和监督。</li>
+                            <li>全面提高政府工作人员的法治思维和依法行政能力。</li>
+                        </ul>
+                    </li>
+                    <li><strong>建设法治政府的意义</strong>：有利于保障人民群众的权利和自由；有利于加强廉政建设，保证政府及其工作人员不变质；有利于促进政府提高行政管理水平，提高执政能力和水平。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson8-3">
+            <div class="knowledge-card">
+                <h2>第八课 第3框 法治社会</h2>
+                <ul>
+                    <li><strong>法治社会的内涵</strong>：法律得到普遍公认和遵从、社会治理依法开展、公共生活和谐有序的社会。</li>
+                    <li><strong>建设法治社会的要求</strong>：
+                        <ul>
+                            <li>深入开展法治宣传教育，推动全社会树立法治意识。</li>
+                            <li>提高社会治理法治化水平，发挥市民公约、乡规民约等社会规范的作用。</li>
+                            <li>建设完备的法律服务体系，保证人民群众在遇到法律问题时获得有效的法律帮助。</li>
+                            <li>健全社会矛盾纠纷预防化解机制，引导人们理性表达诉求，依法维护权益。</li>
+                        </ul>
+                    </li>
+                    <li><strong>建设法治社会的意义</strong>：能够更好地形成全社会学法、信法、用法的氛围，增进社会共识，维护社会秩序；能够协调各方利益关系，有效化解社会矛盾，实现社会和谐。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson9-1">
+            <div class="knowledge-card">
+                <h2>第九课 第1框 科学立法</h2>
+                <ul>
+                    <li><strong>科学立法的内涵</strong>：尊重和体现社会发展的客观规律，不断提高法律质量。</li>
+                    <li><strong>科学立法的要求</strong>：
+                        <ul>
+                            <li>立法要体现我国社会主义国家性质，顺应时代发展要求，推动国家发展进步，保障人民各项权利。</li>
+                            <li>立法要符合国情和实际，使法律符合社会发展的需求。</li>
+                            <li>立法必须遵循法律体系的内在逻辑和立法工作规律，遵循立法程序，注重立法技术，努力实现立法过程的科学化。</li>
+                            <li>要明确划分不同法律关系的调整对象和界限，形成符合国家发展目标的法律体系。</li>
+                        </ul>
+                    </li>
+                    <li><strong>推进科学立法</strong>：要依法立法，在法治的轨道上制定法律；要充分发扬民主，凝聚社会共识；要合理设定权利与义务、权力与责任。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson9-2">
+            <div class="knowledge-card">
+                <h2>第九课 第2框 严格执法</h2>
+                <ul>
+                    <li><strong>严格执法的内涵</strong>：执法机关在执法过程中严格依法办事。</li>
+                    <li><strong>严格执法的意义</strong>：
+                        <ul>
+                            <li>有助于捍卫法律的权威和尊严。</li>
+                            <li>有助于实现社会公平正义。</li>
+                            <li>有助于推进建设法治政府。</li>
+                        </ul>
+                    </li>
+                    <li><strong>推进严格执法的要求</strong>：
+                        <ul>
+                            <li>全面履行政府职能，依法惩处各类违法行为。</li>
+                            <li>坚持规范执法，完善执法程序，明确具体操作流程。</li>
+                            <li>坚持公正执法，同等情况平等对待，不同情况差别对待。</li>
+                            <li>坚持文明执法，尊重和保护当事人合法权益，实现执法效果与社会效果的统一。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson9-3">
+            <div class="knowledge-card">
+                <h2>第九课 第3框 公正司法</h2>
+                <ul>
+                    <li><strong>公正司法的内涵</strong>：在司法活动的过程和结果中坚持和体现公平与正义。包括程序公正和实体公正。</li>
+                    <li><strong>公正司法的意义</strong>：维护社会公平正义的最后一道防线；保障人民群众合法权益；维护法律尊严和权威。</li>
+                    <li><strong>推进公正司法的要求</strong>：
+                        <ul>
+                            <li>确保审判权和检察权依法独立行使。</li>
+                            <li>坚持以事实为根据、以法律为准绳，做到事实认定符合客观真相、办案结果符合实体公正、办案过程符合程序公正。</li>
+                            <li>坚持人民司法为人民，依靠人民推进公正司法，通过公正司法维护人民权益。</li>
+                            <li>加强人权司法保障，强化诉讼过程中当事人和其他诉讼参与人的知情权、陈述权、辩护辩论权等的制度保障。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson9-4">
+            <div class="knowledge-card">
+                <h2>第九课 第4框 全民守法</h2>
+                <ul>
+                    <li><strong>全民守法的内涵</strong>：所有社会成员普遍尊重和信仰法律，依法行使权利和履行义务。</li>
+                    <li><strong>全民守法的要求</strong>：
+                        <ul>
+                            <li>依法行使权利，不得超越法律边界，不得损害国家、社会、集体利益和他人合法权益。</li>
+                            <li>依法履行义务，法律要求的必须去做，法律禁止的坚决不做。</li>
+                            <li>依法维护自己的正当权益，当自己的合法权益受侵害时，应通过合法手段理性维权。</li>
+                        </ul>
+                    </li>
+                    <li><strong>推进全民守法的措施</strong>：
+                        <ul>
+                            <li>深入开展法治宣传教育，增强全民法治观念，使守法成为全体人民的共同追求和自觉行动。</li>
+                            <li>调动人民群众投身依法治国实践的积极性和主动性，使尊法守法成为全体人民的共同追求和自觉行动。</li>
+                            <li>不断加强公民道德建设，弘扬中华优秀传统文化，增强法治的道德底蕴，强化规则意识，倡导契约精神，弘扬公序良俗，引导人们自觉履行法定义务、社会责任、家庭责任。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#b22222';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

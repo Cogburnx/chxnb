@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>历史必修</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #b8860b;      /* 历史暗金色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fcf8e8;     /* 浅黄底色 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #b8860b;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #b8860b;
+        }
+        .category-title:hover { background: rgba(184, 134, 11, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #5a3e2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮暗金色 */
+        .category-content a.active {
+            color: #b8860b;
+            font-weight: 600;
+            background-color: rgba(184, 134, 11, 0.12);
+            border-left: 3px solid #b8860b;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #5a3e2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f7f0d6;
+            border: 2px dashed #e5b73b;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #b8860b;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #b8860b;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5b73b;
+            color: #b8860b;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #f0d9b5;
+            padding-bottom: 10px;
+            color: #b8860b;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 年代强调 */
+        .year {
+            font-weight: 600;
+            color: #a0522d;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (浅黄背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (历史必修上分类) 依据统编版《中外历史纲要上》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>历史必修·上</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一单元 从中华文明起源到秦汉统一多民族封建国家的建立与巩固 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit1')">✚ 第一单元 早期中华文明与秦汉</div>
+            <div class="category-content" id="cat-unit1">
+                <a href="#origin">第1课 中华文明的起源与早期国家</a>
+                <a href="#qinhan">第2课 秦汉统一多民族封建国家的建立</a>
+                <a href="#han-consolidation">第3课 秦汉统一多民族封建国家的巩固</a>
+            </div>
+        </div>
+        
+        <!-- 第二单元 三国两晋南北朝的民族交融与隋唐统一多民族封建国家的发展 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit2')">✚ 第二单元 三国两晋南北朝与隋唐</div>
+            <div class="category-content" id="cat-unit2">
+                <a href="#weijin">第4课 三国两晋南北朝的政权更迭与民族交融</a>
+                <a href="#suitang">第5课 隋唐统一多民族封建国家的发展</a>
+                <a href="#tang-prosperity">第6课 隋唐时期的经济与文化</a>
+            </div>
+        </div>
+        
+        <!-- 第三单元 辽宋夏金多民族政权的并立与元朝的统一 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit3')">✚ 第三单元 辽宋夏金元</div>
+            <div class="category-content" id="cat-unit3">
+                <a href="#songyuan">第7课 两宋的政治和军事</a>
+                <a href="#liaoxiajin">第8课 辽夏金元的统治</a>
+                <a href="#songyuan-economy">第9课 辽宋夏金元的经济与社会</a>
+            </div>
+        </div>
+        
+        <!-- 第四单元 明清中国版图的奠定与面临的挑战 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit4')">✚ 第四单元 明清时期</div>
+            <div class="category-content" id="cat-unit4">
+                <a href="#mingqing-politics">第10课 明清前中期的政治</a>
+                <a href="#mingqing-economy">第11课 明清经济与文化</a>
+                <a href="#mingqing-challenge">第12课 明至清中叶的危机</a>
+            </div>
+        </div>
+        
+        <!-- 第五单元 晚清时期的内忧外患与救亡图存 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit5')">✚ 第五单元 晚清时期</div>
+            <div class="category-content" id="cat-unit5">
+                <a href="#opium-war">第13课 两次鸦片战争</a>
+                <a href="#taiping">第14课 太平天国与洋务运动</a>
+                <a href="#jiawu">第15课 甲午战争与戊戌变法</a>
+                <a href="#boxer">第16课 义和团与八国联军侵华</a>
+            </div>
+        </div>
+        
+        <!-- 第六单元 辛亥革命与中华民国的建立 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit6')">✚ 第六单元 辛亥革命与民国</div>
+            <div class="category-content" id="cat-unit6">
+                <a href="#xin hai">第17课 辛亥革命</a>
+                <a href="#republic">第18课 北洋军阀统治时期的政治</a>
+            </div>
+        </div>
+        
+        <!-- 第七单元 中国共产党成立与新民主主义革命兴起 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit7')">✚ 第七单元 新民主主义革命兴起</div>
+            <div class="category-content" id="cat-unit7">
+                <a href="#may4th">第19课 五四运动与中国共产党的诞生</a>
+                <a href="#nanchang">第20课 南京国民政府的统治与革命新道路</a>
+            </div>
+        </div>
+        
+        <!-- 第八单元 中华民族的抗日战争和人民解放战争 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit8')">✚ 第八单元 抗日战争与解放战争</div>
+            <div class="category-content" id="cat-unit8">
+                <a href="#anti-japan">第21课 从局部抗战到全面抗战</a>
+                <a href="#victory">第22课 抗日战争与解放战争</a>
+            </div>
+        </div>
+        
+        <!-- 第九单元 中华人民共和国成立和社会主义革命与建设 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit9')">✚ 第九单元 新中国成立与社会主义建设</div>
+            <div class="category-content" id="cat-unit9">
+                <a href="#founding-prc">第23课 中华人民共和国的成立</a>
+                <a href="#socialist-construction">第24课 社会主义建设的探索</a>
+            </div>
+        </div>
+        
+        <!-- 第十单元 改革开放与中国特色社会主义道路 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit10')">✚ 第十单元 改革开放与新时代</div>
+            <div class="category-content" id="cat-unit10">
+                <a href="#reform-open">第25课 改革开放的伟大转折</a>
+                <a href="#new-era">第26课 中国特色社会主义新时代</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">以史为鉴 · 资政育人</div>
+    </nav>
+    
+    <!-- 主要内容：详细版历史必修上知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一单元 从中华文明起源到秦汉统一多民族封建国家的建立与巩固 -->
+        <h1>第一单元 从中华文明起源到秦汉统一多民族封建国家的建立与巩固</h1>
+        <section id="origin">
+            <div class="knowledge-card">
+                <h2>第1课 中华文明的起源与早期国家</h2>
+                <ul>
+                    <li><strong>石器时代</strong>：
+                        <ul>
+                            <li><strong>旧石器时代</strong>：以打制方法制作石器的时代。代表：距今约170万年的元谋人、距今约70万至20万年的北京人。从事渔猎和采集，过着群居生活，已经学会用火。</li>
+                            <li><strong>新石器时代</strong>：以打磨结合的方法制作石器的时代。距今约1万年前进入新石器时代。大量使用陶器，开始从事原始农业，饲养家畜，生活逐渐稳定。文化遗存分布广泛，奠定了多元一体的发展基础。代表：仰韶文化（彩陶、粟）、河姆渡文化（水稻、养蚕缫丝）、龙山文化（黑陶）、红山文化（玉器、祭坛）、良渚文化（玉器、祭坛）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>原始社会组织</strong>：
+                        <ul>
+                            <li>原始人群→母系氏族社会（旧石器时代晚期，共同劳动，成果共享）→父系氏族社会（新石器时代晚期，贫富分化，阶级分化日益明显，私有制产生）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>三皇五帝传说与夏朝</strong>：
+                        <ul>
+                            <li>炎黄部落联盟被后世尊为华夏始祖。</li>
+                            <li>尧舜时期实行“禅让”。</li>
+                            <li>约公元前2070年，禹建立我国最早的奴隶制国家夏朝。禹死后，其子启继位，世袭制代替禅让制。</li>
+                            <li>二里头遗址很有可能是夏文化的遗存。</li>
+                        </ul>
+                    </li>
+                    <li><strong>商和西周</strong>：
+                        <ul>
+                            <li>约公元前1600年，汤灭夏，建立商朝。商朝国家管理实行内外服制。甲骨文是一种成熟的文字。</li>
+                            <li>公元前1046年，周武王伐纣，建立周朝，定都镐京，史称西周。</li>
+                            <li><strong>分封制</strong>：史称“封建亲戚，以蕃屏周”，形成了“天子—诸侯—卿大夫—士”金字塔型的等级结构，加强了周天子对地方的政治统治。</li>
+                            <li><strong>宗法制</strong>：与分封制相互补充，解决了统治阶级内部在权力和财产分配方面的冲突与矛盾。核心是嫡长子继承制。</li>
+                            <li>公元前841年，发生“国人暴动”。公元前771年，犬戎攻破镐京，杀死周幽王，西周灭亡。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="qinhan">
+            <div class="knowledge-card">
+                <h2>第2课 秦汉统一多民族封建国家的建立</h2>
+                <ul>
+                    <li><strong>秦的统一</strong>：
+                        <ul>
+                            <li>公元前230—前221年，秦国灭六国，完成统一，建立秦朝。</li>
+                            <li><strong>巩固统一的措施</strong>：确立皇帝制度；中央设三公九卿；地方推行郡县制；统一文字、货币、度量衡；修驰道；焚书坑儒。</li>
+                            <li>秦朝建立的专制主义中央集权制度，奠定了中国两千多年封建社会政治制度的基本格局。</li>
+                            <li>秦的暴政导致阶级矛盾激化，公元前207年，秦朝灭亡。</li>
+                        </ul>
+                    </li>
+                    <li><strong>西汉的建立与巩固</strong>：
+                        <ul>
+                            <li>公元前202年，刘邦建立汉朝，定都长安，史称西汉。</li>
+                            <li>汉初实行郡国并行制，出现王国问题。</li>
+                            <li>汉武帝时期：政治上颁布“推恩令”，削弱王国势力；设立中朝，加强皇权；设立刺史制度。经济上盐铁官营。思想上采纳董仲舒“罢黜百家，独尊儒术”，儒学成为封建社会的主流意识形态。</li>
+                            <li>丝绸之路开辟，密切了中外联系。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="han-consolidation">
+            <div class="knowledge-card">
+                <h2>第3课 秦汉统一多民族封建国家的巩固</h2>
+                <ul>
+                    <li><strong>东汉的兴衰</strong>：
+                        <ul>
+                            <li>公元25年，刘秀重建汉朝，定都洛阳，史称东汉。</li>
+                            <li>东汉中后期，外戚宦官交替专权，阶级矛盾日益尖锐，黄巾起义爆发，动摇了东汉统治。</li>
+                        </ul>
+                    </li>
+                    <li><strong>秦汉时期的民族关系</strong>：
+                        <ul>
+                            <li>秦汉时期，中央政府通过政治、军事、经济、文化等手段推进与周边民族的交往，统一多民族封建国家形成并初步发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>秦汉时期的文化</strong>：
+                        <ul>
+                            <li>司马迁著《史记》，开创纪传体通史体裁。</li>
+                            <li>汉赋、乐府诗等文学成就。</li>
+                            <li>造纸术的发明与改进（东汉蔡伦改进造纸术）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二单元 三国两晋南北朝的民族交融与隋唐统一多民族封建国家的发展 -->
+        <h1>第二单元 三国两晋南北朝与隋唐</h1>
+        <section id="weijin">
+            <div class="knowledge-card">
+                <h2>第4课 三国两晋南北朝的政权更迭与民族交融</h2>
+                <ul>
+                    <li><strong>政权更迭</strong>：
+                        <ul>
+                            <li>220年，曹丕建魏；221年，刘备建蜀；229年，孙权建吴，三国鼎立局面形成。</li>
+                            <li>西晋短暂统一（280—316年），后因八王之乱和少数民族内迁而灭亡。</li>
+                            <li>东晋与十六国对峙，南北朝时期（420—589年）南朝宋齐梁陈更迭，北朝北魏及东西魏、北齐北周。</li>
+                        </ul>
+                    </li>
+                    <li><strong>民族交融</strong>：
+                        <ul>
+                            <li>北魏孝文帝改革（迁都洛阳、穿汉服、说汉话、改汉姓等），促进了北方民族大融合，加速北魏封建化进程。</li>
+                            <li>民族交融为隋唐统一多民族封建国家的发展奠定了基础。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="suitang">
+            <div class="knowledge-card">
+                <h2>第5课 隋唐统一多民族封建国家的发展</h2>
+                <ul>
+                    <li><strong>隋朝的兴亡</strong>：
+                        <ul>
+                            <li>581年，杨坚代周建隋，589年灭陈，统一全国。</li>
+                            <li>隋朝开创三省六部制、科举制，开凿大运河。隋炀帝暴政引发农民起义，618年隋亡。</li>
+                        </ul>
+                    </li>
+                    <li><strong>唐朝的繁荣</strong>：
+                        <ul>
+                            <li>618年，李渊建立唐朝。唐太宗时期出现“贞观之治”，唐玄宗时期出现“开元盛世”。</li>
+                            <li><strong>政治制度</strong>：完善三省六部制（中书决策、门下审议、尚书执行）；科举制成为选官主要途径。</li>
+                            <li><strong>民族关系</strong>：实行开明民族政策，设置安西都护府、北庭都护府管辖西域，文成公主入藏促进汉藏友好。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="tang-prosperity">
+            <div class="knowledge-card">
+                <h2>第6课 隋唐时期的经济与文化</h2>
+                <ul>
+                    <li><strong>经济</strong>：
+                        <ul>
+                            <li>农业：曲辕犁（江东犁）的出现，标志着中国传统步犁的基本定型；筒车的使用提高了灌溉效率。</li>
+                            <li>手工业：丝织业发达，制瓷业形成南青北白两大系统（越窑青瓷、邢窑白瓷）；唐三彩闻名中外。</li>
+                            <li>商业：长安、洛阳成为国际性大都市；市坊分开，商业活动受严格管理。</li>
+                        </ul>
+                    </li>
+                    <li><strong>文化</strong>：
+                        <ul>
+                            <li>诗歌创作进入黄金时代，李白、杜甫、白居易等名家辈出。</li>
+                            <li>书法艺术繁荣，颜真卿、柳公权等书法家成就卓越。</li>
+                            <li>佛教传播广泛，玄奘西行、鉴真东渡促进中外文化交流。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三单元 辽宋夏金多民族政权的并立与元朝的统一 -->
+        <h1>第三单元 辽宋夏金元</h1>
+        <section id="songyuan">
+            <div class="knowledge-card">
+                <h2>第7课 两宋的政治和军事</h2>
+                <ul>
+                    <li><strong>北宋的建立与集权</strong>：
+                        <ul>
+                            <li>960年，赵匡胤发动陈桥兵变，建立宋朝，定都东京（开封）。</li>
+                            <li>宋太祖“杯酒释兵权”，加强中央集权：设参知政事分割宰相行政权，设枢密院分割军权，设三司分割财权；派文臣任知州，设通判监督；收地方精兵充实禁军。</li>
+                        </ul>
+                    </li>
+                    <li><strong>边防压力与财政危机</strong>：
+                        <ul>
+                            <li>北宋与辽、西夏多次战争，后达成和议，以岁币换取和平。</li>
+                            <li>冗官、冗兵、冗费问题严重，财政危机加深。</li>
+                        </ul>
+                    </li>
+                    <li><strong>王安石变法</strong>（1069年）：
+                        <ul>
+                            <li>富国：青苗法、募役法、方田均税法、市易法、农田水利法。</li>
+                            <li>强兵：保甲法、将兵法。</li>
+                            <li>取士：改革科举，整顿太学。</li>
+                            <li>一定程度上改善财政，增强军力，但触动大官僚利益，最终失败。</li>
+                        </ul>
+                    </li>
+                    <li><strong>南宋的偏安</strong>：
+                        <ul>
+                            <li>1127年，金灭北宋，宋高宗南渡，定都临安，史称南宋。</li>
+                            <li>岳飞等抗金将领英勇奋战，但宋高宗、秦桧求和，以“莫须有”罪名杀害岳飞，宋金达成绍兴和议，形成对峙局面。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="liaoxiajin">
+            <div class="knowledge-card">
+                <h2>第8课 辽夏金元的统治</h2>
+                <ul>
+                    <li><strong>辽与西夏</strong>：
+                        <ul>
+                            <li>契丹族建立辽朝，实行“南北面官制”，因俗而治。</li>
+                            <li>党项族建立西夏，制度兼具汉制和本民族特色。</li>
+                        </ul>
+                    </li>
+                    <li><strong>金朝</strong>：
+                        <ul>
+                            <li>女真族建立金朝，先后灭辽和北宋。金朝实行猛安谋克制。</li>
+                        </ul>
+                    </li>
+                    <li><strong>元朝的统一</strong>：
+                        <ul>
+                            <li>1206年，铁木真统一蒙古，尊称成吉思汗。1271年，忽必烈定国号为大元，1279年灭南宋，完成统一。</li>
+                            <li><strong>行省制度</strong>：在地方设行中书省，简称行省，是中国省制的开端。中书省直辖“腹里”，宣政院管辖西藏。</li>
+                            <li>民族政策：实行“四等人制”，民族矛盾尖锐。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="songyuan-economy">
+            <div class="knowledge-card">
+                <h2>第9课 辽宋夏金元的经济与社会</h2>
+                <ul>
+                    <li><strong>农业和手工业</strong>：
+                        <ul>
+                            <li>农业：稻麦复种制推广，经济作物种植扩大。</li>
+                            <li>手工业：制瓷业兴盛（五大名窑），景德镇成为著名瓷都；矿冶业、造船业发达。</li>
+                        </ul>
+                    </li>
+                    <li><strong>商业和城市</strong>：
+                        <ul>
+                            <li>基层市场涌现，北宋出现纸币“交子”，海外贸易发达（广州、泉州、明州设市舶司）。</li>
+                            <li>城市打破市坊界限，商业活动不再受时间限制。</li>
+                        </ul>
+                    </li>
+                    <li><strong>经济重心南移</strong>：
+                        <ul>
+                            <li>南宋时期，经济重心南移完成，长江流域成为全国经济重心。</li>
+                        </ul>
+                    </li>
+                    <li><strong>社会变化</strong>：
+                        <ul>
+                            <li>科举制完善，社会阶层流动加强；门第观念淡化；人身依附关系减弱。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四单元 明清中国版图的奠定与面临的挑战 -->
+        <h1>第四单元 明清时期</h1>
+        <section id="mingqing-politics">
+            <div class="knowledge-card">
+                <h2>第10课 明清前中期的政治</h2>
+                <ul>
+                    <li><strong>明朝</strong>：
+                        <ul>
+                            <li>1368年，朱元璋建立明朝，定都应天府（南京）。</li>
+                            <li><strong>废丞相</strong>：明太祖废除丞相，权分六部，直接对皇帝负责，君主专制达到新高度。</li>
+                            <li><strong>设内阁</strong>：明成祖时内阁制度正式形成，但无决策权，是顾问机构。</li>
+                            <li>设立厂卫特务机构（锦衣卫、东厂等），加强特务统治。</li>
+                        </ul>
+                    </li>
+                    <li><strong>清朝</strong>：
+                        <ul>
+                            <li>1616年，努尔哈赤建立后金；1636年，皇太极改国号为清；1644年，清军入关，定都北京。</li>
+                            <li><strong>设军机处</strong>（雍正年间）：军机大臣跪受笔录，君主专制达到顶峰。</li>
+                            <li>实行密折制，加强皇帝对地方的控制。</li>
+                        </ul>
+                    </li>
+                    <li><strong>疆域的奠定</strong>：
+                        <ul>
+                            <li>清朝经略边疆：册封达赖、班禅，设驻藏大臣；平定准噶尔部、大小和卓叛乱；设伊犁将军；在台湾设府；在东北设将军辖区。现代中国的版图基本奠定。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="mingqing-economy">
+            <div class="knowledge-card">
+                <h2>第11课 明清经济与文化</h2>
+                <ul>
+                    <li><strong>经济</strong>：
+                        <ul>
+                            <li>农业：高产作物（玉米、甘薯）引进推广，提高粮食产量，促进人口增长。</li>
+                            <li>手工业：私营手工业占据主导，出现资本主义萌芽（“机户出资，机工出力”）。</li>
+                            <li>商业：长途贩运贸易发达，商帮出现（晋商、徽商）；白银成为主要流通货币；江南工商业市镇兴起。</li>
+                        </ul>
+                    </li>
+                    <li><strong>文化</strong>：
+                        <ul>
+                            <li>思想：王阳明心学（致良知、知行合一）；李贽批判传统儒家；明末清初黄宗羲、顾炎武、王夫之进步思想（批判君主专制，经世致用）。</li>
+                            <li>小说：四大名著（《三国演义》《水浒传》《西游记》《红楼梦》）成就辉煌。</li>
+                            <li>戏曲：昆曲、京剧形成与发展。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="mingqing-challenge">
+            <div class="knowledge-card">
+                <h2>第12课 明至清中叶的危机</h2>
+                <ul>
+                    <li><strong>对外政策</strong>：
+                        <ul>
+                            <li>明朝中后期实行海禁政策，清朝实行闭关锁国政策，严格限制对外贸易，阻碍了海外市场的开拓。</li>
+                        </ul>
+                    </li>
+                    <li><strong>社会矛盾</strong>：
+                        <ul>
+                            <li>土地兼并严重，阶级矛盾尖锐，农民起义频发（明末李自成起义）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>人口压力</strong>：
+                        <ul>
+                            <li>人口快速增长，资源紧张，人地矛盾突出。</li>
+                        </ul>
+                    </li>
+                    <li><strong>西方冲击</strong>：
+                        <ul>
+                            <li>新航路开辟后，西方殖民者东来，对中国沿海构成威胁。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五单元 晚清时期的内忧外患与救亡图存 -->
+        <h1>第五单元 晚清时期</h1>
+        <section id="opium-war">
+            <div class="knowledge-card">
+                <h2>第13课 两次鸦片战争</h2>
+                <ul>
+                    <li><strong>鸦片战争（1840—1842年）</strong>：
+                        <ul>
+                            <li>根本原因：英国为打开中国市场，倾销鸦片，掠夺原料。</li>
+                            <li>导火索：林则徐虎门销烟。</li>
+                            <li>结果：签订中国近代史上第一个不平等条约《南京条约》——割香港岛、赔款2100万银元、开放广州等五处通商口岸、协定关税。</li>
+                            <li>影响：中国开始沦为半殖民地半封建社会。</li>
+                        </ul>
+                    </li>
+                    <li><strong>第二次鸦片战争（1856—1860年）</strong>：
+                        <ul>
+                            <li>英法联军攻占广州、天津、北京，火烧圆明园。</li>
+                            <li>签订《天津条约》《北京条约》：增开通商口岸、允许外国公使驻京、割九龙司地方一区等。</li>
+                            <li>影响：中国半殖民地化程度加深。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="taiping">
+            <div class="knowledge-card">
+                <h2>第14课 太平天国与洋务运动</h2>
+                <ul>
+                    <li><strong>太平天国运动（1851—1864年）</strong>：
+                        <ul>
+                            <li>金田起义，定都天京，颁布《天朝田亩制度》（绝对平均主义，空想）。</li>
+                            <li>天京变乱后，太平天国由盛转衰，颁布《资政新篇》（发展资本主义，但未能实施）。</li>
+                            <li>在中外反动势力联合镇压下失败。</li>
+                            <li>意义：沉重打击清朝统治和外国侵略者，是几千年来农民战争最高峰。</li>
+                        </ul>
+                    </li>
+                    <li><strong>洋务运动（19世纪60—90年代）</strong>：
+                        <ul>
+                            <li>口号：“自强”“求富”。</li>
+                            <li>内容：创办军事工业（江南制造总局、福州船政局等）、民用工业（轮船招商局、开平煤矿等）；建立新式海陆军；创办新式学堂，派遣留学生。</li>
+                            <li>评价：引进西方先进技术，培养科技人才，客观上刺激民族资本主义发展，对外国经济侵略起一定抵制作用，但未触动封建制度，最终失败。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="jiawu">
+            <div class="knowledge-card">
+                <h2>第15课 甲午战争与戊戌变法</h2>
+                <ul>
+                    <li><strong>甲午中日战争（1894—1895年）</strong>：
+                        <ul>
+                            <li>原因：日本侵略扩张，朝鲜东学党起义成为导火索。</li>
+                            <li>结果：签订《马关条约》——割台湾及澎湖列岛、赔款2亿两白银、允许在华设厂、增开沙市等通商口岸。</li>
+                            <li>影响：半殖民地化程度大大加深；列强掀起瓜分狂潮；刺激中国救亡图存。</li>
+                        </ul>
+                    </li>
+                    <li><strong>戊戌变法（1898年）</strong>：
+                        <ul>
+                            <li>背景：甲午战后民族危机加深，维新思想传播（康有为、梁启超）。</li>
+                            <li>内容：政治、经济、军事、文教等方面改革，但触犯守旧势力。</li>
+                            <li>结果：慈禧太后发动政变，囚禁光绪帝，杀害戊戌六君子，变法失败。</li>
+                            <li>意义：爱国救亡运动，思想解放运动，推动近代化进程。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="boxer">
+            <div class="knowledge-card">
+                <h2>第16课 义和团与八国联军侵华</h2>
+                <ul>
+                    <li><strong>义和团运动</strong>：
+                        <ul>
+                            <li>口号“扶清灭洋”，具有盲目排外性。</li>
+                        </ul>
+                    </li>
+                    <li><strong>八国联军侵华（1900—1901年）</strong>：
+                        <ul>
+                            <li>英、美、俄、日、法、德、意、奥八国联军侵华，镇压义和团，攻占北京。</li>
+                            <li>签订《辛丑条约》：赔款4.5亿两；划定使馆界；拆除炮台，允许外国驻军；惩办首祸。</li>
+                            <li>影响：中国完全沦为半殖民地半封建社会，清政府成为“洋人的朝廷”。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第六单元 辛亥革命与中华民国的建立 -->
+        <h1>第六单元 辛亥革命与民国</h1>
+        <section id="xin-hai">
+            <div class="knowledge-card">
+                <h2>第17课 辛亥革命</h2>
+                <ul>
+                    <li><strong>背景</strong>：
+                        <ul>
+                            <li>经济：民族资本主义初步发展。</li>
+                            <li>阶级：民族资产阶级力量壮大。</li>
+                            <li>思想：孙中山三民主义（民族、民权、民生）。</li>
+                            <li>组织：兴中会、同盟会（中国第一个全国性资产阶级革命政党）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>过程</strong>：
+                        <ul>
+                            <li>1911年10月10日武昌起义，各省响应。</li>
+                            <li>1912年元旦中华民国成立，孙中山就任临时大总统。</li>
+                            <li>1912年2月清帝退位，清朝灭亡。</li>
+                            <li>1912年3月颁布《中华民国临时约法》（中国第一部资产阶级民主宪法，责任内阁制）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>结局</strong>：袁世凯窃取革命果实，北洋政府建立。</li>
+                    <li><strong>意义</strong>：推翻清王朝，结束封建君主专制；建立资产阶级共和国，使民主共和观念深入人心；促进资本主义发展。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="republic">
+            <div class="knowledge-card">
+                <h2>第18课 北洋军阀统治时期的政治</h2>
+                <ul>
+                    <li><strong>袁世凯复辟帝制</strong>：
+                        <ul>
+                            <li>1915年袁世凯接受“二十一条”大部分内容，1916年称帝，遭全国反对，护国运动爆发，袁世凯取消帝制。</li>
+                        </ul>
+                    </li>
+                    <li><strong>军阀割据</strong>：
+                        <ul>
+                            <li>北洋军阀分裂为直系、皖系、奉系等，割据混战，政局动荡。</li>
+                        </ul>
+                    </li>
+                    <li><strong>护法运动</strong>：
+                        <ul>
+                            <li>孙中山为维护《临时约法》和国会，发动护法运动，但遭军阀排挤，失败。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第七单元 中国共产党成立与新民主主义革命兴起 -->
+        <h1>第七单元 新民主主义革命兴起</h1>
+        <section id="may4th">
+            <div class="knowledge-card">
+                <h2>第19课 五四运动与中国共产党的诞生</h2>
+                <ul>
+                    <li><strong>新文化运动（1915—1923年）</strong>：
+                        <ul>
+                            <li>口号：民主与科学。代表人物：陈独秀、李大钊、胡适、鲁迅。</li>
+                            <li>内容：提倡新道德反对旧道德，提倡新文学反对旧文学（白话文）。</li>
+                            <li>影响：思想解放，为五四运动奠定基础。</li>
+                        </ul>
+                    </li>
+                    <li><strong>五四运动（1919年）</strong>：
+                        <ul>
+                            <li>导火索：巴黎和会中国外交失败。</li>
+                            <li>过程：北京学生游行，后期工人罢工（中心转移到上海）。</li>
+                            <li>结果：释放被捕学生，拒绝在和约上签字。</li>
+                            <li>意义：新民主主义革命开端；工人阶级登上政治舞台；促进马克思主义传播。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中国共产党成立（1921年）</strong>：
+                        <ul>
+                            <li>中共一大在上海召开，宣告中共诞生。</li>
+                            <li>1922年中共二大制定民主革命纲领（反帝反封建）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="nanchang">
+            <div class="knowledge-card">
+                <h2>第20课 南京国民政府的统治与革命新道路</h2>
+                <ul>
+                    <li><strong>国民大革命（1924—1927年）</strong>：
+                        <ul>
+                            <li>国共第一次合作（新三民主义），建立黄埔军校，北伐战争。</li>
+                            <li>1927年蒋介石、汪精卫发动政变，大革命失败。</li>
+                        </ul>
+                    </li>
+                    <li><strong>南京国民政府成立</strong>：
+                        <ul>
+                            <li>1927年蒋介石建立南京国民政府，1928年东北易帜，南京国民政府形式上统一全国。</li>
+                        </ul>
+                    </li>
+                    <li><strong>土地革命（1927—1937年）</strong>：
+                        <ul>
+                            <li>南昌起义、八七会议（枪杆子出政权）、秋收起义。</li>
+                            <li>井冈山革命根据地建立，农村包围城市道路。</li>
+                            <li>长征（1934—1936年），遵义会议确立毛泽东领导地位。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第八单元 中华民族的抗日战争和人民解放战争 -->
+        <h1>第八单元 抗日战争与解放战争</h1>
+        <section id="anti-japan">
+            <div class="knowledge-card">
+                <h2>第21课 从局部抗战到全面抗战</h2>
+                <ul>
+                    <li><strong>局部抗战</strong>：
+                        <ul>
+                            <li>1931年九一八事变，局部抗战开始。</li>
+                        </ul>
+                    </li>
+                    <li><strong>全面抗战</strong>：
+                        <ul>
+                            <li>1937年七七事变，全面抗战爆发。</li>
+                            <li>国共第二次合作，抗日民族统一战线建立。</li>
+                        </ul>
+                    </li>
+                    <li><strong>主要战役</strong>：
+                        <ul>
+                            <li>国民党正面战场：淞沪会战、太原会战（平型关大捷）、徐州会战（台儿庄大捷）、武汉会战。</li>
+                            <li>共产党敌后战场：百团大战（1940年），游击战，建立根据地。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="victory">
+            <div class="knowledge-card">
+                <h2>第22课 抗日战争与解放战争</h2>
+                <ul>
+                    <li><strong>抗日战争胜利</strong>：
+                        <ul>
+                            <li>1945年8月15日日本宣布无条件投降，9月2日签字。</li>
+                            <li>意义：近代中国第一次完全胜利的民族解放战争；为世界反法西斯战争作出重大贡献；中共力量壮大。</li>
+                        </ul>
+                    </li>
+                    <li><strong>解放战争（1946—1949年）</strong>：
+                        <ul>
+                            <li>1946年内战爆发，国民党全面进攻。</li>
+                            <li>1947年刘邓大军挺进大别山，战略反攻开始。</li>
+                            <li>1948—1949年三大战役（辽沈、淮海、平津），基本消灭国民党主力。</li>
+                            <li>1949年4月渡江战役，解放南京，国民党败退台湾。</li>
+                            <li>意义：推翻国民党统治，建立中华人民共和国；实现民族独立和人民解放。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第九单元 中华人民共和国成立和社会主义革命与建设 -->
+        <h1>第九单元 新中国成立与社会主义建设</h1>
+        <section id="founding-prc">
+            <div class="knowledge-card">
+                <h2>第23课 中华人民共和国的成立</h2>
+                <ul>
+                    <li><strong>新中国成立</strong>（1949年10月1日）：
+                        <ul>
+                            <li>中国人民政治协商会议《共同纲领》起临时宪法作用。</li>
+                            <li>中央人民政府成立，人民民主专政。</li>
+                            <li>意义：结束半殖民地半封建社会历史，实现民族独立和人民解放。</li>
+                        </ul>
+                    </li>
+                    <li><strong>1954年宪法</strong>：
+                        <ul>
+                            <li>第一部社会主义类型宪法，确立人民代表大会制度、中国共产党领导的多党合作和政治协商制度、民族区域自治制度。</li>
+                        </ul>
+                    </li>
+                    <li><strong>三大改造</strong>（1953—1956年）：
+                        <ul>
+                            <li>对农业、手工业、资本主义工商业进行社会主义改造，实现生产资料私有制向社会主义公有制的转变，社会主义制度基本建立。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="socialist-construction">
+            <div class="knowledge-card">
+                <h2>第24课 社会主义建设的探索</h2>
+                <ul>
+                    <li><strong>中共八大</strong>（1956年）：
+                        <ul>
+                            <li>正确分析主要矛盾，提出集中力量发展生产力。</li>
+                        </ul>
+                    </li>
+                    <li><strong>大跃进和人民公社化运动</strong>（1958年）：
+                        <ul>
+                            <li>急于求成，片面追求高速度，造成国民经济比例失调。</li>
+                        </ul>
+                    </li>
+                    <li><strong>文化大革命</strong>（1966—1976年）：
+                        <ul>
+                            <li>民主法制遭践踏，经济损失严重。</li>
+                        </ul>
+                    </li>
+                    <li><strong>建设成就</strong>：
+                        <ul>
+                            <li>独立的比较完整的工业体系和国民经济体系基本建立。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第十单元 改革开放与中国特色社会主义道路 -->
+        <h1>第十单元 改革开放与新时代</h1>
+        <section id="reform-open">
+            <div class="knowledge-card">
+                <h2>第25课 改革开放的伟大转折</h2>
+                <ul>
+                    <li><strong>党的十一届三中全会</strong>（1978年）：
+                        <ul>
+                            <li>重新确立解放思想、实事求是的思想路线。</li>
+                            <li>把党和国家工作中心转移到经济建设上来，实行改革开放。</li>
+                            <li>是新中国成立以来党的历史上具有深远意义的伟大转折。</li>
+                        </ul>
+                    </li>
+                    <li><strong>农村改革</strong>：
+                        <ul>
+                            <li>家庭联产承包责任制（安徽凤阳小岗村）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>城市改革</strong>：
+                        <ul>
+                            <li>扩大企业自主权，发展多种所有制经济。</li>
+                        </ul>
+                    </li>
+                    <li><strong>对外开放格局</strong>：
+                        <ul>
+                            <li>经济特区（深圳、珠海、汕头、厦门、海南）→沿海开放城市→沿海经济开放区→内地，全方位、多层次、宽领域的对外开放格局。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="new-era">
+            <div class="knowledge-card">
+                <h2>第26课 中国特色社会主义新时代</h2>
+                <ul>
+                    <li><strong>中国特色社会主义进入新时代</strong>（党的十九大）：
+                        <ul>
+                            <li>新时代我国社会主要矛盾是人民日益增长的美好生活需要和不平衡不充分的发展之间的矛盾。</li>
+                            <li>习近平新时代中国特色社会主义思想是全党全国人民为实现中华民族伟大复兴而奋斗的行动指南。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中国梦</strong>：
+                        <ul>
+                            <li>本质：国家富强、民族振兴、人民幸福。</li>
+                            <li>实现途径：必须坚持中国道路、弘扬中国精神、凝聚中国力量。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中国式现代化</strong>：
+                        <ul>
+                            <li>是人口规模巨大的现代化，是全体人民共同富裕的现代化，是物质文明和精神文明相协调的现代化，是人与自然和谐共生的现代化，是走和平发展道路的现代化。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

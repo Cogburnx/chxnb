@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>信息必修一</title>
+    
+    <!-- KaTeX 核心库（用于公式） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .knowledge-card h3 {
+            font-size: 1.1em;
+            margin: 15px 0 5px;
+            color: var(--accent-color);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 10px;
+        }
+        .knowledge-card ul {
+            margin: 5px 0 10px 20px;
+            padding-left: 0;
+        }
+        .knowledge-card li {
+            margin-bottom: 5px;
+        }
+        .knowledge-card p {
+            margin: 0 0 10px;
+        }
+
+        .knowledge-card .code {
+            font-family: 'Courier New', monospace;
+            background-color: rgba(0,0,0,0.05);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>信息必修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch1')">✚ 第一章 数据与信息</div>
+            <div class="category-content" id="cat-ch1">
+                <a href="#sec1-1">1.1 感知数据</a>
+                <a href="#sec1-2">1.2 数据、信息与知识</a>
+                <a href="#sec1-3">1.3 数据采集与编码</a>
+                <a href="#sec1-4">1.4 数据管理与安全</a>
+                <a href="#sec1-5">1.5 数据与大数据</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch2')">✚ 第二章 算法与问题解决</div>
+            <div class="category-content" id="cat-ch2">
+                <a href="#sec2-1">2.1 算法的概念及描述</a>
+                <a href="#sec2-2">2.2 算法的控制结构</a>
+                <a href="#sec2-3">2.3 用算法解决问题的过程</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch3')">✚ 第三章 算法的程序实现</div>
+            <div class="category-content" id="cat-ch3">
+                <a href="#sec3-1">3.1 用计算机编程解决问题的一般过程</a>
+                <a href="#sec3-2">3.2 Python语言程序设计</a>
+                <a href="#sec3-3">3.3 简单算法及其程序实现</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch4')">✚ 第四章 数据处理与应用</div>
+            <div class="category-content" id="cat-ch4">
+                <a href="#sec4-1">4.1 常用表格数据的处理</a>
+                <a href="#sec4-2">4.2 大数据处理</a>
+                <a href="#sec4-3">4.3 大数据典型应用</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch5')">✚ 第五章 人工智能及应用</div>
+            <div class="category-content" id="cat-ch5">
+                <a href="#sec5-1">5.1 人工智能的产生与发展</a>
+                <a href="#sec5-2">5.2 人工智能的应用</a>
+                <a href="#sec5-3">5.3 人工智能对社会的影响</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <main>
+        <!-- 第一章 数据与信息 -->
+        <h1>第一章 数据与信息</h1>
+        
+        <section id="sec1-1">
+            <div class="knowledge-card">
+                <h2>1.1 感知数据</h2>
+                <h3>数据的定义</h3>
+                <ul>
+                    <li>数据是对客观事物的符号表示，如图形符号、数字、字母等。</li>
+                    <li>在计算机科学中，数据是指所有能输入到计算机并被计算机程序处理的符号总称，是具有一定意义的数字、字母、符号和模拟量等的通称。</li>
+                    <li>数据的表现形式：文字、图像、图形、音频、视频等。</li>
+                </ul>
+                <h3>数据与解释</h3>
+                <ul>
+                    <li>单纯的数据是没有意义的，数据和关于数据的解释是密不可分的，经过解释的数据才有意义。</li>
+                    <li>人类对数据的利用一定程度上依赖于载体，人们在利用数据的同时，自身也在产生数据。</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="sec1-2">
+            <div class="knowledge-card">
+                <h2>1.2 数据、信息与知识</h2>
+                <h3>信息</h3>
+                <ul>
+                    <li><b>定义</b>：信息是用来消除随机不确定性的东西（香农）。信息自古就有，目前没有统一定义。</li>
+                    <li><b>信息的特征</b>：
+                        <ul>
+                            <li><b>载体依附性</b>：信息不能独立存在，必须依附于一定的载体（语言、文字、图像、声音等）。同一信息可以依附于不同的载体。</li>
+                            <li><b>时效性</b>：信息反映事物特定时间内的状态，会随时间变化。</li>
+                            <li><b>共享性</b>：信息可以被多个接收者获取，不会因为被别人获取而发生损耗。</li>
+                            <li><b>可加工处理性、真伪性</b>：信息可以加工处理，也存在虚假信息。</li>
+                            <li><b>价值性</b>：包括显性价值（信息内容本身具有的价值）和隐性价值（通过收集、整理总结获得的其他价值）。</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>知识</h3>
+                <ul>
+                    <li><b>定义</b>：人类在社会实践中所获得的认识和经验的总和，包括对事实、信息的描述以及在教育中和实践中获得的技能。</li>
+                    <li><b>特点</b>：知识可以继承和传递。知识的获得是人利用自身已有的信息进行加工，进而将新的信息纳入自己知识结构的过程。</li>
+                </ul>
+                <h3>智慧</h3>
+                <ul>
+                    <li>智慧是一种更高层次的综合能力，主要表现为收集、加工、应用、传播知识的能力，以及对事物发展的前瞻性看法。</li>
+                </ul>
+                <h3>数据、信息、知识、智慧的关系</h3>
+                <ul>
+                    <li>数据是信息的载体，信息是数据的解释。</li>
+                    <li>数据经过储存、分析及解释后产生的意义就是信息。</li>
+                    <li>通过归纳、演绎、比较等手段对信息进行挖掘，将有价值的部分与已有知识体系相结合，形成知识。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-3">
+            <div class="knowledge-card">
+                <h2>1.3 数据采集与编码</h2>
+                <h3>数据采集方式</h3>
+                <ul>
+                    <li><b>传统方式</b>：直接观察、实验、人工方式。</li>
+                    <li><b>现代方式</b>：传感器（获取自然信源的数据）、网络爬虫（获取网络数据），以机器为主。</li>
+                </ul>
+                <h3>模拟信号与数字信号</h3>
+                <ul>
+                    <li><b>模拟信号</b>：以连续变化的物理量存在，如声音、电视图像。</li>
+                    <li><b>数字信号</b>：取值上离散、不连续的信号，在计算机中指可被存储、处理的二进制数据。</li>
+                    <li>模拟信号与数字信号可以相互转换。</li>
+                </ul>
+                <h3>数字化过程（模数转换）</h3>
+                <ul>
+                    <li><b>采样</b>：将连续时间（空间）域上的模拟信号转换到离散时间（空间）域上的离散信号。采样频率越高，采集的样本数量越多。</li>
+                    <li><b>量化</b>：将信号的连续取值近似为有限个离散值的过程。量化位数越大，量化精度越高。</li>
+                    <li><b>编码</b>：用二进制数表示每个采样的量化值。编码是信息按照某种规则从一种形式转换为另一种形式的过程，解码是其逆过程。</li>
+                </ul>
+                <h3>进制及其转换</h3>
+                <ul>
+                    <li><b>常用进制标识</b>：二进制（B）、八进制（O）、十进制（D）、十六进制（H）。</li>
+                    <li><b>二进制→十进制</b>：按权展开相加。</li>
+                    <li><b>十进制→二进制</b>：除2取余，逆序排列。</li>
+                    <li><b>二进制→十六进制</b>：四位变一位（8421法），不足补0。</li>
+                    <li><b>十六进制→二进制</b>：一位变四位，不足补0。</li>
+                    <li><b>十进制→十六进制</b>：除16取余，逆序排列。</li>
+                </ul>
+                <h3>字符编码</h3>
+                <ul>
+                    <li><b>ASCII码</b>：共128个，用1个字节的低7位编码（二进制范围00000000-01111111，十六进制00-7F）。如 'A'（65）、'a'（97）、'0'（49）。</li>
+                    <li><b>汉字编码</b>：分为外码（输入码）、交换码、机内码和字形码。在计算机内部汉字用机内码表示，通常占2个字节。</li>
+                    <li><b>条形码</b>：将宽度不等的多个黑条和白条按照一定编码规则排列，用以表达信息的图形标识符。我国普遍采用EAN13条形码（13位数字）。</li>
+                    <li><b>二维码</b>：用特定几何图形按规律在平面上分布黑白相间的图形记录数据信息，信息存储量更大。不随意扫描非官方二维码是信息社会的基本常识。</li>
+                </ul>
+                <h3>多媒体编码与容量计算</h3>
+                <ul>
+                    <li><b>声音存储容量</b>（Wave格式）：<br/>存储容量（B）= 采样频率（Hz）× 量化位数（bit）× 声道数 × 时长（s）/ 8</li>
+                    <li><b>图像存储容量</b>（BMP格式）：<br/>存储容量（B）= 水平像素 × 垂直像素 × 颜色位深度（bit）/ 8</li>
+                    <li><b>视频存储容量</b>（未压缩）：<br/>存储容量（B）= 帧图像容量（B）× 帧频（fps）× 时长（s）</li>
+                    <li><b>位深度与颜色数</b>：颜色数 = 2^位深度。例如256色图像，位深度为8位。</li>
+                    <li><b>矢量图与位图</b>：矢量图放大不失真、文件小；位图由像素组成，放大失真。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-4">
+            <div class="knowledge-card">
+                <h2>1.4 数据管理与安全</h2>
+                <h3>数据管理</h3>
+                <ul>
+                    <li><b>定义</b>：利用计算机硬件和软件技术对数据进行有效收集、存储、处理和应用的过程。</li>
+                    <li><b>发展阶段</b>：人工管理、文件管理、数据库管理。</li>
+                    <li>计算机中数据一般以文件形式存储，采用树形目录结构管理。</li>
+                </ul>
+                <h3>数据结构类型</h3>
+                <ul>
+                    <li><b>结构化数据</b>：由二维表结构进行逻辑表达的数据，严格遵循格式与长度规范（如关系型数据库）。</li>
+                    <li><b>半结构化数据</b>：具有一定结构性，但不严格遵循数据模型。</li>
+                    <li><b>非结构化数据</b>：数据结构不规则或不完整，如文本、图片、音频、视频等。</li>
+                </ul>
+                <h3>数据安全</h3>
+                <ul>
+                    <li><b>威胁因素</b>：硬盘驱动器损坏、操作失误、黑客入侵、感染病毒、自然灾害。</li>
+                    <li><b>防护手段</b>：磁盘阵列、数据备份、异地容灾。</li>
+                    <li><b>提高数据本身安全的方法</b>：数据加密（提高保密性）、数据校验（保证完整性，如MD5、CRC、SHA-1）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-5">
+            <div class="knowledge-card">
+                <h2>1.5 数据与大数据</h2>
+                <h3>大数据的定义</h3>
+                <ul>
+                    <li>大数据代表着信息量大、速度快、种类繁多的信息资产，需要特定的技术和分析方法将其转化为价值。</li>
+                </ul>
+                <h3>大数据的特征（4V）</h3>
+                <ul>
+                    <li><b>数据体量大</b>（Volume）。</li>
+                    <li><b>速度快</b>（Velocity）：数据产生速度快，处理速度快。</li>
+                    <li><b>数据类型多</b>（Variety）：有人工产生的，也有机器产生的。</li>
+                    <li><b>价值密度低</b>（Value）。</li>
+                </ul>
+                <h3>大数据思维</h3>
+                <ul>
+                    <li>分析全体数据，而不是抽样数据。</li>
+                    <li>不追求精确性，接受数据的混杂性。</li>
+                    <li>注重事物的相关性，不一定强调因果关系。</li>
+                </ul>
+                <h3>大数据对社会的影响</h3>
+                <ul>
+                    <li>让生活更加便利，让决策更加精准。</li>
+                    <li>带来新的就业需求，也带来信息泄露、数据安全、个人隐私等社会问题。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 算法与问题解决 -->
+        <h1>第二章 算法与问题解决</h1>
+
+        <section id="sec2-1">
+            <div class="knowledge-card">
+                <h2>2.1 算法的概念及描述</h2>
+                <h3>算法的概念</h3>
+                <ul>
+                    <li>广义：解决问题或完成任务的一系列步骤。</li>
+                    <li>计算机科学领域：用计算机解决问题的步骤，是为了解决问题而让计算机执行的步骤的合集。</li>
+                </ul>
+                <h3>算法的特征</h3>
+                <ul>
+                    <li><b>有穷性</b>：处理步骤有限。</li>
+                    <li><b>可行性</b>：在现实中可以实施并且在有限时间内完成。</li>
+                    <li><b>确定性</b>：每个步骤的执行描述必须明确。</li>
+                    <li><b>输入</b>：0个或多个（可从外部输入或包含在算法中）。</li>
+                    <li><b>输出</b>：1个或多个。</li>
+                </ul>
+                <h3>算法的要素</h3>
+                <ul>
+                    <li>数据、运算、控制转移。</li>
+                </ul>
+                <h3>算法的描述方式</h3>
+                <ul>
+                    <li>自然语言、流程图、伪代码、计算机程序设计语言。</li>
+                </ul>
+                <h3>流程图常用符号</h3>
+                <ul>
+                    <li>起止框（圆角矩形）、处理框（矩形）、判断框（菱形）、输入/输出框（平行四边形）、流程线（箭头）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-2">
+            <div class="knowledge-card">
+                <h2>2.2 算法的控制结构</h2>
+                <h3>顺序结构</h3>
+                <ul>
+                    <li>按照步骤依次执行，每个步骤执行一次。</li>
+                </ul>
+                <h3>选择结构（分支结构）</h3>
+                <ul>
+                    <li>根据条件判断决定执行哪个分支。包括单分支、双分支、多分支。</li>
+                </ul>
+                <h3>循环结构</h3>
+                <ul>
+                    <li>在一定条件下重复执行某些步骤。包括当型循环（先判断后执行）和直到型循环（先执行后判断）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-3">
+            <div class="knowledge-card">
+                <h2>2.3 用算法解决问题的过程</h2>
+                <h3>一般步骤</h3>
+                <ul>
+                    <li>分析问题、设计算法、编写程序、调试运行、得到结果。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 算法的程序实现 -->
+        <h1>第三章 算法的程序实现</h1>
+
+        <section id="sec3-1">
+            <div class="knowledge-card">
+                <h2>3.1 用计算机编程解决问题的一般过程</h2>
+                <ul>
+                    <li>分析问题、设计算法、编写代码、调试运行、检查结果。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-2">
+            <div class="knowledge-card">
+                <h2>3.2 Python语言程序设计</h2>
+                <h3>Python基本语法</h3>
+                <ul>
+                    <li>变量不需声明，直接赋值使用。</li>
+                    <li>基本数据类型：整型（int）、浮点型（float）、字符串（str）、布尔型（bool）。</li>
+                    <li>输入：<span class="code">input()</span>，返回字符串。</li>
+                    <li>输出：<span class="code">print()</span>。</li>
+                </ul>
+                <h3>运算符</h3>
+                <ul>
+                    <li>算术运算符：+、-、*、/、//（整除）、%（取余）、**（幂）。</li>
+                    <li>关系运算符：>、<、>=、<=、==、!=。</li>
+                    <li>逻辑运算符：and、or、not。</li>
+                </ul>
+                <h3>三种基本结构</h3>
+                <ul>
+                    <li><b>顺序结构</b>：代码依次执行。</li>
+                    <li><b>选择结构</b>：<span class="code">if</span>、<span class="code">if-else</span>、<span class="code">if-elif-else</span>。</li>
+                    <li><b>循环结构</b>：<span class="code">for</span>循环（用于遍历序列）、<span class="code">while</span>循环（条件循环）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-3">
+            <div class="knowledge-card">
+                <h2>3.3 简单算法及其程序实现</h2>
+                <h3>枚举算法</h3>
+                <ul>
+                    <li>按问题本身的性质，一一列举所有可能的解，并检验每个解是否为问题的真正解。</li>
+                </ul>
+                <h3>解析算法</h3>
+                <ul>
+                    <li>用解析的方法找出表示问题的前提条件与结果之间关系的数学表达式，并通过表达式的计算来实现问题求解。</li>
+                </ul>
+                <h3>排序算法</h3>
+                <ul>
+                    <li>冒泡排序、选择排序等（基本思想与实现）。</li>
+                </ul>
+                <h3>查找算法</h3>
+                <ul>
+                    <li>顺序查找、对分查找等（基本思想与实现）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 数据处理与应用 -->
+        <h1>第四章 数据处理与应用</h1>
+
+        <section id="sec4-1">
+            <div class="knowledge-card">
+                <h2>4.1 常用表格数据的处理</h2>
+                <ul>
+                    <li>表格数据的收集、整理、分析、可视化表达。</li>
+                    <li>常用函数：求和（SUM）、平均值（AVERAGE）、最大值（MAX）、最小值（MIN）、计数（COUNT）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-2">
+            <div class="knowledge-card">
+                <h2>4.2 大数据处理</h2>
+                <ul>
+                    <li><b>处理流程</b>：数据采集、数据清洗、数据集成、数据变换、数据分析、数据解释。</li>
+                    <li><b>处理技术</b>：分布式存储与计算（如Hadoop、Spark）、NoSQL数据库、数据可视化等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-3">
+            <div class="knowledge-card">
+                <h2>4.3 大数据典型应用</h2>
+                <ul>
+                    <li>电商推荐系统、精准营销、智慧城市、医疗健康、交通物流、金融风控等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五章 人工智能及应用 -->
+        <h1>第五章 人工智能及应用</h1>
+
+        <section id="sec5-1">
+            <div class="knowledge-card">
+                <h2>5.1 人工智能的产生与发展</h2>
+                <ul>
+                    <li>1956年达特茅斯会议标志着人工智能的诞生。</li>
+                    <li>发展阶段：符号主义、连接主义、行为主义；从专家系统到机器学习、深度学习。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec5-2">
+            <div class="knowledge-card">
+                <h2>5.2 人工智能的应用</h2>
+                <ul>
+                    <li>自然语言处理（机器翻译、语音识别）、计算机视觉（人脸识别、图像分类）、专家系统、机器人、自动驾驶、智能推荐等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec5-3">
+            <div class="knowledge-card">
+                <h2>5.3 人工智能对社会的影响</h2>
+                <ul>
+                    <li><b>积极影响</b>：提高生产效率、改善生活质量、推动科技进步。</li>
+                    <li><b>挑战与问题</b>：就业结构变化、隐私安全、伦理道德、算法偏见、责任归属等。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

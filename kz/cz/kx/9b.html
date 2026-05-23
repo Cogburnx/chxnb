@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>初中科学·九年级下册（详细版）</title>
+    
+    <!-- KaTeX 渲染 (用于公式) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2c7da0;      /* 科学蓝色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e6f4ff;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #2c7da0;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #2c7da0;
+        }
+        .category-title:hover { background: rgba(44, 125, 160, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #1e5a73;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+        .category-content a.active {
+            color: #2c7da0;
+            font-weight: 600;
+            background-color: rgba(44, 125, 160, 0.12);
+            border-left: 3px solid #2c7da0;
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #1e5a73;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e0f0f5;
+            border: 2px dashed #7fb4c4;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2c7da0;
+        }
+
+        body.collapsed nav { padding: 20px 5px; }
+        body.collapsed .sidebar-header h2 { opacity: 0; width: 0; margin: 0; pointer-events: none; }
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home { display: none !important; }
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c7da0;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #7fb4c4;
+            color: #2c7da0;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #c2dfe9;
+            padding-bottom: 10px;
+            color: #2c7da0;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 170px 1fr; }
+            body.collapsed { grid-template-columns: 55px 1fr; }
+            nav { padding: 15px 8px; }
+            .sidebar-header h2 { font-size: 16px; }
+            #toggleSidebar { font-size: 22px; width: 28px; height: 28px; }
+            .category-title { font-size: 14px; padding: 6px 4px; }
+            .category-content a { font-size: 12px; padding: 4px 0; }
+            main { padding: 15px 15px; }
+            h1 { font-size: 22px; margin: 20px 0; }
+            body.collapsed .category-title::before { font-size: 18px; }
+        }
+        @media (max-width: 480px) {
+            body { grid-template-columns: 140px 1fr; }
+            body.collapsed { grid-template-columns: 48px 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>科学·九年级下册</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch1')">✚ 第一单元 生命系统的构成层次与生物的生殖发育</div>
+            <div class="category-content" id="cat-ch1">
+                <a href="#sec1-1">1.1 细胞与生命活动</a>
+                <a href="#sec1-2">1.2 组织、器官和系统</a>
+                <a href="#sec1-3">1.3 动物的生殖与发育</a>
+                <a href="#sec1-4">1.4 植物的生殖与发育</a>
+                <a href="#sec1-5">1.5 人类的生殖与发育</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch2')">✚ 第二单元 遗传与进化</div>
+            <div class="category-content" id="cat-ch2">
+                <a href="#sec2-1">2.1 遗传的物质基础</a>
+                <a href="#sec2-2">2.2 遗传的规律</a>
+                <a href="#sec2-3">2.3 变异与育种</a>
+                <a href="#sec2-4">2.4 生物的进化</a>
+                <a href="#sec2-5">2.5 生物进化的证据</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch3')">✚ 第三单元 人健康与环境</div>
+            <div class="category-content" id="cat-ch3">
+                <a href="#sec3-1">3.1 健康与疾病</a>
+                <a href="#sec3-2">3.2 传染病及其预防</a>
+                <a href="#sec3-3">3.3 免疫与计划免疫</a>
+                <a href="#sec3-4">3.4 非传染性疾病</a>
+                <a href="#sec3-5">3.5 安全用药与急救</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch4')">✚ 第四单元 生态系统与环境保护</div>
+            <div class="category-content" id="cat-ch4">
+                <a href="#sec4-1">4.1 生态系统的组成</a>
+                <a href="#sec4-2">4.2 生态系统的功能</a>
+                <a href="#sec4-3">4.3 生态系统的稳定性</a>
+                <a href="#sec4-4">4.4 人类活动对生态系统的影响</a>
+                <a href="#sec4-5">4.5 可持续发展的理念与实践</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch5')">✚ 第五单元 科学技术与社会</div>
+            <div class="category-content" id="cat-ch5">
+                <a href="#sec5-1">5.1 科学与技术的关系</a>
+                <a href="#sec5-2">5.2 现代生物技术</a>
+                <a href="#sec5-3">5.3 材料与能源技术</a>
+                <a href="#sec5-4">5.4 科技与伦理</a>
+            </div>
+        </div>
+        
+        <a href="/kz/cz/cz.html" class="back-home">返回首页</a>
+        <div class="ad-space">探索生命 · 关爱地球</div>
+    </nav>
+    
+    <main>
+        <!-- 第一单元 生命系统的构成层次与生物的生殖发育 -->
+        <h1>第一单元 生命系统的构成层次与生物的生殖发育</h1>
+        <section id="sec1-1">
+            <div class="knowledge-card">
+                <h2>1.1 细胞与生命活动</h2>
+                <ul>
+                    <li><strong>细胞学说</strong>：细胞是生物体结构和功能的基本单位；所有生物都是由细胞构成的；细胞通过分裂产生新细胞。</li>
+                    <li><strong>细胞的结构与功能</strong>：
+                        <ul>
+                            <li>细胞膜：控制物质进出，保护细胞。</li>
+                            <li>细胞质：生命活动的主要场所。</li>
+                            <li>细胞核：储存遗传物质，控制细胞生命活动。</li>
+                            <li>植物细胞特有：细胞壁（支持保护）、液泡（储存物质）、叶绿体（光合作用）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>细胞分裂、生长与分化</strong>：
+                        <ul>
+                            <li>细胞分裂：一个细胞分成两个，增加细胞数目。</li>
+                            <li>细胞生长：细胞体积增大。</li>
+                            <li>细胞分化：形成不同形态、结构和功能的细胞，进而形成组织。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-2">
+            <div class="knowledge-card">
+                <h2>1.2 组织、器官和系统</h2>
+                <ul>
+                    <li><strong>植物组织</strong>：保护组织、营养组织、输导组织、机械组织、分生组织等。</li>
+                    <li><strong>动物组织</strong>：上皮组织、结缔组织、肌肉组织、神经组织。</li>
+                    <li><strong>器官</strong>：不同组织按照一定次序结合，行使一定功能的结构。如植物的根、茎、叶、花、果实、种子；动物的心、肺、胃等。</li>
+                    <li><strong>系统</strong>：多个器官按一定次序组合，共同完成一种或几种生理功能。人体八大系统：运动系统、消化系统、呼吸系统、循环系统、泌尿系统、神经系统、内分泌系统、生殖系统。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-3">
+            <div class="knowledge-card">
+                <h2>1.3 动物的生殖与发育</h2>
+                <ul>
+                    <li><strong>无性生殖</strong>：不经过两性生殖细胞结合，直接由母体产生新个体。如分裂生殖（草履虫）、出芽生殖（水螅）、孢子生殖（霉菌）等。</li>
+                    <li><strong>有性生殖</strong>：经过两性生殖细胞（精子和卵细胞）结合形成受精卵，再由受精卵发育成新个体。是生物界最普遍的生殖方式。</li>
+                    <li><strong>昆虫的发育</strong>：
+                        <ul>
+                            <li>完全变态：卵→幼虫→蛹→成虫（如家蚕、蝴蝶）。</li>
+                            <li>不完全变态：卵→若虫→成虫（如蝗虫、蟋蟀）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>两栖动物的发育</strong>：变态发育（如青蛙：卵→蝌蚪→幼蛙→成蛙）。</li>
+                    <li><strong>鸟类的生殖</strong>：体内受精，卵生，胚胎在卵中发育。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-4">
+            <div class="knowledge-card">
+                <h2>1.4 植物的生殖与发育</h2>
+                <ul>
+                    <li><strong>有性生殖</strong>：开花→传粉→受精→果实和种子形成。子房发育成果实，胚珠发育成种子，受精卵发育成胚。</li>
+                    <li><strong>无性生殖</strong>：营养繁殖（扦插、嫁接、压条）、组织培养。优点：保持母本优良性状，繁殖速度快。</li>
+                    <li><strong>种子的萌发条件</strong>：自身条件（完整有活力的胚、充足营养、未休眠）；外界条件（适宜温度、一定水分、充足空气）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-5">
+            <div class="knowledge-card">
+                <h2>1.5 人类的生殖与发育</h2>
+                <ul>
+                    <li><strong>男性生殖系统</strong>：睾丸（产生精子、分泌雄性激素）、附睾、输精管等。</li>
+                    <li><strong>女性生殖系统</strong>：卵巢（产生卵细胞、分泌雌性激素）、输卵管（受精场所）、子宫（胚胎发育场所）、阴道。</li>
+                    <li><strong>受精与胚胎发育</strong>：精子与卵细胞在输卵管结合形成受精卵；受精卵不断分裂形成胚泡，植入子宫内膜；胚胎通过胎盘和脐带从母体获得营养和氧气，排出废物；妊娠约40周后分娩。</li>
+                    <li><strong>青春期发育</strong>：身高体重突增，生殖器官发育成熟，出现第二性征。心理变化：独立意识增强，情绪多变，性意识萌动。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二单元 遗传与进化 -->
+        <h1>第二单元 遗传与进化</h1>
+        <section id="sec2-1">
+            <div class="knowledge-card">
+                <h2>2.1 遗传的物质基础</h2>
+                <ul>
+                    <li><strong>DNA的结构</strong>：双螺旋结构，由脱氧核苷酸组成。基本单位：脱氧核苷酸（含磷酸、脱氧核糖、碱基）。碱基互补配对：A—T，G—C。</li>
+                    <li><strong>基因</strong>：有遗传效应的DNA片段，控制生物性状。基因在染色体上呈线性排列。</li>
+                    <li><strong>染色体</strong>：DNA和蛋白质组成，是遗传物质的主要载体。不同生物染色体数目不同，同种生物染色体数目恒定。</li>
+                    <li><strong>DNA的复制</strong>：半保留复制，为细胞分裂和遗传信息传递提供基础。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-2">
+            <div class="knowledge-card">
+                <h2>2.2 遗传的规律</h2>
+                <ul>
+                    <li><strong>性状与相对性状</strong>：生物体形态特征和生理特性称为性状；同种生物同一性状的不同表现称为相对性状。</li>
+                    <li><strong>孟德尔遗传规律</strong>：
+                        <ul>
+                            <li>分离定律：一对相对性状的杂交实验中，F₁表现显性性状，F₂出现3:1的性状分离比。实质是等位基因随同源染色体分离而分离。</li>
+                            <li>自由组合定律：两对相对性状的杂交实验中，F₂出现9:3:3:1的性状分离比。实质是非同源染色体上的非等位基因自由组合。</li>
+                        </ul>
+                    </li>
+                    <li><strong>显性与隐性</strong>：控制显性性状的基因为显性基因（大写字母），控制隐性性状的基因为隐性基因（小写字母）。</li>
+                    <li><strong>基因型与表现型</strong>：基因型是生物体基因组成，表现型是生物体表现出来的性状。表现型是基因型与环境相互作用的结果。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-3">
+            <div class="knowledge-card">
+                <h2>2.3 变异与育种</h2>
+                <ul>
+                    <li><strong>变异类型</strong>：
+                        <ul>
+                            <li>可遗传变异：由遗传物质改变引起，能遗传给后代（基因突变、基因重组、染色体变异）。</li>
+                            <li>不可遗传变异：仅由环境引起，遗传物质未变。</li>
+                        </ul>
+                    </li>
+                    <li><strong>育种方法</strong>：
+                        <ul>
+                            <li>杂交育种：利用基因重组，培育优良品种。</li>
+                            <li>诱变育种：利用物理、化学因素诱发基因突变，如太空育种。</li>
+                            <li>转基因技术：将外源基因导入生物体，培育新品种。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-4">
+            <div class="knowledge-card">
+                <h2>2.4 生物的进化</h2>
+                <ul>
+                    <li><strong>达尔文自然选择学说</strong>：过度繁殖、生存斗争、遗传变异、适者生存。自然选择决定生物进化的方向。</li>
+                    <li><strong>现代生物进化理论</strong>：种群是生物进化的基本单位；突变和基因重组提供进化原材料；自然选择使基因频率定向改变；隔离是物种形成的必要条件。</li>
+                    <li><strong>物种形成</strong>：地理隔离→基因库差异→生殖隔离→新物种形成。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-5">
+            <div class="knowledge-card">
+                <h2>2.5 生物进化的证据</h2>
+                <ul>
+                    <li><strong>化石证据</strong>：地层中化石的分布揭示了生物由简单到复杂、由低等到高等的进化顺序。</li>
+                    <li><strong>比较解剖学证据</strong>：同源器官（如鸟翼、鲸鳍、人手）证明共同祖先。</li>
+                    <li><strong>胚胎学证据</strong>：脊椎动物早期胚胎相似，说明亲缘关系。</li>
+                    <li><strong>分子生物学证据</strong>：DNA、蛋白质序列相似度反映亲缘关系远近。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三单元 人健康与环境 -->
+        <h1>第三单元 人健康与环境</h1>
+        <section id="sec3-1">
+            <div class="knowledge-card">
+                <h2>3.1 健康与疾病</h2>
+                <ul>
+                    <li><strong>健康的定义</strong>：世界卫生组织定义，健康不仅是没有疾病，还包括躯体健康、心理健康、社会适应良好和道德健康。</li>
+                    <li><strong>影响健康的因素</strong>：遗传因素、环境因素、生活方式、医疗条件等。</li>
+                    <li><strong>疾病的分类</strong>：传染病（病原体引起）、非传染病（如心血管病、癌症、糖尿病等）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-2">
+            <div class="knowledge-card">
+                <h2>3.2 传染病及其预防</h2>
+                <ul>
+                    <li><strong>传染病的三个环节</strong>：传染源、传播途径、易感人群。预防措施：控制传染源、切断传播途径、保护易感人群。</li>
+                    <li><strong>常见传染病</strong>：流感、肺结核、艾滋病、新冠肺炎等。传播途径：空气、食物、接触、血液、生物媒介等。</li>
+                    <li><strong>艾滋病（AIDS）</strong>：由HIV病毒引起，破坏免疫系统。传播途径：性接触、血液、母婴。日常接触不传播。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-3">
+            <div class="knowledge-card">
+                <h2>3.3 免疫与计划免疫</h2>
+                <ul>
+                    <li><strong>免疫的类型</strong>：
+                        <ul>
+                            <li>非特异性免疫：生来就有，对多种病原体有防御作用（皮肤屏障、吞噬细胞、体液杀菌物质）。</li>
+                            <li>特异性免疫：后天获得，针对特定病原体（抗原）。包括体液免疫（B细胞产生抗体）和细胞免疫（T细胞直接作用）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>计划免疫</strong>：根据传染病流行规律，有计划地进行预防接种，提高人群免疫力。如卡介苗（结核病）、乙肝疫苗等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-4">
+            <div class="knowledge-card">
+                <h2>3.4 非传染性疾病</h2>
+                <ul>
+                    <li><strong>心血管疾病</strong>：高血压、冠心病、中风等。危险因素：吸烟、高脂饮食、缺乏运动、压力等。</li>
+                    <li><strong>癌症</strong>：细胞异常分裂形成的恶性肿瘤。致癌因素：物理（辐射）、化学（烟草、亚硝酸盐）、生物（病毒）。预防措施：健康生活方式、定期体检、避免致癌物。</li>
+                    <li><strong>糖尿病</strong>：胰岛素分泌不足或利用障碍导致血糖升高。分为1型（依赖胰岛素）和2型（与生活方式相关）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-5">
+            <div class="knowledge-card">
+                <h2>3.5 安全用药与急救</h2>
+                <ul>
+                    <li><strong>安全用药</strong>：阅读药品说明书，区分处方药（需医生处方）和非处方药（OTC）。不滥用抗生素，遵医嘱用药。</li>
+                    <li><strong>急救常识</strong>：
+                        <ul>
+                            <li>心肺复苏（CPR）：胸外按压与人工呼吸，按压位置两乳头连线中点，深度5-6cm，频率100-120次/分。</li>
+                            <li>止血：压迫止血、止血带（注明时间）。</li>
+                            <li>烫伤：冷水冲洗，不涂牙膏等。</li>
+                            <li>骨折：固定，不随意移动。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四单元 生态系统与环境保护 -->
+        <h1>第四单元 生态系统与环境保护</h1>
+        <section id="sec4-1">
+            <div class="knowledge-card">
+                <h2>4.1 生态系统的组成</h2>
+                <ul>
+                    <li><strong>生态系统的概念</strong>：在一定区域内，生物群落与无机环境相互作用形成的统一整体。</li>
+                    <li><strong>生态系统的成分</strong>：
+                        <ul>
+                            <li>非生物成分：阳光、空气、水、土壤等。</li>
+                            <li>生产者：绿色植物（光合作用制造有机物）。</li>
+                            <li>消费者：动物（直接或间接以植物为食）。</li>
+                            <li>分解者：细菌、真菌等（将动植物遗体分解为无机物）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>食物链与食物网</strong>：生产者→初级消费者→次级消费者……，多条食物链交错形成食物网。生态系统中的物质和能量沿食物链流动。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-2">
+            <div class="knowledge-card">
+                <h2>4.2 生态系统的功能</h2>
+                <ul>
+                    <li><strong>能量流动</strong>：单向流动，逐级递减。能量传递效率约10%-20%。营养级越高，获得的能量越少。</li>
+                    <li><strong>物质循环</strong>：物质在生物群落与无机环境之间循环利用。如碳循环（光合作用固定CO₂，呼吸作用、燃烧等释放CO₂）、氮循环等。</li>
+                    <li><strong>信息传递</strong>：物理信息、化学信息、行为信息。调节生物种间关系，维持生态系统稳定。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-3">
+            <div class="knowledge-card">
+                <h2>4.3 生态系统的稳定性</h2>
+                <ul>
+                    <li><strong>生态系统的自我调节能力</strong>：与物种丰富度、营养结构复杂程度有关。结构越复杂，自我调节能力越强。</li>
+                    <li><strong>抵抗力稳定性</strong>：抵抗外界干扰保持原状的能力。</li>
+                    <li><strong>恢复力稳定性</strong>：受到破坏后恢复原状的能力。</li>
+                    <li><strong>生态平衡</strong>：生态系统通过自我调节保持相对稳定状态，但调节能力有一定限度，超过限度则生态平衡被破坏。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-4">
+            <div class="knowledge-card">
+                <h2>4.4 人类活动对生态系统的影响</h2>
+                <ul>
+                    <li><strong>环境污染</strong>：大气污染（酸雨、温室效应）、水污染（富营养化）、土壤污染（重金属、农药）等。</li>
+                    <li><strong>资源过度开发</strong>：森林砍伐、过度捕捞、水资源短缺等导致生态破坏。</li>
+                    <li><strong>生物多样性锐减</strong>：栖息地破坏、过度捕猎、外来物种入侵等导致物种灭绝加快。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-5">
+            <div class="knowledge-card">
+                <h2>4.5 可持续发展的理念与实践</h2>
+                <ul>
+                    <li><strong>可持续发展定义</strong>：既满足当代人的需求，又不损害后代人满足其需求的能力。</li>
+                    <li><strong>原则</strong>：公平性原则、持续性原则、共同性原则。</li>
+                    <li><strong>实践途径</strong>：发展循环经济（减量化、再利用、再循环）、开发清洁能源、保护生物多样性、建立自然保护区、绿色消费等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五单元 科学技术与社会 -->
+        <h1>第五单元 科学技术与社会</h1>
+        <section id="sec5-1">
+            <div class="knowledge-card">
+                <h2>5.1 科学与技术的关系</h2>
+                <ul>
+                    <li><strong>科学</strong>：探索自然规律，回答“是什么”“为什么”。</li>
+                    <li><strong>技术</strong>：改造自然的方法和手段，解决“做什么”“怎么做”。</li>
+                    <li><strong>关系</strong>：科学是技术的基础，技术推动科学发展。科学技术是第一生产力。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec5-2">
+            <div class="knowledge-card">
+                <h2>5.2 现代生物技术</h2>
+                <ul>
+                    <li><strong>基因工程</strong>：将外源基因导入生物体，培育新品种。应用：转基因作物（抗虫棉、抗除草剂大豆）、基因工程药物（胰岛素、生长激素）。</li>
+                    <li><strong>细胞工程</strong>：动植物细胞培养、克隆技术（多莉羊）。克隆是体细胞核移植技术，无性繁殖。</li>
+                    <li><strong>发酵工程</strong>：利用微生物生产产品，如抗生素、味精、酸奶。</li>
+                    <li><strong>生物技术的伦理问题</strong>：克隆人、转基因食品安全、基因隐私等，需遵循伦理规范和法律。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec5-3">
+            <div class="knowledge-card">
+                <h2>5.3 材料与能源技术</h2>
+                <ul>
+                    <li><strong>新材料</strong>：纳米材料、超导材料、复合材料、高分子材料等，应用于航天、医疗、信息等领域。</li>
+                    <li><strong>新能源</strong>：太阳能、风能、核能、地热能、生物质能等，清洁可再生，替代化石能源。</li>
+                    <li><strong>核能</strong>：核裂变（核电站）与核聚变（氢弹，可控聚变仍在研究）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec5-4">
+            <div class="knowledge-card">
+                <h2>5.4 科技与伦理</h2>
+                <ul>
+                    <li><strong>科技的双刃剑</strong>：科技既带来进步，也可能引发环境、伦理、社会问题。如核武器、基因编辑婴儿、人工智能伦理等。</li>
+                    <li><strong>科技伦理原则</strong>：尊重生命、保护隐私、公平公正、可持续发展。科技发展应与道德规范同步。</li>
+                    <li><strong>我国科技成就</strong>：载人航天、北斗导航、高铁、5G通信、杂交水稻、青蒿素等，体现科技强国战略。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particle-container');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.2 + 0.6;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = '#2c7da0';
+                }
+                update(mouse) {
+                    if (mouse.x !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < mouse.radius) {
+                            const force = (mouse.radius - distance) / mouse.radius;
+                            const angle = Math.atan2(dy, dx);
+                            this.speedX += Math.cos(angle) * force * 0.03;
+                            this.speedY += Math.sin(angle) * force * 0.03;
+                        }
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            const mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            
+            const particlesArray = Array.from({ length: 40 }, () => new Particle());
+
+            function connect() {
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a+1; b < particlesArray.length; b++) {
+                        const dx = particlesArray[a].x - particlesArray[b].x;
+                        const dy = particlesArray[a].y - particlesArray[b].y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < 100) {
+                            ctx.strokeStyle = `rgba(44, 125, 160, ${1 - distance/100})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+                connect();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => { requestAnimationFrame(updateActiveNav); });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

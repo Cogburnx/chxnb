@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>物理必修二</title>
+    
+    <!-- KaTeX 渲染 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .content-image {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            padding: 5px; /* 保留原效果 */
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;  /* 移动端固定左侧宽度 */
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (物理必修二分类) -->
+    <nav id="sidebar">
+        <!-- 侧边栏头部：包含标题和收缩按钮 (替换原header和toggle-sidebar) -->
+        <div class="sidebar-header">
+            <h2>物理必修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ptyd')">✚ 抛体运动</div>
+            <div class="category-content" id="cat-ptyd">
+                <a href="#qxyd">曲线运动</a>
+                <a href="#hcfj">运动合成与分解</a>
+                <a href="#syy">实验</a>
+                <a href="#ptyd">抛体运动</a>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-yzyd')">✚ 圆周运动</div>
+            <div class="category-content" id="cat-yzyd">
+                <a href="#yzyd">圆周运动</a>
+                <a href="#xxl">向心力</a>
+                <a href="#xxjsd">向心加速度</a>
+                <a href="#sh">生活中的圆周运动</a>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-wyyl')">✚ 万有引力与宇宙航行</div>
+            <div class="category-content" id="cat-wyyl">
+                <a href="#xxyd">行星运动</a>
+                <a href="#wyyl">万有引力</a>
+                <a href="#yzhx">宇宙航行</a>
+                <a href="#rzwx">人造卫星</a>
+                <a href="#bg">变轨</a>
+                <a href="#xdl">相对论与牛顿力学</a>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-jxn')">✚ 机械能守恒定律</div>
+            <div class="category-content" id="cat-jxn">
+                <a href="#gygl">功与功率</a>
+                <a href="#sn">势能</a>
+                <a href="#dn">动能</a>
+                <a href="#jxn">机械能守恒</a>
+                <a href="#syt">实验</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：完整物理必修二知识点卡片 (与原始代码完全一致) -->
+    <main>
+        <h1>抛体运动</h1>
+        <section id="qxyd">
+            <div class="knowledge-card">
+                <h2>曲线运动</h2>
+                <p>
+                    轨迹是曲线的运动是曲线运动，做曲线运动的物体，速度的方向在不断发生变化<br>
+                    <b>割线</b> 过曲线上两点做的直线<br>
+                    <b>切线</b> 两点非常近的割线<br>
+                    <b>质点在某一点的速度方向，沿曲线在这一点的切线方向</b><br>
+                    曲线运动是变速运动，速度方向时刻改变，加速度不一定为0，合力不一定为0<br>
+                    <b>当物体所受合力的方向与它速度的方向不在同一直线上时，物体做曲线运动</b>
+                </p>
+            </div>
+        </section>
+
+        <section id="hcfj">
+            <div class="knowledge-card">
+                <h2>合成分解</h2>
+                <p>
+                    <b>运动的合成</b> 由分运动求合运动的过程<br>
+                    <b>运动的分解</b> 由合运动求分运动的过程<br>
+                    <b>小船模型</b><br>
+                    <b>最短时间</b>垂直于岸边运动<br>
+                    <b>最短位移</b>合速度垂直于岸边或速度与合速度垂直
+                </p>
+            </div>
+        </section>
+
+        <section id="syy">
+            <div class="knowledge-card">
+                <h2>实验：探究平抛运动的特点</h2>
+                <p>
+                    <b>抛体运动</b> 以一定速度将物体抛出,在空气阻力可以忽略的情况下,物体只受重力作用的运动<br>
+                    <b>平抛运动</b> 初速度方向沿水平方向的抛体运动<br>
+                    <img src="wlbxt/syy.jpg" alt="实验" class="content-image">
+                    说明物体在竖直方向上做自由落体运动<br>
+                    检验轨道末端水平可以将小球放在端口任意位置处观察是否滚动
+                </p>
+            </div>
+        </section>
+
+        <section id="ptyd">
+            <div class="knowledge-card">
+                <h2>抛体运动</h2>
+                <p>
+                    <b>规律</b>
+                    <img src="wlbxt/ptydgly.jpg" alt="规律" class="content-image">
+                    <img src="wlbxt/ptydglt.jpg" alt="规律" class="content-image">
+                    <b>常见模型</b>
+                    <img src="wlbxt/ptydmxy.jpg" alt="模型" class="content-image">
+                    <img src="wlbxt/ptydmxt.jpg" alt="模型" class="content-image">
+                    <img src="wlbxt/ptydmxs.jpg" alt="模型" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <h1>圆周运动</h1>
+
+        <section id="yzyd">
+            <div class="knowledge-card">
+                <h2>圆周运动</h2>
+                <p>
+                    <b>线运动</b>v 弧长与时间之比 v=△s/△t或v=wr<br>
+                    <b>角运动</b>w 角度与时间之比 w=△角度/△t或w=2派/T<br>
+                    <b>周期</b>T 运动一周所用时间 T=1/n<br>
+                    <b>转速</b>n 转动圈数与时间之比 n=r/s<br>
+                    <b>频率</b>f f(hz)=1/T
+                </p>
+            </div>
+        </section>
+
+        <section id="xxl">
+            <div class="knowledge-card">
+                <h2>向心力</h2>
+                <p>
+                    做匀速圆周运动的物体所受的合力,指向圆心,速度大小不改变,合力只改变速度的发现,向心力根据力的作用效果命名<br>
+                    F=m(w^2)r=m(v^2)/r
+                </p>
+            </div>
+        </section>
+
+        <section id="xxjsd">
+            <div class="knowledge-card">
+                <h2>向心加速度</h2>
+                <p>
+                    物体做匀速圆周运动时的加速度总指向圆心,叫向心加速度<br>
+                    a=(v^2)/r=(w^2)r
+                </p>
+            </div>
+        </section>
+
+        <section id="sh">
+            <div class="knowledge-card">
+                <h2>生活中的圆周运动</h2>
+                <p>
+                    <img src="wlbxt/yzy.jpg" alt="模型" class="content-image">
+                    <img src="wlbxt/yzt.jpg" alt="模型" class="content-image">
+                    <img src="wlbxt/yzs.jpg" alt="模型" class="content-image">
+                    <img src="wlbxt/yzf.jpg" alt="模型" class="content-image">
+                    <img src="wlbxt/yzw.jpg" alt="模型" class="content-image">
+                    <b>离心运动</b> 向心力突然消失或合力不足以提供所需的向心力使物体远离圆心
+                </p>
+            </div>
+        </section>
+
+        <h1>万有引力与宇宙航行</h1>
+
+        <section id="xxyd">
+            <div class="knowledge-card">
+                <h2>行星运动</h2>
+                <p>
+                    <b>开普勒第一定律</b>(轨道定律) 所有行星绕太阳运动的轨道都是椭圆，太阳处在椭圆的一个焦点上<br>
+                    <b>开普勒第二定律</b>(面积定律)对任意一个行星来说，它与太阳的连线在相等的时间内扫过的面积相等<br>
+                    <b>开普勒第三定律</b>(周期定律) 所有行星轨道的半长轴的三次方跟它的公转周期的二次方的比都相等<br>
+                    行星的轨道与圆十分接近,在中学阶段的研究中我们可按圆轨道处理,
+                    这样就可以说行星绕太阳运动的轨道十分接近圆，太阳处在圆心,
+                    对某一行星来说，它绕太阳做圆周运动的角速度(或线速度)大小不变，即行星做匀速圆周运动。
+                    所有行星轨道半径r的三次方跟它的公转周期T的次方的比值都相等
+                </p>
+            </div>
+        </section>
+
+        <section id="wyyl">
+            <div class="knowledge-card">
+                <h2>万有引力</h2>
+                <p>
+                    <img src="wlbxt/wyyl.jpg" alt="万有引力" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="yzhx">
+            <div class="knowledge-card">
+                <h2>宇宙航行</h2>
+                <p>
+                    <img src="wlbxt/yzhx.jpg" alt="宇宙航行" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="rzwx">
+            <div class="knowledge-card">
+                <h2>人造卫星</h2>
+                <p>
+                    <img src="wlbxt/rzwxy.jpg" alt="人造卫星" class="content-image">
+                    <img src="wlbxt/rzwxt.jpg" alt="人造卫星" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="bg">
+            <div class="knowledge-card">
+                <h2>变轨</h2>
+                <p>
+                    <img src="wlbxt/bg.jpg" alt="变轨" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="xdl">
+            <div class="knowledge-card">
+                <h2>相对论与牛顿力学</h2>
+                <p>
+                    <img src="wlbxt/xdl.jpg" alt="相对论与牛顿力学" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <h1>机械能守恒定律</h1>
+        <section id="gygl">
+            <div class="knowledge-card">
+                <h2>功与功率</h2>
+                <p>
+                    <img src="wlbxt/gygl.jpg" alt="图片" class="content-image">
+                    <b>功是能量变化的量度</b>
+                    <b>机车启动</b>
+                    <img src="wlbxt/c.jpg" alt="车" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="sn">
+            <div class="knowledge-card">
+                <h2>势能</h2>
+                <p>
+                    <img src="wlbxt/sn.jpg" alt="图片" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="dn">
+            <div class="knowledge-card">
+                <h2>动能</h2>
+                <p>
+                    <img src="wlbxt/dn.jpg" alt="图片" class="content-image">
+                    <b>流体模型</b> P=(1/2)ρΠ(r^2)(v^3)
+                </p>
+            </div>
+        </section>
+
+        <section id="jxn">
+            <div class="knowledge-card">
+                <h2>机械能守恒</h2>
+                <p>
+                    <img src="wlbxt/jxn.jpg" alt="图片" class="content-image">
+                    <img src="wlbxt/jxnsh.jpg" alt="图片" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="syt">
+            <div class="knowledge-card">
+                <h2>实验：验证机械能守恒定律</h2>
+                <p>
+                    <img src="wlbxt/syt.jpg" alt="图片" class="content-image">
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+// 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动 (替换原toggleSidebar函数)
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            // 切换收缩状态
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120; // 阈值
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    // 降级：取视口内最靠顶部的
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    // 自动展开父级分类
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav(); // 初始调用
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

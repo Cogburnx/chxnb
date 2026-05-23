@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>政治必修四 · 哲学与文化（详细版）</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #6a0dad;      /* 哲学紫色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f5f0fa;     /* 浅紫色底色 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #6a0dad;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #6a0dad;
+        }
+        .category-title:hover { background: rgba(106, 13, 173, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #4a2e5a;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮紫色 */
+        .category-content a.active {
+            color: #6a0dad;
+            font-weight: 600;
+            background-color: rgba(106, 13, 173, 0.12);
+            border-left: 3px solid #6a0dad;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #4a2e5a;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #ede7f6;
+            border: 2px dashed #b39ddb;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #6a0dad;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #6a0dad;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #b39ddb;
+            color: #6a0dad;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #d1c4e9;
+            padding-bottom: 10px;
+            color: #6a0dad;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 概念强调 */
+        .concept {
+            font-weight: 600;
+            color: #6a0dad;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (浅紫色背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (政治必修四分类) 依据统编版必修4《哲学与文化》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>政治必修四</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一单元 探索世界与把握规律 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit1')">✚ 第一单元 探索世界与把握规律</div>
+            <div class="category-content" id="cat-unit1">
+                <a href="#lesson1-1">第一课 第1框 追求智慧的学问</a>
+                <a href="#lesson1-2">第一课 第2框 哲学的基本问题</a>
+                <a href="#lesson1-3">第一课 第3框 科学的世界观和方法论</a>
+                <a href="#lesson2-1">第二课 第1框 世界的物质性</a>
+                <a href="#lesson2-2">第二课 第2框 运动的规律性</a>
+                <a href="#lesson3-1">第三课 第1框 世界是普遍联系的</a>
+                <a href="#lesson3-2">第三课 第2框 世界是永恒发展的</a>
+                <a href="#lesson3-3">第三课 第3框 唯物辩证法的实质与核心</a>
+            </div>
+        </div>
+        
+        <!-- 第二单元 认识社会与价值选择 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit2')">✚ 第二单元 认识社会与价值选择</div>
+            <div class="category-content" id="cat-unit2">
+                <a href="#lesson4-1">第四课 第1框 人的认识从何而来</a>
+                <a href="#lesson4-2">第四课 第2框 在实践中追求和发展真理</a>
+                <a href="#lesson5-1">第五课 第1框 社会历史的本质</a>
+                <a href="#lesson5-2">第五课 第2框 社会历史的发展</a>
+                <a href="#lesson5-3">第五课 第3框 社会历史的主体</a>
+                <a href="#lesson6-1">第六课 第1框 价值与价值观</a>
+                <a href="#lesson6-2">第六课 第2框 价值判断与价值选择</a>
+                <a href="#lesson6-3">第六课 第3框 价值的创造和实现</a>
+            </div>
+        </div>
+        
+        <!-- 第三单元 文化传承与文化创新 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit3')">✚ 第三单元 文化传承与文化创新</div>
+            <div class="category-content" id="cat-unit3">
+                <a href="#lesson7-1">第七课 第1框 文化的内涵与功能</a>
+                <a href="#lesson7-2">第七课 第2框 正确认识中华传统文化</a>
+                <a href="#lesson7-3">第七课 第3框 弘扬中华优秀传统文化与民族精神</a>
+                <a href="#lesson8-1">第八课 第1框 文化的民族性与多样性</a>
+                <a href="#lesson8-2">第八课 第2框 文化交流与文化交融</a>
+                <a href="#lesson8-3">第八课 第3框 正确对待外来文化</a>
+                <a href="#lesson9-1">第九课 第1框 文化发展的必然选择</a>
+                <a href="#lesson9-2">第九课 第2框 文化发展的基本路径</a>
+                <a href="#lesson9-3">第九课 第3框 文化强国与文化自信</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">哲学智慧 · 文化自信</div>
+    </nav>
+    
+    <!-- 主要内容：详细版政治必修四知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一单元 探索世界与把握规律 -->
+        <h1>第一单元 探索世界与把握规律</h1>
+        
+        <section id="lesson1-1">
+            <div class="knowledge-card">
+                <h2>第一课 第1框 追求智慧的学问</h2>
+                <ul>
+                    <li><strong>哲学的起源</strong>：
+                        <ul>
+                            <li>哲学的智慧产生于人类的实践活动。哲学源于人们在生活实践中对宇宙、人生的追问和思考。</li>
+                            <li>哲学是一门热爱智慧、追求智慧的学问，它致力于从总体上把握人与世界的关系。</li>
+                        </ul>
+                    </li>
+                    <li><strong>哲学是系统化理论化的世界观</strong>：
+                        <ul>
+                            <li>世界观是人们对整个世界的总的看法和根本观点。</li>
+                            <li>哲学是哲学家依据一定的自然知识、社会知识和思维知识，把不自觉的、不系统的世界观加以系统化、理论化而形成的思想体系。</li>
+                            <li>世界观决定方法论，方法论体现世界观。</li>
+                        </ul>
+                    </li>
+                    <li><strong>哲学与具体科学的关系</strong>：
+                        <ul>
+                            <li>具体科学揭示的是自然、社会和思维某一具体领域的规律和奥秘。</li>
+                            <li>哲学是对具体科学知识的概括和总结，为具体科学研究提供世界观和方法论的指导。</li>
+                            <li>具体科学的进步推动哲学的发展。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson1-2">
+            <div class="knowledge-card">
+                <h2>第一课 第2框 哲学的基本问题</h2>
+                <ul>
+                    <li><strong>哲学的基本问题</strong>：思维和存在的关系问题。它包括两方面的内容：
+                        <ul>
+                            <li>一是思维和存在何者是本原的问题。对这个问题的不同回答，形成了唯物主义和唯心主义两大基本派别。</li>
+                            <li>二是思维和存在有没有同一性的问题，即思维能否正确认识存在的问题。对这个问题的不同回答，形成了可知论和不可知论。</li>
+                        </ul>
+                    </li>
+                    <li><strong>唯物主义</strong>：
+                        <ul>
+                            <li>基本观点：物质是本原的，意识是派生的，先有物质后有意识，物质决定意识。</li>
+                            <li>三种基本形态：古代朴素唯物主义（把物质归结为具体物质形态，如金木水火气等）、近代形而上学唯物主义（把物质归结为原子，具有机械性、形而上学性）、辩证唯物主义和历史唯物主义（马克思主义哲学）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>唯心主义</strong>：
+                        <ul>
+                            <li>基本观点：意识是本原的，物质依赖于意识，不是物质决定意识，而是意识决定物质。</li>
+                            <li>两种基本形态：主观唯心主义（把人的主观精神如人的目的、意志等夸大为唯一的实在）和客观唯心主义（把客观精神如上帝、理念、绝对精神等看作世界的主宰）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson1-3">
+            <div class="knowledge-card">
+                <h2>第一课 第3框 科学的世界观和方法论</h2>
+                <ul>
+                    <li><strong>马克思主义哲学的历史使命</strong>：
+                        <ul>
+                            <li>马克思主义哲学是科学的世界观和方法论，是无产阶级的科学的世界观和方法论。</li>
+                            <li>它正确揭示了世界的本质和运动规律，它的全部理论都来自于实践，又经过实践反复检验。</li>
+                        </ul>
+                    </li>
+                    <li><strong>马克思主义哲学的基本特征</strong>：
+                        <ul>
+                            <li>在科学基础上实现了唯物主义与辩证法的有机结合。</li>
+                            <li>实现了唯物辩证的自然观与历史观的统一。</li>
+                            <li>实现了实践基础上的科学性和革命性的统一。</li>
+                        </ul>
+                    </li>
+                    <li><strong>马克思主义中国化的重大理论成果</strong>：毛泽东思想、邓小平理论、“三个代表”重要思想、科学发展观、习近平新时代中国特色社会主义思想是马克思主义中国化的重大理论成果。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2-1">
+            <div class="knowledge-card">
+                <h2>第二课 第1框 世界的物质性</h2>
+                <ul>
+                    <li><strong>自然界的物质性</strong>：
+                        <ul>
+                            <li>自然界在本质上是物质的。自然界中的事物是按照自身固有的规律形成和发展的，都是统一的物质世界的一部分。</li>
+                        </ul>
+                    </li>
+                    <li><strong>人类社会的物质性</strong>：
+                        <ul>
+                            <li>人类社会是物质世界长期发展的产物。劳动创造了人和人类社会。</li>
+                            <li>人类社会在本质上是一个客观的物质体系，构成社会物质生活条件的基本要素：地理环境、人口因素、生产方式都是客观的物质的。</li>
+                        </ul>
+                    </li>
+                    <li><strong>意识是物质世界长期发展的产物</strong>：
+                        <ul>
+                            <li>意识是自然界长期发展的产物。从一切物质都具有的反应特性到低等生物的刺激感应，到动物的感觉和心理，再到人类意识的产生，是一个漫长的过程。</li>
+                            <li>意识是社会发展的产物。劳动和社会交往促进了意识的物质器官——人脑的生成，促进了意识的表达手段——语言的产生，提供和丰富了意识的内容。</li>
+                            <li>意识是人脑的机能。人脑是高度发达的物质系统，是意识活动的物质器官。</li>
+                            <li>意识是客观存在的主观映象。意识的内容是客观的，形式是主观的。</li>
+                        </ul>
+                    </li>
+                    <li><strong>世界的真正统一性在于它的物质性</strong>：自然界是物质的，人类社会的产生、存在、发展及其构成要素也具有客观物质性，人的意识本身就根源于物质。物质世界是先于人的意识而存在的。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2-2">
+            <div class="knowledge-card">
+                <h2>第二课 第2框 运动的规律性</h2>
+                <ul>
+                    <li><strong>物质与运动的关系</strong>：
+                        <ul>
+                            <li>物质是运动的物质，运动是物质固有的根本属性和存在方式。</li>
+                            <li>运动是物质的运动，物质是运动的承担者。</li>
+                        </ul>
+                    </li>
+                    <li><strong>绝对运动与相对静止</strong>：
+                        <ul>
+                            <li>世界上一切事物都处于运动和变化之中，运动是绝对的、无条件的、永恒的。</li>
+                            <li>静止是运动的一种特殊状态，是相对的、有条件的、暂时的。</li>
+                            <li>物质世界是绝对运动与相对静止的统一。</li>
+                        </ul>
+                    </li>
+                    <li><strong>规律的客观性与普遍性</strong>：
+                        <ul>
+                            <li>规律是事物运动过程中固有的、本质的、必然的、稳定的联系。</li>
+                            <li>规律是客观的，不以人的意志为转移，既不能被创造，也不能被消灭。</li>
+                            <li>规律是普遍的，自然界、人类社会和人的思维的运动变化中都遵循其固有的规律。</li>
+                        </ul>
+                    </li>
+                    <li><strong>正确发挥主观能动性</strong>：
+                        <ul>
+                            <li>人能够能动地认识世界。意识活动具有目的性、自觉选择性和能动创造性。</li>
+                            <li>人能够能动地改造世界。意识通过实践把观念的东西变成现实的东西，创造出符合人的目的的客观事物。</li>
+                            <li>尊重客观规律是正确发挥主观能动性的前提条件。要把发挥主观能动性与尊重客观规律结合起来。</li>
+                        </ul>
+                    </li>
+                    <li><strong>一切从实际出发，实事求是</strong>：
+                        <ul>
+                            <li>要求我们做事情要尊重物质运动的客观规律，从客观存在的事物出发，经过调查研究，找出事物本身固有的规律，作为我们行动的依据。</li>
+                            <li>要不断解放思想，与时俱进，以求真务实的精神探求事物的本质和规律。</li>
+                            <li>要把发挥主观能动性和尊重客观规律结合起来，把高度的革命热情同严谨踏实的科学态度结合起来。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson3-1">
+            <div class="knowledge-card">
+                <h2>第三课 第1框 世界是普遍联系的</h2>
+                <ul>
+                    <li><strong>联系的含义</strong>：联系就是事物之间以及事物内部诸要素之间的相互影响、相互制约和相互作用。</li>
+                    <li><strong>联系的特点</strong>：
+                        <ul>
+                            <li><strong>普遍性</strong>：任何事物都与周围其他事物有着这样或那样的联系；每一事物内部的各个部分、要素之间也是相互联系的；世界是一个普遍联系的有机整体。</li>
+                            <li><strong>客观性</strong>：联系是事物本身所固有的，不以人的意志为转移。要从事物固有的联系中把握事物，切忌主观随意性。</li>
+                            <li><strong>多样性</strong>：事物的联系是多种多样的，有直接联系和间接联系、内部联系和外部联系、本质联系和非本质联系、必然联系和偶然联系等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>整体与部分的辩证关系</strong>：
+                        <ul>
+                            <li>整体居于主导地位，统率着部分，具有部分所不具备的功能；整体的功能、状态及其变化会影响部分。</li>
+                            <li>部分在事物的存在和发展过程中处于被支配的地位，部分服从和服务于整体；部分的功能及其变化会影响整体的功能，关键部分的功能及其变化甚至对整体的功能起决定作用。</li>
+                            <li>方法论：树立全局观念，立足整体，统筹全局，选择最佳方案；同时必须重视部分的作用，用局部的发展推动整体的发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>系统优化方法</strong>：
+                        <ul>
+                            <li>系统是由相互联系和相互作用的诸要素构成的统一整体。系统的基本特征是整体性、有序性和内部结构的优化趋向。</li>
+                            <li>方法论：要着眼于事物的整体性，注意遵循系统内部结构的有序性，注重系统内部结构的优化趋向；用综合的思维方式来认识事物。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson3-2">
+            <div class="knowledge-card">
+                <h2>第三课 第2框 世界是永恒发展的</h2>
+                <ul>
+                    <li><strong>发展的普遍性</strong>：自然界是发展的；人类社会是发展的；人的认识是发展的。发展具有普遍性。</li>
+                    <li><strong>发展的实质</strong>：事物的前进和上升，是新事物的产生和旧事物的灭亡。</li>
+                    <li><strong>量变与质变的辩证关系</strong>：
+                        <ul>
+                            <li>事物的发展总是从量变开始，量变是质变的必要准备，量变达到一定程度必然引起质变。</li>
+                            <li>质变是量变的必然结果，并为新的量变开辟道路，使事物在新质的基础上开始新的量变。</li>
+                            <li>方法论：要重视量的积累，为质变创造条件；要果断抓住时机，促成质变，实现事物的飞跃。</li>
+                        </ul>
+                    </li>
+                    <li><strong>发展的趋势</strong>：
+                        <ul>
+                            <li>事物发展的前途是光明的，新事物符合客观规律，具有强大生命力和远大前途。</li>
+                            <li>事物发展的道路是曲折的，新事物的发展总要经历一个由小到大、由不完善到比较完善的过程。</li>
+                            <li>方法论：对未来充满信心，热情支持和悉心保护新事物，做好思想准备，克服前进道路上的困难。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson3-3">
+            <div class="knowledge-card">
+                <h2>第三课 第3框 唯物辩证法的实质与核心</h2>
+                <ul>
+                    <li><strong>矛盾的含义</strong>：矛盾就是反映事物内部的对立和统一关系的哲学范畴。简言之，矛盾就是对立统一。</li>
+                    <li><strong>矛盾的基本属性</strong>：
+                        <ul>
+                            <li>同一性：矛盾双方相互吸引、相互联结的属性和趋势。一是矛盾双方相互依赖，一方的存在以另一方的存在为前提；二是矛盾双方相互贯通，在一定条件下相互转化。</li>
+                            <li>斗争性：矛盾双方相互排斥、相互对立的属性。</li>
+                            <li>同一性以斗争性为前提，斗争性寓于同一性之中。</li>
+                        </ul>
+                    </li>
+                    <li><strong>矛盾的普遍性</strong>：
+                        <ul>
+                            <li>事事有矛盾，时时有矛盾。</li>
+                            <li>方法论：承认矛盾，分析矛盾，勇于揭露矛盾，积极寻找正确的方法解决矛盾。</li>
+                        </ul>
+                    </li>
+                    <li><strong>矛盾的特殊性</strong>：
+                        <ul>
+                            <li>矛盾着的事物及其每一个侧面各有其特点。不同事物有不同的矛盾；同一事物在发展的不同过程和阶段上有不同的矛盾；同一事物中的不同矛盾、同一矛盾的两个不同方面也各有特殊性。</li>
+                            <li>方法论：具体问题具体分析，即在矛盾普遍性原理的指导下，具体分析矛盾的特殊性，并找出解决矛盾的正确方法。这是马克思主义活的灵魂，是正确认识事物的基础，正确解决矛盾的关键。</li>
+                        </ul>
+                    </li>
+                    <li><strong>主要矛盾和次要矛盾</strong>：
+                        <ul>
+                            <li>主要矛盾在事物发展过程中处于支配地位，对事物发展起决定作用。</li>
+                            <li>次要矛盾处于从属地位，对事物发展不起决定作用。</li>
+                            <li>主要矛盾和次要矛盾相互依赖、相互影响，并在一定条件下相互转化。</li>
+                            <li>方法论：要着重把握主要矛盾，抓重点、抓中心；又要学会统筹兼顾，恰当处理次要矛盾。</li>
+                        </ul>
+                    </li>
+                    <li><strong>矛盾的主要方面和次要方面</strong>：
+                        <ul>
+                            <li>矛盾的主要方面处于支配地位，起着主导作用，事物的性质主要是由主要矛盾的主要方面决定的。</li>
+                            <li>矛盾的次要方面处于被支配地位。</li>
+                            <li>矛盾的主次方面既相互排斥，又相互依赖，并在一定条件下相互转化。</li>
+                            <li>方法论：看问题要全面，要分清主流和支流，不能忽视支流。</li>
+                        </ul>
+                    </li>
+                    <li><strong>坚持两点论和重点论的统一</strong>：
+                        <ul>
+                            <li>两点论：既要看到主要矛盾和矛盾的主要方面，也要看到次要矛盾和矛盾的次要方面。</li>
+                            <li>重点论：要着重把握主要矛盾和矛盾的主要方面。</li>
+                            <li>两点是有重点的两点，重点是两点中的重点。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二单元 认识社会与价值选择 -->
+        <h1>第二单元 认识社会与价值选择</h1>
+        
+        <section id="lesson4-1">
+            <div class="knowledge-card">
+                <h2>第四课 第1框 人的认识从何而来</h2>
+                <ul>
+                    <li><strong>实践的含义</strong>：实践是人们改造客观世界的物质性活动。它有两层含义：一是实践是以人为主体的、改造客观世界的活动；二是实践是物质性的活动，具有直接现实性。</li>
+                    <li><strong>实践的特点</strong>：
+                        <ul>
+                            <li>客观物质性：实践的主体、对象、手段都是客观的，实践的过程和结果也受客观规律的支配。</li>
+                            <li>主观能动性：实践是有目的、有意识的活动，是人的自觉活动。</li>
+                            <li>社会历史性：实践是处在一定社会关系中的人的活动，是历史地发展着的。</li>
+                        </ul>
+                    </li>
+                    <li><strong>实践与认识的辩证关系</strong>：
+                        <ul>
+                            <li>实践是认识的基础：实践是认识的来源；实践是认识发展的动力；实践是检验认识的真理性的唯一标准；实践是认识的目的。</li>
+                            <li>认识反作用于实践：正确的认识、科学的理论对实践具有指导作用；错误的认识则会把实践引向歧途。</li>
+                        </ul>
+                    </li>
+                    <li><strong>真理的含义</strong>：真理是标志主观同客观相符合的哲学范畴，是人们对客观事物及其规律的正确反映。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson4-2">
+            <div class="knowledge-card">
+                <h2>第四课 第2框 在实践中追求和发展真理</h2>
+                <ul>
+                    <li><strong>真理的客观性</strong>：真理最基本的属性是客观性。真理的内容来自于物质世界的客观事物及规律，真理的内容不依赖于人和人类的主观意志。在同一时间、地点、条件下，人们对同一事物的真理性认识只有一个，真理面前人人平等。</li>
+                    <li><strong>真理的条件性和具体性</strong>：
+                        <ul>
+                            <li>任何真理都有自己适用的条件和范围，如果超出这个条件和范围，真理就会变成谬误。</li>
+                            <li>任何真理都是相对于特定的过程来说的，都是主观与客观、理论与实践的具体的历史的统一。</li>
+                        </ul>
+                    </li>
+                    <li><strong>追求真理是一个过程</strong>：
+                        <ul>
+                            <li>认识具有反复性：从认识的主体来看，人们对客观事物的认识总要受到具体的实践水平的限制，还会受到不同的立场、观点、方法、知识水平、思维能力等条件的限制；从认识的客体来看，客观事物是复杂的、变化着的，其本质的暴露和展现也有一个过程。因此，人们对一个事物的正确认识往往要经过从实践到认识，再从认识到实践的多次反复才能完成。</li>
+                            <li>认识具有无限性：认识的对象是无限的变化着的物质世界，作为认识主体的人类是世代延续的，作为认识基础的社会实践是不断发展的，因此，人类认识是无限发展的，追求真理是一个永无止境的过程。</li>
+                            <li>认识具有上升性：认识运动的反复性和无限性，并不表明它是一种圆圈式的循环运动，相反，从实践到认识、从认识到实践的循环是一种波浪式前进或螺旋式上升的过程。</li>
+                            <li>方法论：与时俱进，开拓创新，在实践中认识和发现真理，在实践中检验和发展真理。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson5-1">
+            <div class="knowledge-card">
+                <h2>第五课 第1框 社会历史的本质</h2>
+                <ul>
+                    <li><strong>社会生活在本质上是实践的</strong>：
+                        <ul>
+                            <li>劳动是社会历史的起点。劳动创造了人和人类社会，没有劳动就没有人类社会。</li>
+                            <li>全部社会生活在本质上是实践的。经济、政治、文化等领域的活动都是实践活动。</li>
+                        </ul>
+                    </li>
+                    <li><strong>社会存在与社会意识</strong>：
+                        <ul>
+                            <li>社会存在是指社会生活的物质方面，主要是指物质生活资料生产及地理环境、人口因素。</li>
+                            <li>社会意识是指社会生活的精神方面，包括社会心理和社会意识形式。</li>
+                            <li>社会存在决定社会意识，社会意识是对社会存在的反映。有什么样的社会存在，就有什么样的社会意识，社会存在的变化发展决定社会意识的变化发展。</li>
+                            <li>社会意识具有相对独立性：社会意识的变化发展有时落后于社会存在的变化，有时又会先于社会存在而变化发展；先进的社会意识可以正确地预见社会发展的方向和趋势，对社会发展起积极的推动作用；落后的社会意识对社会发展起阻碍作用。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson5-2">
+            <div class="knowledge-card">
+                <h2>第五课 第2框 社会历史的发展</h2>
+                <ul>
+                    <li><strong>社会基本矛盾</strong>：
+                        <ul>
+                            <li>生产力与生产关系的矛盾、经济基础与上层建筑的矛盾，是贯穿人类社会始终的基本矛盾。</li>
+                            <li>生产关系一定要适合生产力状况的规律：生产力决定生产关系，生产力的状况决定生产关系的性质；生产关系对生产力具有反作用，当生产关系适合生产力发展状况时，它对生产力发展起推动作用，反之则起阻碍作用。</li>
+                            <li>上层建筑一定要适合经济基础状况的规律：经济基础决定上层建筑；上层建筑对经济基础具有反作用，当上层建筑适合经济基础状况时，它促进经济基础的巩固和完善，反之则会阻碍经济基础的发展和变革。</li>
+                        </ul>
+                    </li>
+                    <li><strong>社会历史发展的总趋势</strong>：
+                        <ul>
+                            <li>社会历史发展的总趋势是前进的、上升的，发展的过程是曲折的。</li>
+                            <li>在阶级社会，社会基本矛盾的解决主要是通过阶级斗争实现的，阶级斗争是推动阶级社会发展的直接动力。</li>
+                            <li>在社会主义社会，社会基本矛盾是非对抗性的，可以通过社会主义的自我发展、自我完善加以解决。改革是社会主义制度的自我完善和发展，是发展中国特色社会主义的强大动力。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson5-3">
+            <div class="knowledge-card">
+                <h2>第五课 第3框 社会历史的主体</h2>
+                <ul>
+                    <li><strong>人民群众是历史的创造者</strong>：
+                        <ul>
+                            <li>人民群众是指一切对社会历史起推动作用的人们，既包括普通个人，也包括杰出人物。劳动群众是人民群众的主体部分。</li>
+                            <li>人民群众是社会物质财富的创造者，是社会精神财富的创造者，是社会变革的决定力量。</li>
+                            <li>方法论：坚持群众观点和群众路线。群众观点：相信人民群众自己解放自己，全心全意为人民服务，一切向人民群众负责，虚心向人民群众学习。群众路线：一切为了群众，一切依靠群众，从群众中来，到群众中去。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson6-1">
+            <div class="knowledge-card">
+                <h2>第六课 第1框 价值与价值观</h2>
+                <ul>
+                    <li><strong>价值与人的价值</strong>：
+                        <ul>
+                            <li>哲学意义上的价值是指一事物对主体的积极意义，即一事物所具有的能够满足主体需要的属性和功能。</li>
+                            <li>人的价值在于通过自己的活动满足社会、他人和自己的需要，但主要在于对社会的贡献。人既是价值的创造者，又是价值的享受者。</li>
+                        </ul>
+                    </li>
+                    <li><strong>价值观及其导向作用</strong>：
+                        <ul>
+                            <li>价值观是人们在认识各种具体事物的价值的基础上，形成的对事物价值的总的看法和根本观点。</li>
+                            <li>价值观对人们认识和改造世界的活动具有重要的导向作用。一方面，价值观影响人们对事物的认识、评价和选择；另一方面，价值观影响人们改造世界的活动，影响人们的行为选择。</li>
+                            <li>价值观是人生的重要向导。一个人走什么样的人生道路，选择什么样的生活方式，都是在一定世界观和价值观指导下进行的。</li>
+                        </ul>
+                    </li>
+                    <li><strong>培育和践行社会主义核心价值观</strong>：
+                        <ul>
+                            <li>社会主义核心价值观的基本内容：富强、民主、文明、和谐（国家层面）；自由、平等、公正、法治（社会层面）；爱国、敬业、诚信、友善（公民层面）。</li>
+                            <li>社会主义核心价值观是当代中国精神的集中体现，凝结着全体人民共同的价值追求。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson6-2">
+            <div class="knowledge-card">
+                <h2>第六课 第2框 价值判断与价值选择</h2>
+                <ul>
+                    <li><strong>价值判断与价值选择的含义</strong>：
+                        <ul>
+                            <li>价值判断：人们对事物能否满足主体的需要以及满足的程度作出的判断。</li>
+                            <li>价值选择：在价值判断的基础上作出的选择。</li>
+                        </ul>
+                    </li>
+                    <li><strong>价值判断与价值选择的特征</strong>：
+                        <ul>
+                            <li>社会历史性：价值判断与价值选择会因时间、地点和条件的变化而不同。</li>
+                            <li>阶级性：在阶级社会中，价值判断和价值选择具有阶级性。</li>
+                            <li>主体差异性：人们的社会地位不同、需要不同，价值判断和价值选择也就不同；人们认识事物的角度不同，对其价值的评价也会不同；人们站在不同的立场上，就会有不同的价值观，就会作出不同的价值判断和价值选择。</li>
+                        </ul>
+                    </li>
+                    <li><strong>正确价值判断与价值选择的标准</strong>：
+                        <ul>
+                            <li>自觉遵循社会发展的客观规律。</li>
+                            <li>自觉站在最广大人民的立场上，把人民群众的利益作为最高的价值标准。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson6-3">
+            <div class="knowledge-card">
+                <h2>第六课 第3框 价值的创造和实现</h2>
+                <ul>
+                    <li><strong>在劳动和奉献中创造价值</strong>：
+                        <ul>
+                            <li>劳动是人的存在方式，人只有在劳动中才能创造和实现自己的价值。积极投身于为人民服务的实践，是实现人生价值的必由之路，也是拥有幸福人生的根本途径。</li>
+                        </ul>
+                    </li>
+                    <li><strong>在个人与社会的统一中实现价值</strong>：
+                        <ul>
+                            <li>社会提供的客观条件是人们实现人生价值的前提。人的生存条件和发展条件、享受条件和工作条件都是由社会提供的。人的价值只能在社会中实现。</li>
+                        </ul>
+                    </li>
+                    <li><strong>在砥砺自我中走向成功</strong>：
+                        <ul>
+                            <li>实现人生价值需要充分发挥主观能动性，需要顽强拼搏、自强不息的精神。</li>
+                            <li>需要努力发展自己的才能，全面提高个人素质。</li>
+                            <li>需要有坚定的理想信念，需要正确价值观的指引。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三单元 文化传承与文化创新 -->
+        <h1>第三单元 文化传承与文化创新</h1>
+        
+        <section id="lesson7-1">
+            <div class="knowledge-card">
+                <h2>第七课 第1框 文化的内涵与功能</h2>
+                <ul>
+                    <li><strong>文化的含义</strong>：
+                        <ul>
+                            <li>广义的文化是指人类认识和改造世界的一切活动及其创造的物质成果和精神成果。</li>
+                            <li>狭义的文化是相对于经济、政治而言的人类全部精神现象，既包括世界观、人生观、价值观等具有意识形态性质的部分，又包括自然科学和技术等非意识形态的部分。</li>
+                        </ul>
+                    </li>
+                    <li><strong>文化与经济、政治的关系</strong>：
+                        <ul>
+                            <li>经济是基础，政治是经济的集中表现，文化是经济和政治的反映。一定的文化由一定的经济、政治所决定。</li>
+                            <li>文化反作用于一定的政治、经济，给予政治、经济以重大影响。先进健康的文化促进社会的发展，落后腐朽的文化阻碍社会的发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>文化的核心</strong>：世界观、人生观、价值观是文化的核心，支配和影响着人们的文化实践与生活。</li>
+                    <li><strong>文化的功能</strong>：
+                        <ul>
+                            <li>引领风尚：文化引导人们认识真善美，提升文明素养。</li>
+                            <li>教育人民：文化教化育人，帮助人们提高思想道德素质。</li>
+                            <li>服务社会：文化服务社会，满足人民过上美好生活的新期待。</li>
+                            <li>推动发展：文化推动发展，是国家繁荣振兴取之不尽、用之不竭的力量源泉。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson7-2">
+            <div class="knowledge-card">
+                <h2>第七课 第2框 正确认识中华传统文化</h2>
+                <ul>
+                    <li><strong>中华优秀传统文化的主要内容</strong>：
+                        <ul>
+                            <li>核心思想理念：讲仁爱、重民本、守诚信、崇正义、尚和合、求大同等。</li>
+                            <li>中华传统美德：自强不息、敬业乐群、扶危济困、见义勇为、孝老爱亲等。</li>
+                            <li>中华人文精神：求同存异、和而不同的处世方法，文以载道、以文化人的教化思想，形神兼备、情景交融的美学追求，俭约自守、中和泰和的生活理念等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中华优秀传统文化的特点</strong>：
+                        <ul>
+                            <li>源远流长、博大精深。中华文化是世界上唯一没有中断的文化，在长期的历史发展中形成了丰富的内涵和独特的魅力。</li>
+                            <li>具有强大的凝聚力和连续性，是中华民族共同文化特质的体现。</li>
+                        </ul>
+                    </li>
+                    <li><strong>对待中华传统文化的正确态度</strong>：
+                        <ul>
+                            <li>“取其精华，去其糟粕”，批判继承，古为今用。对于传统文化中符合社会发展要求的、积极向上的内容，要保持和发扬；对于不符合社会发展要求的、落后的、腐朽的内容，要加以改造或剔除。</li>
+                            <li>要处理好继承与发展的关系，在继承的基础上发展，在发展的过程中继承。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson7-3">
+            <div class="knowledge-card">
+                <h2>第七课 第3框 弘扬中华优秀传统文化与民族精神</h2>
+                <ul>
+                    <li><strong>创造性转化与创新性发展</strong>：
+                        <ul>
+                            <li>创造性转化：按照时代特点和要求，对那些至今仍有借鉴价值的内涵和陈旧的表现形式加以改造，赋予其新的时代内涵和现代表达形式，激活其生命力。</li>
+                            <li>创新性发展：按照时代的新进步新进展，对中华优秀传统文化的内涵加以补充、拓展、完善，增强其影响力和感召力。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中华民族精神</strong>：
+                        <ul>
+                            <li>基本内涵：以爱国主义为核心，团结统一、爱好和平、勤劳勇敢、自强不息的伟大民族精神。</li>
+                            <li>核心：爱国主义。爱国主义是中华民族精神的核心，它贯穿民族精神的各个方面。爱国主义不是抽象的，而是具体的。在不同的历史时期，爱国主义有共同的要求，也有不同的具体内涵。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中华民族精神的作用</strong>：
+                        <ul>
+                            <li>中华民族精神为中国发展和人类文明进步提供了强大精神动力。</li>
+                            <li>中华民族精神集中体现了中华民族的整体风貌和精神特征，体现了中华民族共同的价值追求，是中华民族永远的精神火炬。</li>
+                        </ul>
+                    </li>
+                    <li><strong>弘扬和培育民族精神</strong>：在新时代，要续写中华民族精神的新篇章，使民族精神日益丰富和发展。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson8-1">
+            <div class="knowledge-card">
+                <h2>第八课 第1框 文化的民族性与多样性</h2>
+                <ul>
+                    <li><strong>文化具有民族性</strong>：
+                        <ul>
+                            <li>每个民族的文化都有其特定的文化基因、文化传统和文化特色，都是这个民族历史发展的产物和人民智慧的结晶。</li>
+                            <li>民族文化是一个民族区别于其他民族的独特标识。民族文化起着维系社会生活、维持社会稳定、激发民族创造力和凝聚力的重要作用。</li>
+                        </ul>
+                    </li>
+                    <li><strong>文化具有多样性</strong>：
+                        <ul>
+                            <li>文化多样性表征世界文化的丰富多彩。不同民族文化各具特色，共同构成世界文化百花园。</li>
+                            <li>文化多样性是发展本民族文化的内在要求，也是实现世界文化繁荣的必然要求。只有保持世界文化的多样性，世界才更加丰富多彩，充满生机与活力。</li>
+                        </ul>
+                    </li>
+                    <li><strong>尊重文化多样性的原则</strong>：既要认同本民族文化，又要尊重其他民族文化，相互借鉴，求同存异，尊重世界文化多样性，共同促进人类文明繁荣进步。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson8-2">
+            <div class="knowledge-card">
+                <h2>第八课 第2框 文化交流与文化交融</h2>
+                <ul>
+                    <li><strong>文化交流的意义</strong>：
+                        <ul>
+                            <li>文化交流构成了文化发展的重要动力。文化交流促进了文化自身的发展，也促进了世界文化的繁荣。</li>
+                            <li>文化交流可以推动不同民族文化之间的相互借鉴，取长补短，共同发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>文化交融的意义</strong>：
+                        <ul>
+                            <li>文化交融推动文化的发展。不同民族文化的交流交融，可以相互吸收有益成果，丰富和发展本民族文化。</li>
+                            <li>文化交融也是学习和吸收各民族优秀文化成果，以发展本民族文化的过程。</li>
+                        </ul>
+                    </li>
+                    <li><strong>对待文化交流的态度</strong>：维护各国各民族文化多样性，加强相互交流、相互学习、相互借鉴，而不应该相互隔膜、相互排斥、相互取代。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson8-3">
+            <div class="knowledge-card">
+                <h2>第八课 第3框 正确对待外来文化</h2>
+                <ul>
+                    <li><strong>面向世界，博采众长</strong>：
+                        <ul>
+                            <li>要有海纳百川的胸怀，积极吸收借鉴国外一切优秀文化成果。</li>
+                            <li>要坚持以我为主、为我所用，保持本民族文化的特色，不能照搬照抄，不能全盘西化。</li>
+                        </ul>
+                    </li>
+                    <li><strong>克服错误倾向</strong>：
+                        <ul>
+                            <li>要反对“封闭主义”：固守本民族文化，拒绝接受外来文化。</li>
+                            <li>要反对“民族虚无主义”：一味推崇外来文化，否定本民族文化。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson9-1">
+            <div class="knowledge-card">
+                <h2>第九课 第1框 文化发展的必然选择</h2>
+                <ul>
+                    <li><strong>革命文化与社会主义先进文化</strong>：
+                        <ul>
+                            <li>革命文化：在中国共产党领导人民进行革命、建设、改革的历史实践中，创造了鲜明独特、奋发向上的革命文化。红船精神、井冈山精神、长征精神、延安精神等都是革命文化的生动体现。</li>
+                            <li>社会主义先进文化：是以马克思主义为指导，继承中华优秀传统文化和革命文化，吸收外来文化的有益成果，面向现代化、面向世界、面向未来的，民族的科学的大众的社会主义文化。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中国特色社会主义文化发展的必由之路</strong>：
+                        <ul>
+                            <li>走中国特色社会主义文化发展道路，是建设社会主义文化强国的必由之路。</li>
+                            <li>这一道路，是由我国社会制度、发展道路和党的性质宗旨决定的，是由继承和创新中华优秀传统文化、弘扬革命文化、发展社会主义先进文化的要求决定的，是由我国文化自身发展规律和人民群众根本意愿决定的。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson9-2">
+            <div class="knowledge-card">
+                <h2>第九课 第2框 文化发展的基本路径</h2>
+                <ul>
+                    <li><strong>坚定理想信念，坚持以人民为中心</strong>：
+                        <ul>
+                            <li>发展中国特色社会主义文化，必须以马克思主义为指导，坚定共产主义理想信念。</li>
+                            <li>坚持以人民为中心的创作导向，把人民作为文化发展的主体，让文化发展成果惠及全体人民。</li>
+                        </ul>
+                    </li>
+                    <li><strong>立足时代之基，回答时代问题</strong>：
+                        <ul>
+                            <li>文化是时代前进的号角，最能代表一个时代的风貌。文化发展要立足时代，回答时代问题，完成时代任务。</li>
+                        </ul>
+                    </li>
+                    <li><strong>融通不同资源，实现综合创新</strong>：
+                        <ul>
+                            <li>要继承中华优秀传统文化，弘扬革命文化，吸收外来文化的有益成果，不断推动文化内容形式、体制机制、传播手段创新。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson9-3">
+            <div class="knowledge-card">
+                <h2>第九课 第3框 文化强国与文化自信</h2>
+                <ul>
+                    <li><strong>建设文化强国</strong>：
+                        <ul>
+                            <li>要弘扬主旋律，传播正能量，培育和践行社会主义核心价值观。</li>
+                            <li>要提高人们的道德修养和科学文化修养，提高全社会文明程度。</li>
+                            <li>要推动文化事业和文化产业发展，健全现代公共文化服务体系。</li>
+                            <li>要增强中华文明传播力影响力，讲好中国故事，展现可信、可爱、可敬的中国形象。</li>
+                        </ul>
+                    </li>
+                    <li><strong>坚定文化自信</strong>：
+                        <ul>
+                            <li>文化自信是一个国家、一个民族发展中更基本、更深沉、更持久的力量。</li>
+                            <li>文化自信来自于对时代发展潮流、中国特色社会主义伟大实践的深刻把握，来自于对自身文化价值的充分肯定、对自身文化生命力的坚定信念。</li>
+                            <li>坚定文化自信，要坚定对中华优秀传统文化、革命文化和社会主义先进文化的自信。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+       // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#6a0dad';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

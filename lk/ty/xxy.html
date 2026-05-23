@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>通用选修一</title>
+    
+    <!-- KaTeX 核心库（用于公式和部分符号） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .knowledge-card h3 {
+            font-size: 1.1em;
+            margin: 15px 0 5px;
+            color: var(--accent-color);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 10px;
+        }
+        .knowledge-card ul {
+            margin: 5px 0 10px 20px;
+            padding-left: 0;
+        }
+        .knowledge-card li {
+            margin-bottom: 5px;
+        }
+        .knowledge-card p {
+            margin: 0 0 10px;
+        }
+
+        .knowledge-card .code {
+            font-family: 'Courier New', monospace;
+            background-color: rgba(0,0,0,0.05);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>通用选修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch1')">✚ 第一章 电子控制概述</div>
+            <div class="category-content" id="cat-ch1">
+                <a href="#sec1-1">1.1 电子控制技术与电子控制系统</a>
+                <a href="#sec1-2">1.2 电子控制系统的组成与工作过程</a>
+                <a href="#sec1-3">1.3 开环与闭环电子控制系统</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch2')">✚ 第二章 电子控制系统信息的获取与转换</div>
+            <div class="category-content" id="cat-ch2">
+                <a href="#sec2-1">2.1 认识传感器</a>
+                <a href="#sec2-2">2.2 传感器的应用</a>
+                <a href="#sec2-3">2.3 传感器的检测</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch3')">✚ 第三章 电子控制系统的信号处理</div>
+            <div class="category-content" id="cat-ch3">
+                <a href="#sec3-1">3.1 模拟信号与数字信号</a>
+                <a href="#sec3-2">3.2 逻辑门电路</a>
+                <a href="#sec3-3">3.3 数字集成电路</a>
+                <a href="#sec3-4">3.4 触发器和振荡电路</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch4')">✚ 第四章 电子控制系统的执行部件</div>
+            <div class="category-content" id="cat-ch4">
+                <a href="#sec4-1">4.1 继电器的作用与类型</a>
+                <a href="#sec4-2">4.2 直流电磁继电器的构造与工作原理</a>
+                <a href="#sec4-3">4.3 继电器驱动电路</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch5')">✚ 第五章 电子控制系统的设计及其应用</div>
+            <div class="category-content" id="cat-ch5">
+                <a href="#sec5-1">5.1 开环电子控制系统的设计与应用</a>
+                <a href="#sec5-2">5.2 闭环电子控制系统的设计与应用</a>
+                <a href="#sec5-3">5.3 电路安装与调试</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <main>
+        <!-- 第一章 电子控制概述 -->
+        <h1>第一章 电子控制概述</h1>
+        
+        <section id="sec1-1">
+            <div class="knowledge-card">
+                <h2>1.1 电子控制技术与电子控制系统</h2>
+                <h3>电子控制技术的含义</h3>
+                <ul>
+                    <li>电子控制技术是指运用电子电路实现控制功能的技术。</li>
+                    <li>它综合了电子技术、传感器技术、计算机技术和控制技术等。</li>
+                </ul>
+                <h3>电子控制系统的定义</h3>
+                <ul>
+                    <li>电子控制系统是指由电子元器件构成的、能够实现对被控对象进行控制的系统。</li>
+                    <li>电子控制系统通常由输入部分、控制部分、输出部分三大部分组成。</li>
+                </ul>
+                <h3>电子控制系统的应用</h3>
+                <ul>
+                    <li>生活领域：全自动洗衣机、空调、电冰箱等。</li>
+                    <li>生产领域：自动化生产线、机器人控制等。</li>
+                    <li>交通领域：交通信号灯控制、电梯控制系统等。</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="sec1-2">
+            <div class="knowledge-card">
+                <h2>1.2 电子控制系统的组成与工作过程</h2>
+                <h3>电子控制系统的基本组成</h3>
+                <ul>
+                    <li><b>输入部分</b>：包括各种传感器、输入接口电路，用于采集外部信息并转换为电信号。</li>
+                    <li><b>控制部分</b>：通常由电子电路（如逻辑电路、集成电路）构成，对输入信号进行处理并发出控制指令。</li>
+                    <li><b>输出部分</b>：包括执行元件（如继电器、电机、指示灯等），根据控制指令驱动被控对象动作。</li>
+                </ul>
+                <h3>电子控制系统的工作过程</h3>
+                <ul>
+                    <li>传感器采集物理量（如温度、光线、声音等）并转换为电信号。</li>
+                    <li>控制部分对输入信号进行比较、处理、判断。</li>
+                    <li>控制部分发出指令给执行部件。</li>
+                    <li>执行部件驱动被控对象完成相应动作。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-3">
+            <div class="knowledge-card">
+                <h2>1.3 开环与闭环电子控制系统</h2>
+                <h3>开环电子控制系统</h3>
+                <ul>
+                    <li><b>定义</b>：系统的输出量对系统的控制作用没有影响的电子控制系统。</li>
+                    <li><b>特点</b>：信号单向传递，没有反馈环节，结构简单，成本低。</li>
+                    <li><b>示例</b>：定时洗衣机、自动门、音乐喷泉等。</li>
+                </ul>
+                <h3>闭环电子控制系统</h3>
+                <ul>
+                    <li><b>定义</b>：系统的输出量通过检测装置返回到输入端并对控制过程产生影响的电子控制系统。</li>
+                    <li><b>特点</b>：有反馈环节，控制精度高，抗干扰能力强。</li>
+                    <li><b>示例</b>：恒温空调、水箱水位自动控制、智能充电器等。</li>
+                </ul>
+                <h3>反馈在电子控制系统中的作用</h3>
+                <ul>
+                    <li>将输出量检测后送回输入端与给定量进行比较。</li>
+                    <li>根据偏差信号调整控制作用，使输出量接近给定值。</li>
+                    <li>提高系统的控制精度和稳定性。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 电子控制系统信息的获取与转换 -->
+        <h1>第二章 电子控制系统信息的获取与转换</h1>
+
+        <section id="sec2-1">
+            <div class="knowledge-card">
+                <h2>2.1 认识传感器</h2>
+                <h3>传感器的定义</h3>
+                <ul>
+                    <li>传感器是一种能感受被测量并按照一定规律转换成可用输出信号的器件或装置。</li>
+                    <li>通常由敏感元件和转换元件组成。</li>
+                </ul>
+                <h3>常见传感器类型</h3>
+                <ul>
+                    <li><b>光敏传感器</b>：如光敏电阻、光电二极管、光电晶体管。光照强度变化时，电阻值或电流发生变化。</li>
+                    <li><b>热敏传感器</b>：如热敏电阻（NTC、PTC）、热电偶。温度变化时，电阻值发生变化。</li>
+                    <li><b>湿敏传感器</b>：检测环境湿度变化。</li>
+                    <li><b>气敏传感器</b>：检测特定气体浓度。</li>
+                    <li><b>磁敏传感器</b>：如霍尔元件，检测磁场变化。</li>
+                    <li><b>力敏传感器</b>：检测压力、拉力等力学量。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-2">
+            <div class="knowledge-card">
+                <h2>2.2 传感器的应用</h2>
+                <h3>光敏传感器的应用</h3>
+                <ul>
+                    <li>光控开关、路灯自动控制、照相机自动曝光、光电计数器等。</li>
+                </ul>
+                <h3>热敏传感器的应用</h3>
+                <ul>
+                    <li>温度控制、恒温器、过热保护、温度测量仪表等。</li>
+                    <li>NTC热敏电阻：温度升高，电阻减小。</li>
+                    <li>PTC热敏电阻：温度升高，电阻增大。</li>
+                </ul>
+                <h3>湿敏传感器的应用</h3>
+                <ul>
+                    <li>加湿器、除湿机、农业大棚湿度控制、气象监测等。</li>
+                </ul>
+                <h3>传感器的选择依据</h3>
+                <ul>
+                    <li>根据被测量的类型选择合适的传感器种类。</li>
+                    <li>考虑测量范围、精度要求、响应时间。</li>
+                    <li>考虑工作环境（温度、湿度、干扰等）。</li>
+                    <li>考虑成本、可靠性、使用寿命。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-3">
+            <div class="knowledge-card">
+                <h2>2.3 传感器的检测</h2>
+                <h3>多用电表的使用</h3>
+                <ul>
+                    <li>多用电表可用于测量电压、电流、电阻等参数。</li>
+                    <li>使用前需进行机械调零和欧姆调零。</li>
+                    <li>选择合适量程，读数时视线垂直表盘。</li>
+                </ul>
+                <h3>光敏传感器的检测</h3>
+                <ul>
+                    <li>用多用电表电阻档测量光敏电阻两端。</li>
+                    <li>遮光时电阻值很大，光照时电阻值明显减小。</li>
+                </ul>
+                <h3>热敏传感器的检测</h3>
+                <ul>
+                    <li>用多用电表电阻档测量热敏电阻两端。</li>
+                    <li>改变温度（如用手捏住或靠近热源），观察电阻值变化。</li>
+                    <li>NTC型温度升高电阻减小，PTC型温度升高电阻增大。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 电子控制系统的信号处理 -->
+        <h1>第三章 电子控制系统的信号处理</h1>
+
+        <section id="sec3-1">
+            <div class="knowledge-card">
+                <h2>3.1 模拟信号与数字信号</h2>
+                <h3>模拟信号</h3>
+                <ul>
+                    <li>在时间和数值上连续变化的信号。</li>
+                    <li>如温度、压力、声音等传感器输出的连续电压信号。</li>
+                </ul>
+                <h3>数字信号</h3>
+                <ul>
+                    <li>在时间和数值上离散的信号，通常用高电平（1）和低电平（0）表示。</li>
+                    <li>数字信号抗干扰能力强，易于存储和处理。</li>
+                </ul>
+                <h3>模拟信号与数字信号的转换</h3>
+                <ul>
+                    <li>模数转换器（A/D）将模拟信号转换为数字信号。</li>
+                    <li>数模转换器（D/A）将数字信号转换为模拟信号。</li>
+                </ul>
+                <h3>数字信号中"1"和"0"的意义</h3>
+                <ul>
+                    <li>"1"表示高电平、真、有信号、开关闭合等。</li>
+                    <li>"0"表示低电平、假、无信号、开关断开等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-2">
+            <div class="knowledge-card">
+                <h2>3.2 逻辑门电路</h2>
+                <h3>基本逻辑门</h3>
+                <ul>
+                    <li><b>与门（AND）</b>：所有输入为1时输出为1，否则输出0。逻辑表达式 Y = A·B。</li>
+                    <li><b>或门（OR）</b>：任一输入为1时输出为1，否则输出0。逻辑表达式 Y = A+B。</li>
+                    <li><b>非门（NOT）</b>：输出与输入相反。逻辑表达式 Y = ¬A。</li>
+                </ul>
+                <h3>复合逻辑门</h3>
+                <ul>
+                    <li><b>与非门（NAND）</b>：与门输出取反，Y = ¬(A·B)。</li>
+                    <li><b>或非门（NOR）</b>：或门输出取反，Y = ¬(A+B)。</li>
+                    <li><b>异或门（XOR）</b>：输入不同时输出1，相同时输出0，Y = A⊕B。</li>
+                </ul>
+                <h3>真值表</h3>
+                <ul>
+                    <li>描述逻辑门输入与输出关系的表格。</li>
+                    <li>列出所有输入组合对应的输出值。</li>
+                </ul>
+                <h3>简单的组合逻辑电路</h3>
+                <ul>
+                    <li>由多个逻辑门组合而成的电路，输出仅取决于当前输入。</li>
+                    <li>可通过逻辑表达式或真值表分析其功能。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-3">
+            <div class="knowledge-card">
+                <h2>3.3 数字集成电路</h2>
+                <h3>晶体三极管的开关特性</h3>
+                <ul>
+                    <li>三极管可以工作于截止区和饱和区，实现开关功能。</li>
+                    <li><b>截止状态</b>：基极电流为零或很小，集电极电流为零，相当于开关断开。</li>
+                    <li><b>饱和状态</b>：基极电流足够大，集电极电流达到最大，相当于开关闭合。</li>
+                </ul>
+                <h3>常用数字集成电路类型</h3>
+                <ul>
+                    <li><b>TTL系列</b>：晶体管-晶体管逻辑，速度快，功耗较大。</li>
+                    <li><b>CMOS系列</b>：互补金属氧化物半导体，功耗低，抗干扰能力强。</li>
+                    <li>常见型号：74系列（TTL）、CD4000系列（CMOS）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-4">
+            <div class="knowledge-card">
+                <h2>3.4 触发器和振荡电路</h2>
+                <h3>基本触发器</h3>
+                <ul>
+                    <li>具有记忆功能的逻辑单元电路，可以存储一位二进制信息。</li>
+                    <li><b>RS触发器</b>：由两个与非门或或非门交叉耦合构成，有置0、置1、保持功能。</li>
+                    <li><b>D触发器</b>：在时钟信号作用下，输出跟随输入变化。</li>
+                </tr></ul>
+                <h3>555集成电路</h3>
+                <ul>
+                    <li>555定时器是一种常用的集成电路，可构成单稳态触发器、多谐振荡器等。</li>
+                    <li><b>引脚功能</b>：1地、2触发、3输出、4复位、5控制电压、6阈值、7放电、8电源。</li>
+                </ul>
+                <h3>延时电路分析</h3>
+                <ul>
+                    <li>利用RC充放电特性实现时间延迟。</li>
+                    <li>延时时间由电阻R和电容C的乘积决定（τ = RC）。</li>
+                </ul>
+                <h3>振荡电路分析</h3>
+                <ul>
+                    <li>多谐振荡器产生方波信号，无需外部触发。</li>
+                    <li>555构成的多谐振荡器频率由R1、R2、C决定：f ≈ 1.44/[(R1+2R2)C]。</li>
+                    <li>逻辑门也可构成振荡电路，如RC环形振荡器。</li>
+                </ul>
+                <h3>波形图问题分析</h3>
+                <ul>
+                    <li>根据电路图分析输入输出波形关系。</li>
+                    <li>关注时序关系、上升沿/下降沿触发、脉冲宽度等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 电子控制系统的执行部件 -->
+        <h1>第四章 电子控制系统的执行部件</h1>
+
+        <section id="sec4-1">
+            <div class="knowledge-card">
+                <h2>4.1 继电器的作用与类型</h2>
+                <h3>继电器的作用</h3>
+                <ul>
+                    <li>用低电压、小电流控制高电压、大电流电路。</li>
+                    <li>实现自动控制和保护功能。</li>
+                    <li>实现电气隔离，保护控制电路。</li>
+                </ul>
+                <h3>继电器的类型</h3>
+                <ul>
+                    <li><b>电磁继电器</b>：利用电磁铁原理控制触点通断。</li>
+                    <li><b>固态继电器</b>：无触点，由半导体器件实现开关功能。</li>
+                    <li><b>时间继电器</b>：具有延时功能的继电器。</li>
+                    <li><b>热继电器</b>：利用热效应实现过载保护。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-2">
+            <div class="knowledge-card">
+                <h2>4.2 直流电磁继电器的构造与工作原理</h2>
+                <h3>直流电磁继电器的构造</h3>
+                <ul>
+                    <li><b>电磁系统</b>：包括铁芯、衔铁、线圈等。</li>
+                    <li><b>触点系统</b>：包括动触点、静触点，分为常开、常闭、转换触点。</li>
+                    <li><b>复位弹簧</b>：线圈断电后使衔铁复位。</li>
+                </ul>
+                <h3>工作原理</h3>
+                <ul>
+                    <li>线圈通电产生电磁力，吸引衔铁动作。</li>
+                    <li>衔铁带动触点切换，常开触点闭合，常闭触点断开。</li>
+                    <li>线圈断电后，电磁力消失，弹簧使衔铁复位，触点恢复原状态。</li>
+                </ul>
+                <h3>直流电磁继电器的规格参数</h3>
+                <ul>
+                    <li><b>线圈额定电压</b>：如5V、12V、24V等。</li>
+                    <li><b>触点额定电流</b>：触点允许通过的最大电流。</li>
+                    <li><b>触点形式</b>：一组或多组转换触点。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-3">
+            <div class="knowledge-card">
+                <h2>4.3 继电器驱动电路</h2>
+                <h3>驱动电路的作用</h3>
+                <ul>
+                    <li>由于控制电路（如逻辑门）输出电流较小，无法直接驱动继电器线圈。</li>
+                    <li>需要驱动电路放大电流，使继电器可靠动作。</li>
+                </ul>
+                <h3>常用驱动电路</h3>
+                <ul>
+                    <li><b>三极管驱动电路</b>：利用三极管的放大作用驱动继电器。</li>
+                    <li><b>达林顿管驱动电路</b>：复合三极管，电流放大倍数更大。</li>
+                    <li><b>集成电路驱动</b>：如ULN2003等专用驱动芯片。</li>
+                </ul>
+                <h3>保护二极管</h3>
+                <ul>
+                    <li>继电器线圈是感性负载，断电时会产生反向感应电动势。</li>
+                    <li>在线圈两端反向并联二极管（续流二极管），为感应电流提供通路，保护驱动电路。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五章 电子控制系统的设计及其应用 -->
+        <h1>第五章 电子控制系统的设计及其应用</h1>
+
+        <section id="sec5-1">
+            <div class="knowledge-card">
+                <h2>5.1 开环电子控制系统的设计与应用</h2>
+                <h3>设计步骤</h3>
+                <ul>
+                    <li>明确控制目标和功能要求。</li>
+                    <li>确定输入部分（传感器类型）。</li>
+                    <li>设计控制部分（逻辑电路或集成电路）。</li>
+                    <li>选择输出部分（执行元件）。</li>
+                    <li>绘制电路原理图。</li>
+                    <li>选择元器件参数。</li>
+                </ul>
+                <h3>设计示例</h3>
+                <ul>
+                    <li>光控路灯：光敏电阻检测光线→电压比较器→三极管驱动继电器→控制路灯开关。</li>
+                    <li>定时浇水控制器：555定时器构成延时电路→驱动电磁阀控制浇水。</li>
+                </ul>
+                <h3>安装与调试</h3>
+                <ul>
+                    <li>根据电路图在面包板或电路板上安装元器件。</li>
+                    <li>检查电源连接是否正确。</li>
+                    <li>逐步测试各模块功能。</li>
+                    <li>整体调试，观察是否达到控制目标。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec5-2">
+            <div class="knowledge-card">
+                <h2>5.2 闭环电子控制系统的设计与应用</h2>
+                <h3>设计步骤</h3>
+                <ul>
+                    <li>明确控制目标和精度要求。</li>
+                    <li>确定被控量和给定量。</li>
+                    <li>选择检测装置（传感器）。</li>
+                    <li>设计比较器和控制器。</li>
+                    <li>选择执行器。</li>
+                    <li>绘制系统方框图和电路原理图。</li>
+                </ul>
+                <h3>设计示例</h3>
+                <ul>
+                    <li>恒温控制系统：热敏电阻检测温度→比较器与设定值比较→控制加热器通断→保持恒温。</li>
+                    <li>水位自动控制系统：水位传感器检测水位→比较器与设定水位比较→控制水泵启停。</li>
+                </ul>
+                <h3>常见问题分析与解决</h3>
+                <ul>
+                    <li>稳定性问题：可能出现振荡，需要调整控制器参数或加入滞回比较器。</li>
+                    <li>精度问题：传感器精度不够或比较器阈值漂移，需选用高精度元件。</li>
+                    <li>响应速度问题：控制器或执行器响应慢，需优化设计。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec5-3">
+            <div class="knowledge-card">
+                <h2>5.3 电路安装与调试</h2>
+                <h3>焊接技术</h3>
+                <ul>
+                    <li>电烙铁使用：预热、清洁、上锡。</li>
+                    <li>焊接步骤：加热焊盘和焊件→送焊锡丝→先拿开焊锡丝后拿开电烙铁。</li>
+                    <li>焊接质量要求：焊点光亮、饱满，无虚焊、短路。</li>
+                </ul>
+                <h3>面包板使用</h3>
+                <ul>
+                    <li>面包板内部连接方式：横向和纵向的导电条。</li>
+                    <li>插入元器件时注意引脚不要短路。</li>
+                    <li>适用于电路测试和实验。</li>
+                </ul>
+                <h3>调试方法</h3>
+                <ul>
+                    <li>先检查电源是否正常。</li>
+                    <li>分段测试：输入部分、控制部分、输出部分分别测试。</li>
+                    <li>用万用表测量关键点电压。</li>
+                    <li>用示波器观察波形（若有时）。</li>
+                    <li>逐步排除故障。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

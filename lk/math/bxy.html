@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>数学必修一</title>
+    
+    <!-- KaTeX 渲染 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮放在一行 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 6px 0 6px 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            border-radius: 4px;
+            margin: 2px 0;
+        }
+
+        .category-content a:hover { 
+            color: var(--accent-color); 
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 5px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+        .back-home:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示一个符号（保留原加号） */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { 
+            margin-bottom: 30px; 
+            scroll-margin-top: 20px; 
+        }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .content-image {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        /* ========== 移动端优化 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (必修一分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>数学必修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-jh')">✚ 集合</div>
+            <div class="category-content" id="cat-jh">
+                <a href="#jhgn">概念</a>
+                <a href="#jhgx">关系</a>
+                <a href="#jhys">运算</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-lj')">✚ 逻辑用语</div>
+            <div class="category-content" id="cat-lj">
+                <a href="#ljgn">概念</a>
+                <a href="#ljcy">充分条件与必要条件</a>
+                <a href="#ljlc">全称量词与存在量词</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-bs')">✚ 不等式</div>
+            <div class="category-content" id="cat-bs">
+                <a href="#ds">等式</a>
+                <a href="#yytc">一元二次</a>
+                <a href="#bds">不等式</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-hs')">✚ 函数</div>
+            <div class="category-content" id="cat-hs">
+                <a href="#hsgn">概念</a>
+                <a href="#txbh">图像变换</a>
+                <a href="#hsxz">性质</a>
+                <a href="#mhs">幂函数</a>
+                <a href="#zshs">指数函数</a>
+                <a href="#dshs">对数函数</a>
+                <a href="#fhs">反函数</a>
+                <a href="#sjhs">三角函数</a>
+            </div>
+        </div>
+
+        <a href="/index.html" class="back-home">返回首页</a>
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：完整知识点卡片（与原始代码一致） -->
+    <main>
+        <!-- 集合 章节 -->
+        <h1>集合</h1>
+        
+        <section id="jhgn">
+            <div class="knowledge-card">
+                <h2>概念</h2>
+                <p>
+                    <b>元素</b>：研究对象<br><b>特征</b>：1.确定性；2.互异性；3.无序性<br><br><b>集合</b>（集）：元素组成的总体<br><b>特性</b>：1.描述性；2.整体性；3.广泛性<br>
+                    <b>表示</b>：1.列举法；2.描述法{元素∈范围|共同特征}；3.图示法（Venn图）<br><b>分类</b>：有限集与无限集、点集与数集<br><br>
+                    <b>空集</b>Ø：不包含任何元素<br><br>
+                    <b>常用数集</b>：<b>N</b>（自然数集）、<b>N*</b>或<b>N+</b>（正整数集）、<b>Z</b>（整数集）、<b>Q</b>（有理数集）、<b>R</b>（实数集）
+                </p>
+            </div>
+        </section>
+        
+        <section id="jhgx">
+            <div class="knowledge-card">
+                <h2>关系</h2>
+                <p>
+                    <b>元素与集合</b>：属于/不属于 ∈/∉<br>
+                    <b>集合与集合</b>：包含/不包含 ⊆/⊈<br>
+                    <b>真子集</b>（存在元素x∈B且x∉A） A⫋B<br>
+                    <b>性质</b>：反身性、传递性<br>
+                    <b>相等</b> A⊆B,B⊆A → A=B<br>
+                    <b>子集个数</b>=2^元素个数
+                </p>
+            </div>
+        </section>
+
+        <section id="jhys">
+            <div class="knowledge-card">
+                <h2>运算</h2>
+                <p>
+                    <b>并集</b>（所有属于A或属于B的元素组成的集合） A∪B={x|x∈A或X∈B}<br>
+                    <b>交集</b>（所有属于A且属于B的元素组成的集合） A∩B={x|x∈A且X∈B}<br>
+                    交集与并集都满足交换律与结合律<br>
+                    <b>全集</b> 含有研究问题中涉及的所有元素<br>
+                    <b>补集</b> 全集中不属于某集合的所有元素 ∁uA={x|x∈U且x∉A}<br>
+                    <b>徳·摩根定律</b> ∁u(A∩B)=(∁uA)∪(∁uB) ∁u(A∪B)=(∁uA)∩(∁uB)
+                </p>
+            </div>
+        </section>
+
+        <!-- 逻辑用语 章节 -->
+        <h1>逻辑用语</h1>
+
+        <section id="ljgn">
+            <div class="knowledge-card">
+                <h2>概念</h2>
+                <p>
+                    <b>命题</b> 用语言、符合或式子表达的，可以判断真假的陈述句<br>
+                    <b>结构</b> “若p，则q”，p为命题的条件，q为命题的结论
+                </p>
+            </div>
+        </section>
+
+        <section id="ljcy">
+            <div class="knowledge-card">
+                <h2>充分条件与必要条件</h2>
+                <p>
+                    “若p，则q”为真命题，p⇒q,p是q的充分条件，q是p的必要条件<br>
+                    <b>充要条件</b> p⇒q且q⇒p,p⇔q
+                </p>
+            </div>
+        </section>
+
+        <section id="ljlc">
+            <div class="knowledge-card">
+                <h2>全称量词与存在量词</h2>
+                <p>
+                    <b>全称量词</b>∀（所有的、任意一个）命题 ∀x∈A，p（x）<br>
+                    <b>存在量词</b>∃（存在一个、至少有一个）命题 ∃x∈A，p（x）<br>
+                    <b>否定</b> ¬ 命题：∀或∃ x属于A，p（x） 命题否定∃或∀（命题反一下） x∈A（不变），¬p（x）
+                </p>
+            </div>
+        </section>
+
+        <!-- 不等式 章节 -->
+        <h1>不等式</h1>
+
+        <section id="ds">
+            <div class="knowledge-card">
+                <h2>等式</h2>
+                <p>
+                    用等号连接<br>
+                    <b>性质</b>：1.a=b则b=a; 2.a=b,b=c,则a=c; 3.a=b,a±c=b±c; 4.a=b,ac=bc; 5.a=b,c≠0,a/c=b/c.<br>
+                    <b>扩展</b>：a=b,a^n=b^n(n∈N)|a=b>0,a的n次方根=b的n次方根（n∈N）
+                </p>
+            </div>
+        </section>
+
+        <section id="yytc">
+            <div class="knowledge-card">
+                <h2>一元二次</h2>
+                <p>
+                    <b>概念</b>只含一个未知数，含未知数的最高次数是2 ax^2+bx+c=0<br>
+                    <b>解法</b>:1.开平方;2.配方法;3.公式法 △=b^2-4ac≥0 x=(-b±sqrt(b^2-4ac))/2a 4.因式分解<br>
+                    <b>根与系数</b> x1+x2=-b/a; x1*x2=c/a<br>
+                    <b>函数</b> 初中学过不做详细介绍（偷个懒嘿嘿）
+                </p>
+            </div>
+        </section>
+
+        <section id="bds">
+            <div class="knowledge-card">
+                <h2>不等式</h2>
+                <p>
+                    <b>大小比较</b> 作差法与0比，作商法与1比<br>
+                    <b>基本性质</b> 1.对称性;2.传递性;3.可加性;4.可乘性（负号反号）;5.同向可加性;6.同向同正可乘性;7.可乘方性;8.可开方性<br>
+                    <b>倒数性质</b> 1.ab>0则a>b⇔1/a＜1/b;2.a>b>0,d>c>0 ⇒a/c>b/d;3.0＜a＜x＜b,或a＜x＜b＜0 ⇒ 1/b＜1/x＜1/a<br>
+                    <b>分数性质</b> a>b>0,m>0 1.b/a＜(b+m)/(a+m);b/a>(b-m)/(a-m) (b-m>0) 2.a/b>(a+m)/(b+m);a/b＜(a-m)/(b-m) (b-m>0)<br>
+                    <b>基本不等式</b> a^2+b^2>=2ab 当且仅当a=b时等号成立 若a>0,b>0,根号下ab＜=(a+b)/2 当且仅当a=b时等号成立<br>
+                    <b>变形</b> 1.a+b>=2根号下ab 2.ab＜=((a+b)/2)^2 3.b/a+a/b>=2 当且仅当a=b时等号成立<br>
+                    <b>重要不等式</b> 1.0＜a＜b,则a＜根号下ab＜(a+b)/2＜b 
+                    2.a>0,b>0,2ab/(a+b)＜=根号下ab＜=(a+b)/2＜=根号下(a^2+b^2)/2 当且仅当a=b时等号成立<br>
+                    <b>最值定理</b> x>0,y>0 1.xy=P(定值) x=y时,(x+y)min=2根号P; 2.x+y=S(定值) x=y时,xymax=(1/4)S<br>
+                    <b>扩展</b> 
+                    <img src="sxbxy/bdskz.jpg" alt="扩展" class="content-image">
+                    <b>求最值</b> 1.配凑法; 2.常数代换法; 3.消元法; 4.基本不等式法<br>
+                    <b>不同不等式的一些解法</b> 一元二次不等式可以进行画图，分式不等式用性质转化成有理整式不等式，注意不等号，含绝对值的不等式去绝对值<br>
+                    <b>简单高次不等式</b> 1.不等式组法; 2.列表法; 3.穿根引线法（奇过偶不过）
+                </p>
+            </div>
+        </section>
+
+        <!-- 函数 章节 -->
+        <h1>函数</h1>
+
+        <section id="hsgn">
+            <div class="knowledge-card">
+                <h2>概念</h2>
+                <p>
+                    y=f(x) <b>三要素</b>：定义域、对应关系、值域<br>
+                    <b>表示</b>:列表法、图像法、解析法
+                    <b>解法</b>：1.待定系数法; 2.换元法; 3.配凑法; 4.方程组法; 5.赋值法(分段函数分类讨论)
+                </p>
+            </div>
+        </section>
+
+        <section id="txbh">
+            <div class="knowledge-card">
+                <h2>图像变换</h2>
+                <p>
+                    <img src="sxbxy/hstxbh.jpg" alt="图像变换" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="hsxz">
+            <div class="knowledge-card">
+                <h2>性质</h2>
+                <p>
+                    <b>单调性</b>
+                    <img src="sxbxy/hsddx.jpg" alt="单调性" class="content-image">
+                    <b>最值</b>
+                    <img src="sxbxy/hszz.jpg" alt="最值" class="content-image">
+                    <b>求法</b>:1.图像法; 2.配方法; 3.换元法; 4.基本不等式法; 5.分离常数法; 6.判别式法; 7.单调性法<br>
+                    <b>奇偶性</b>
+                    <img src="sxbxy/hsjox.jpg" alt="奇偶性" class="content-image">
+                    <b>判断方式</b>:1.定义法; 2.图像法; 3.性质法<br>
+                    <b>周期性</b>
+                    <img src="sxbxy/hszqx.jpg" alt="周期性" class="content-image">
+                    <b>对称性</b>
+                    <img src="sxbxy/hsdcx.jpg" alt="对称性" class="content-image">
+                    <b>关系</b>
+                    <img src="sxbxy/hsgx.jpg" alt="关系" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="mhs">
+            <div class="knowledge-card">
+                <h2>幂函数</h2>
+                <p>
+                    <b>分数指数幂</b>
+                    <img src="sxbxy/hsfszsm.jpg" alt="分数指数幂" class="content-image">
+                    <b>函数</b>
+                    <img src="sxbxy/hsmhs.jpg" alt="幂函数" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="zshs">
+            <div class="knowledge-card">
+                <h2>指数函数</h2>
+                <p>
+                    <img src="sxbxy/hszshs.jpg" alt="指数函数" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="dshs">
+            <div class="knowledge-card">
+                <h2>对数函数</h2>
+                <p>
+                    <b>对数的基本性质</b>
+                    <img src="sxbxy/hsdsxz.jpg" alt="对数性质" class="content-image">
+                    <b>运算性质</b>
+                    <img src="sxbxy/hsysxz.jpg" alt="运算性质" class="content-image">
+                    <b>换底公式</b>
+                    <img src="sxbxy/hshdgs.jpg" alt="换底公式" class="content-image">
+                    <img src="sxbxy/hshdtl.jpg" alt="推论1" class="content-image">
+                    <img src="sxbxy/hshdgstl.jpg" alt="推论23" class="content-image">
+                    <b>函数</b>
+                    <img src="sxbxy/hsdshs.jpg" alt="对数函数" class="content-image">
+                    <b>对比</b>
+                    <img src="sxbxy/hsdb.jpg" alt="对比" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="fhs">
+            <div class="knowledge-card">
+                <h2>反函数</h2>
+                <p>
+                    <b>概念</b> y=f(x)的反函数常用f^-1(x)表示<br>
+                    <b>条件</b> 一个函数存在反函数的充要条件是函数在它的定义域上是单调的<br>
+                    <b>特征</b>关于直线y=x对称<br>
+                    <b>性质</b>
+                    <img src="sxbxy/hsfhsxz.jpg" alt="性质" class="content-image">
+                    <b>函数增长差异</b>
+                    <img src="sxbxy/hszzcy.jpg" alt="函数增长差异" class="content-image">
+                    <b>零点</b><br>
+                    <b>概念</b>对于函数y=f(x),把使f(x)=0的实数x叫做函数y=f(x)的零点<br><br>
+                    <b>定理</b>如果函数y=f(x)在区间[a,6]上的图象是一条连续不断的曲线,且有f(a)f(b)＜0，
+                    那么函数y=f(x)在区间(a,b)内至少有一个零点,即存在ce(a,b),使得f(c)=0,这个c也就是方程/(x)=0的解<br><br>
+                    <b>二分法</b>对于在区间[a,b]上图象连续不间断且f(a)f(b)＜0的函数y=f(x),通过不断地把函数f(x)的零点所在的区间一分为二，
+                    使所得区间的两个端点逐步逼近零点,进而得到零点近似值的方法叫做二分法
+                </p>
+            </div>
+        </section>
+
+        <section id="sjhs">
+            <div class="knowledge-card">
+                <h2>三角函数</h2>
+                <p>
+                    <b>任意角</b> 角可以看成平面内一条射线绕着端点从一个位置旋转到另一个位置所形成的图形，
+                    旋转开始时的射线叫做角的始边,旋转终止时的射线叫做角的终边,射线的端点叫做角的顶点<br>
+                    <b>终边相同的角</b> {x|x=k*360+a,k属于Z}<br>
+                    <b>象限角</b> 角的顶点在原点,始边在x轴的非负半轴上,角的终边在第几象限,就说这个角是第几象限角<br>
+                    <b>轴线角</b> 角的终边在坐标轴上,则这个角不属于任何一个象限,叫象限界角（轴线角）<br>
+                    <b>区间角</b> 介于两个角之间的角的集合<br>
+                    <b>区域角</b> 终边介于某两角终边之间的角的集合<br>
+                    <b>角度制</b> 角可以用度为单位进行度量,1度的角等于周角的1/360.这种用度作为单位来度量角的单位制叫做角度制<br>
+                    <b>弧度制</b> 以弧度作为单位来度量角的单位制<br>
+                    <b>单位圆</b> 半径为1的圆<br>
+                    <b>弧度数</b> 在半径为r的圆中,如果弧长为l的弧所对的心角为a rad,那么|a|=l/r<br>
+                    <b>换算</b> 度数*π/180=弧度数、弧度数*（180°/π）=度数<br>
+                    <b>公式</b>
+                    <img src="sxbxy/sjhsgs.jpg" alt="公式" class="content-image">
+                    扇形周长一定面积有最大值，面积一定周长有最小值<br><br>
+                    
+                    <b>三角函数的定义</b> 1.单位圆 纵坐标为正弦函数，横坐标为余弦函数; 2.终边上的点 距离为r，sina=y/r,cosa=x/r<br>
+                    <b>三角函数线</b>
+                    <img src="sxbxy/sjhsx.jpg" alt="三角函数线" class="content-image">
+                    <b>同角三角函数的基本关系式</b> tana=sina/cosa, sina^2+cosa^2=1<br>
+                    <b>诱导公式</b>
+                    <b>一</b>
+                    <img src="sxbxy/y.jpg" alt="一" class="content-image">
+                    <b>二</b>
+                    <img src="sxbxy/t.jpg" alt="二" class="content-image">
+                    <b>三</b>
+                    <img src="sxbxy/sa.jpg" alt="三" class="content-image">
+                    <b>四</b>
+                    <img src="sxbxy/si.jpg" alt="四" class="content-image">
+                    <b>五</b>
+                    <img src="sxbxy/w.jpg" alt="五" class="content-image">
+                    <b>六</b>
+                    <img src="sxbxy/l.jpg" alt="六" class="content-image">
+                    <b>七</b>
+                    <img src="sxbxy/q.jpg" alt="七" class="content-image">
+                    <b>八</b>
+                    <img src="sxbxy/b.jpg" alt="八" class="content-image">
+                    奇变偶不变，符号看象限<br>
+                    <b>正弦函数与余弦函数</b>
+                    <img src="sxbxy/zyxhs.jpg" alt="正弦函数与余弦函数" class="content-image">
+                    <b>正切函数</b>
+                    <img src="sxbxy/zqhs.jpg" alt="正切函数" class="content-image">
+                    <b>余弦公式</b> cos(a-b)=cosacosb+sinasinb,cos(a+b)=cosacosb-sinasinb<br>
+                    <b>正弦公式</b> sin(a+b)=sinacosb+cosasinb,sin(a-b)=sinacosb-cosasinb<br>
+                    <b>正切公式</b> tan(a+b)=(tana+tanb)/(1-tanatanb),tan(a-b)=(tana-tanb)/(1+tanatanb)<br>
+                    <b>二倍角公式</b> sin2a=2sinacosa,cos2a=cosa^2-sina^2=2cosa^2-1=1-2sina^2,tan2a=2tana/(1-tana^2)<br>
+                    <b>半角公式</b>
+                    <img src="sxbxy/bjgs.jpg" alt="半角公式" class="content-image">
+                    <b>万能公式</b>
+                    <img src="sxbxy/wngs.jpg" alt="万能公式" class="content-image">
+                    <b>辅助角公式</b>
+                    <img src="sxbxy/fzjgs.jpg" alt="辅助角公式1" class="content-image">
+                    <img src="sxbxy/fzjdgs.jpg" alt="辅助角公式4" class="content-image">
+                    <b>积化和差</b>
+                    <img src="sxbxy/jhhc.jpg" alt="积化和差" class="content-image">
+                    <b>差化和积</b>
+                    <img src="sxbxy/chhj.jpg" alt="差化和积" class="content-image">
+                    <b>函数y=Asin(wx+φ)</b>
+                    <b>φ的影响</b>
+                    <img src="sxbxy/fdyx.jpg" alt="φ" class="content-image">
+                    <b>w的影响</b>
+                    <img src="sxbxy/wdyx.jpg" alt="w" class="content-image">
+                    <b>A的影响</b>
+                    <img src="sxbxy/adyx.jpg" alt="A" class="content-image">
+                    <b>简谐运动</b> 在物理学中,把物体受到的力（总是指向平衡位置）正比于它离开平衡位置的距离的运动称为“简谐运动”
+                    简谐运动可以用函数y=Asin(ωx+φ),x∈[0,+∞）表示,其中 A>0,ω>0<br>
+                    <b>振幅</b>A 做简谐运动的物体离开平衡位置的最大距离<br>
+                    <b>周期</b> T=2π/w 做简谐运动的物体往复运动一次所需要的时间<br>
+                    <b>频率</b> f=1/T=w/2π 做简谐运动的物体在单位时间内往复运动的次数<br>
+                    <b>相位</b>ωx+φ<br>
+                    <b>初相</b>x=0时的相位
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 3. 粒子效果 (已修改为第一个网页的版本)
+        document.addEventListener('DOMContentLoaded', function() {
+            // 如果手机访问，直接关掉粒子
+            if (window.innerWidth < 768) return; 
+
+            const canvas = document.getElementById('particle-container');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+                    this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+                    this.speedY = Math.random() * 0.4 - 0.2;
+                    this.color = '#555';
+                }
+                
+                reset() {
+                    const edge = Math.floor(Math.random() * 4);
+                    switch(edge) {
+                        case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                        case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                        case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                        case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+                    }
+                }
+                
+                update(mouse) {
+                    if (mouse.x !== null && mouse.y !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < mouse.radius) {
+                            const attraction = 0.02;
+                            const angle = Math.atan2(dy, dx);
+                            this.speedX += Math.cos(angle) * attraction;
+                            this.speedY += Math.sin(angle) * attraction;
+                        }
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+                }
+                
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            
+            const mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            
+            const particlesArray = [];
+            const particleCount = 25; 
+            
+            function init() {
+                for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+            }
+            
+            function connectParticles() {
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a + 1; b < particlesArray.length; b++) {
+                        const dx = particlesArray[a].x - particlesArray[b].x;
+                        const dy = particlesArray[a].y - particlesArray[b].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < 100) {
+                            const opacity = 1 - (distance / 100);
+                            ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                            ctx.lineWidth = 0.3;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+                connectParticles();
+                requestAnimationFrame(animate);
+            }
+            init();
+            animate();
+        });
+
+        // 4. 侧边栏收缩按钮 + 高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

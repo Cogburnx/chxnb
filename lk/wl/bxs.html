@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>物理必修三</title>
+    
+    <!-- KaTeX 渲染（物理公式较多） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        /* 无图片，保留样式以备将来 */
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;  /* 移动端固定左侧宽度 */
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (物理必修三分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>物理必修三</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-jcdc')">✚ 静电场及其应用</div>
+            <div class="category-content" id="cat-jcdc">
+                <a href="#dh">电荷</a>
+                <a href="#kldl">库仑定律</a>
+                <a href="#dcqd">电场 电场强度</a>
+                <a href="#jdfy">静电的防止与利用</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-jcznl')">✚ 静电场中的能量</div>
+            <div class="category-content" id="cat-jcznl">
+                <a href="#dsnds">电势能和电势</a>
+                <a href="#dsc">电势差</a>
+                <a href="#dscyqdgx">电势差与电场强度的关系</a>
+                <a href="#drq">电容器的电容</a>
+                <a href="#ddlz">带电粒子在电场中的运动</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-dl')">✚ 电路及其应用</div>
+            <div class="category-content" id="cat-dl">
+                <a href="#dyhd">电源和电流</a>
+                <a href="#dzdz">导体的电阻</a>
+                <a href="#clc">实验：导体电阻率的测量</a>
+                <a href="#cldl">串联电路和并联电路</a>
+                <a href="#dydb">实验：练习使用多用电表</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-dn')">✚ 电能 能量守恒定律</div>
+            <div class="category-content" id="cat-dn">
+                <a href="#dlzh">电路中的能量转化</a>
+                <a href="#bhdl">闭合电路的欧姆定律</a>
+                <a href="#dcdl">实验：电池电动势和内阻的测量</a>
+                <a href="#nykc">能源与可持续发展</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-dcg')">✚ 电磁感应与电磁波初步</div>
+            <div class="category-content" id="cat-dcg">
+                <a href="#ccgx">磁场 磁感线</a>
+                <a href="#cgqd">磁感应强度 磁通量</a>
+                <a href="#dcgy">电磁感应现象及应用</a>
+                <a href="#dcb">电磁波的发现及应用</a>
+                <a href="#nlzl">能量量子化</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：物理必修三知识点卡片（纯文字，无图片） -->
+    <main>
+        <!-- 静电场及其应用 章节 -->
+        <h1>静电场及其应用</h1>
+        
+        <section id="dh">
+            <div class="knowledge-card">
+                <h2>电荷</h2>
+                <p>
+                    <b>电荷守恒定律</b>：电荷既不会创生，也不会消灭，它只能从一个物体转移到另一个物体，或者从物体的一部分转移到另一部分；在转移过程中，电荷的总量保持不变。 <br>
+                    <b>元电荷</b>：自然界中带电量最小的电荷叫作元电荷，用 \(e\) 表示。所有带电体的电荷量或者等于 \(e\)，或者是元电荷的整数倍。\(e = 1.6 \times 10^{-19} \text{C}\)。 <br>
+                    <b>比荷</b>：带电粒子的电荷量与质量的比值。 <br>
+                    <b>摩擦起电</b>：当两种物质组成的物体互相摩擦时，一些受束缚较弱的电子会转移到另一个物体上，于是，原来电中性的物体由于得到电子而带负电，失去电子的物体则带正电。 <br>
+                    <b>感应起电</b>：当一个带电体靠近导体时，由于电荷间相互吸引或排斥，导体中的自由电荷便会趋向或远离带电体，使导体靠近带电体的一端带异种电荷，远离带电体的一端带同种电荷，这种现象叫作静电感应。利用静电感应使金属导体带电的过程叫作感应起电。 
+                </p>
+            </div>
+        </section>
+        
+        <section id="kldl">
+            <div class="knowledge-card">
+                <h2>库仑定律</h2>
+                <p>
+                    <b>内容</b>：真空中两个静止点电荷之间的相互作用力，与它们的电荷量的乘积成正比，与它们的距离的二次方成反比，作用力的方向在它们的连线上。这种电荷之间的相互作用力叫作静电力或库仑力。 <br>
+                    <b>公式</b>：\(F = k \dfrac{q_1 q_2}{r^2}\)，其中 k = 9.0 * 10 ^ 9 N*m^2/C^2。 <br>
+                    <b>适用条件</b>：真空中的静止点电荷。当带电体间的距离比它们自身的大小大得多，以至于带电体的形状和大小对相互作用力的影响可以忽略不计时，带电体可视为点电荷。 
+                </p>
+            </div>
+        </section>
+
+        <section id="dcqd">
+            <div class="knowledge-card">
+                <h2>电场 电场强度</h2>
+                <p>
+                    <b>电场</b>：存在于电荷周围的一种特殊物质，它对放入其中的电荷有力的作用。<br>
+                    <b>电场强度</b>：放入电场中某点的试探电荷所受的静电力 \(F\) 与它的电荷量 \(q\) 的比值，定义为该点的电场强度。公式 \(E = \dfrac{F}{q}\)，单位 \(\text{N/C}\) 或 \(\text{V/m}\)。电场强度是矢量，方向与正电荷所受静电力方向相同。 <br>
+                    <b>点电荷的电场强度</b>：\(E = k \dfrac{Q}{r^2}\)，\(Q\) 为场源电荷的电荷量。 <br>
+                    <b>电场线</b>：画在电场中的一条条有方向的曲线，曲线上每点的切线方向表示该点的电场强度方向。  <br>
+                    <b>电场线的特点</b>：电场线从正电荷或无限远出发，终止于无限远或负电荷；电场线在电场中不相交；在同一电场中，电场强度较大的地方电场线较密，电场强度较小的地方电场线较疏。  <br>
+                    <b>匀强电场</b>：电场中各点的电场强度大小相等、方向相同。电场线是间距相等的平行直线。  
+                </p>
+            </div>
+        </section>
+
+        <section id="jdfy">
+            <div class="knowledge-card">
+                <h2>静电的防止与利用</h2>
+                <p>
+                    <b>静电平衡</b>：导体放入电场中时，自由电荷发生定向移动，产生感应电荷，当感应电荷产生的电场与外电场在导体内部大小相等、方向相反时，导体内部合场强为零，自由电荷不再定向移动，此时导体处于静电平衡状态。 <br>
+                    <b>静电平衡的特点</b>：导体内部场强处处为零；导体是等势体，表面是等势面；电荷只分布在导体的外表面上；导体表面附近的场强方向与表面垂直。 <br>
+                    <b>尖端放电</b>：导体尖端附近电场强度很大，使空气电离，产生放电现象。 <br>
+                    <b>静电屏蔽</b>：用金属网或金属壳把外部电场遮住，使其内部不受外电场影响的现象。 <br>
+                    <b>静电的应用</b>：静电除尘、静电喷漆、静电复印等。 <br>
+                    <b>静电的防止</b>：接地、增加空气湿度、使用导电材料等。 
+                </p>
+            </div>
+        </section>
+
+        <!-- 静电场中的能量 章节 -->
+        <h1>静电场中的能量</h1>
+
+        <section id="dsnds">
+            <div class="knowledge-card">
+                <h2>电势能和电势</h2>
+                <p>
+                    <b>电势能</b>：电荷在电场中具有的势能。电荷在某点的电势能，等于把它从该点移动到零势能位置时静电力所做的功。 <br>
+                    <b>静电力做功与电势能变化的关系</b>：静电力做的功等于电势能的减少量。表达式 \(W_{\text{AB}} = E_{\text{pA}} - E_{\text{pB}}\)。静电力做正功，电势能减少；静电力做负功，电势能增加。 <br>
+                    <b>电势</b>：电荷在电场中某一点的电势能与它的电荷量之比。定义式 \(\varphi = \dfrac{E_{\text{p}}}{q}\)。   <br>
+                    <b>电势的单位</b>：伏特，符号 \(\text{V}\)，\(1 \ \text{V} = 1 \ \text{J/C}\)。 <br>
+                    <b>电势高低的判断</b>：沿着电场线的方向电势逐渐降低。   <br>
+                    <b>电势的相对性</b>：只有规定了零电势点，才能确定某点的电势，一般选大地或离场源电荷无限远处的电势为零。   <br>
+                    <b>电势是标量</b>：有正负之分，正电势表示比零电势高，负电势表示比零电势低。  
+                </p>
+            </div>
+        </section>
+
+        <section id="dsc">
+            <div class="knowledge-card">
+                <h2>电势差</h2>
+                <p>
+                    <b>定义</b>：电场中两点之间电势的差值，也叫作电压。\(U_{\text{AB}} = \varphi_{\text{A}} - \varphi_{\text{B}}\)，\(U_{\text{BA}} = \varphi_{\text{B}} - \varphi_{\text{A}} = -U_{\text{AB}}\)。 <br>
+                    <b>电势差是标量</b>：有正负，正负表示电势的高低。\(U_{\text{AB}} > 0\) 表示A点电势比B点电势高。 <br>
+                    <b>静电力做功与电势差的关系</b>：\(W_{\text{AB}} = q U_{\text{AB}}\) 或 \(U_{\text{AB}} = \dfrac{W_{\text{AB}}}{q}\)。\(U_{\text{AB}}\) 在数值上等于单位正电荷由A点移到B点时静电力所做的功。 
+                </p>
+            </div>
+        </section>
+
+        <section id="dscyqdgx">
+            <div class="knowledge-card">
+                <h2>电势差与电场强度的关系</h2>
+                <p>
+                    <b>关系式</b>：在匀强电场中，\(U = Ed\)，其中 \(U\) 为两点间的电势差，\(E\) 为电场强度，\(d\) 为两点沿电场方向的距离。 <br>
+                    <b>电场强度的另一种表述</b>：电场强度的大小等于两点间的电势差与这两点沿电场方向距离的比值，即 \(E = \dfrac{U}{d}\)。单位 \(\text{V/m}\) 与 \(\text{N/C}\) 等价。 <br>
+                    <b>物理意义</b>：电场强度描述电场沿某方向电势变化的快慢。
+                </p>
+            </div>
+        </section>
+
+        <section id="drq">
+            <div class="knowledge-card">
+                <h2>电容器的电容</h2>
+                <p>
+                    <b>电容器</b>：两个相互靠近又彼此绝缘的导体构成电容器。电容器可以储存电荷和电能。 <br>
+                    <b>电容</b>：电容器所带电荷量 \(Q\) 与电容器两极板间电势差 \(U\) 的比值。定义式 \(C = \dfrac{Q}{U}\)。 <br>
+                    <b>电容的单位</b>：法拉，符号 \(\text{F}\)。\(1 \ \mu\text{F} = 10^{-6} \ \text{F}\)，\(1 \ \text{pF} = 10^{-12} \ \text{F}\)。 <br>
+                    <b>平行板电容器的电容</b>：\(C = \dfrac{\varepsilon_{\text{r}} S}{4\pi k d}\)（或 \(C \propto \dfrac{\varepsilon_{\text{r}} S}{d}\)）。电容与两极板间电介质的相对介电常数 \(\varepsilon_{\text{r}}\) 成正比，与正对面积 \(S\) 成正比，与极板间的距离 \(d\) 成反比。 <br>
+                    <b>击穿电压与额定电压</b>：击穿电压是电容器不被击穿时加在电容器两极板上的极限电压；额定电压是电容器外壳上标的工作电压，比击穿电压低。 
+                </p>
+            </div>
+        </section>
+
+        <section id="ddlz">
+            <div class="knowledge-card">
+                <h2>带电粒子在电场中的运动</h2>
+                <p>
+                    <b>带电粒子的加速</b>：在匀强电场中，\(qU = \dfrac{1}{2}mv^2 - \dfrac{1}{2}mv_0^2\)。若初速度为零，则 \(v = \sqrt{\dfrac{2qU}{m}}\)。 <br>
+                    <b>带电粒子的偏转</b>：垂直电场方向射入匀强电场，做类平抛运动。<br>
+                    加速度 \(a = \dfrac{qE}{m} = \dfrac{qU}{md}\)；<br>
+                    运动时间 \(t = \dfrac{l}{v_0}\)（\(l\) 为极板长度）；<br>
+                    侧移量 \(y = \dfrac{1}{2}at^2 = \dfrac{qU l^2}{2md v_0^2}\)；<br>
+                    偏转角 \(\tan\theta = \dfrac{v_y}{v_0} = \dfrac{qU l}{md v_0^2}\)。 <br>
+                    <b>示波管原理</b>：电子枪发射电子，经加速电场加速后进入偏转电场，在偏转电场中发生偏转，打在荧光屏上形成光点。
+                </p>
+            </div>
+        </section>
+
+        <!-- 电路及其应用 章节 -->
+        <h1>电路及其应用</h1>
+
+        <section id="dyhd">
+            <div class="knowledge-card">
+                <h2>电源和电流</h2>
+                <p>
+                    <b>电源</b>：通过非静电力做功将其他形式的能转化为电能的装置。 <br>
+                    <b>恒定电场</b>：由稳定分布的电荷所产生的稳定的电场。当电路达到稳定时，导线中的电场是由电源、导线等电路元件所积累的电荷共同形成的，任何位置的电荷分布和电场强度都不随时间变化。 <br>
+                    <b>电流</b>：电荷的定向移动形成电流。规定正电荷定向移动的方向为电流方向。 <br>
+                    <b>电流强度</b>：通过导体横截面的电荷量 \(q\) 与通过这些电荷量所用时间 \(t\) 的比值。定义式 \(I = \dfrac{q}{t}\)。 <br>
+                    <b>恒定电流</b>：大小、方向都不随时间变化的电流。 <br>
+                    <b>电流的单位</b>：安培，简称安，符号 \(\text{A}\)。\(1 \ \text{mA} = 10^{-3} \ \text{A}\)，\(1 \ \mu\text{A} = 10^{-6} \ \text{A}\)。 
+                </p>
+            </div>
+        </section>
+
+        <section id="dzdz">
+            <div class="knowledge-card">
+                <h2>导体的电阻</h2>
+                <p>
+                    <b>电阻</b>：导体两端的电压 \(U\) 与通过导体的电流 \(I\) 之比。定义式 \(R = \dfrac{U}{I}\)。反映导体对电流阻碍作用的大小。 <br>
+                    <b>电阻的单位</b>：欧姆，简称欧，符号 \(\Omega\)。\(1 \ \text{k}\Omega = 10^3 \ \Omega\)，\(1 \ \text{M}\Omega = 10^6 \ \Omega\)。 <br>
+                    <b>欧姆定律</b>：导体中的电流 \(I\) 跟导体两端的电压 \(U\) 成正比，跟导体的电阻 \(R\) 成反比。公式 \(I = \dfrac{U}{R}\)。适用于金属导体和电解质溶液，不适用于气态导体和半导体元件。 <br>
+                    <b>电阻定律</b>：同种材料的导体，其电阻 \(R\) 与它的长度 \(l\) 成正比，与它的横截面积 \(S\) 成反比；导体电阻还与构成它的材料有关。公式 \(R = \rho \dfrac{l}{S}\)，其中 \(\rho\) 为电阻率。 <br>
+                    <b>电阻率</b>：反映导体导电性能的物理量，是导体材料本身的属性，与导体的形状、大小无关。单位是欧姆·米，符号 \(\Omega \cdot \text{m}\)。金属的电阻率随温度的升高而增大。 
+                </p>
+            </div>
+        </section>
+
+        <section id="clc">
+            <div class="knowledge-card">
+                <h2>实验：导体电阻率的测量</h2>
+                <p>
+                    <b>实验原理</b>：根据电阻定律 \(R = \rho \dfrac{l}{S}\)，得 \(\rho = R \dfrac{S}{l}\)。测量导体的长度 \(l\)、横截面积 \(S\) 和电阻 \(R\)，即可求出电阻率。 <br>
+                    <b>长度测量</b>：用刻度尺测量接入电路的导体长度。 <br>
+                    <b>直径测量</b>：用螺旋测微器（千分尺）测量导体直径，多次测量取平均值，计算横截面积 \(S = \pi \left(\dfrac{d}{2}\right)^2\)。 <br>
+                    <b>电阻测量</b>：用伏安法测量电阻。根据待测电阻大小选择电流表内接法（适用于大电阻）或外接法（适用于小电阻）。 
+                </p>
+            </div>
+        </section>
+
+        <section id="cldl">
+            <div class="knowledge-card">
+                <h2>串联电路和并联电路</h2>
+                <p>
+                    <b>串联电路</b>：<br>
+                    电流关系：\(I = I_1 = I_2 = \cdots = I_n\)； <br>
+                    电压关系：\(U = U_1 + U_2 + \cdots + U_n\)； <br>
+                    电阻关系：\(R = R_1 + R_2 + \cdots + R_n\)； <br>
+                    电压分配：\(\dfrac{U_1}{U_2} = \dfrac{R_1}{R_2}\)，\(\dfrac{U_k}{U} = \dfrac{R_k}{R}\)； <br>
+                    功率分配：\(\dfrac{P_1}{P_2} = \dfrac{R_1}{R_2}\)，\(\dfrac{P_k}{P} = \dfrac{R_k}{R}\)。 <br>
+                    <b>并联电路</b>：<br>
+                    电流关系：\(I = I_1 + I_2 + \cdots + I_n\)； <br>
+                    电压关系：\(U = U_1 = U_2 = \cdots = U_n\)； <br>
+                    电阻关系：\(\dfrac{1}{R} = \dfrac{1}{R_1} + \dfrac{1}{R_2} + \cdots + \dfrac{1}{R_n}\)； <br>
+                    电流分配：\(\dfrac{I_1}{I_2} = \dfrac{R_2}{R_1}\)，\(\dfrac{I_k}{I} = \dfrac{R}{R_k}\)； <br>
+                    功率分配：\(\dfrac{P_1}{P_2} = \dfrac{R_2}{R_1}\)，\(\dfrac{P_k}{P} = \dfrac{R}{R_k}\)。 <br>
+                    <b>电表改装</b>：<br>
+                    将表头改装成电压表：串联一个较大电阻，分压作用； <br>
+                    将表头改装成电流表：并联一个较小电阻，分流作用。 
+                </p>
+            </div>
+        </section>
+
+        <section id="dydb">
+            <div class="knowledge-card">
+                <h2>实验：练习使用多用电表</h2>
+                <p>
+                    <b>多用电表的结构</b>：由表头、选择开关、测量电路等组成，可测量电压、电流、电阻等。 <br>
+                    <b>使用步骤</b>：<br>
+                    ① 机械调零：用小螺丝刀调节表盘下方机械调零螺丝，使指针指在左端零刻度； <br>
+                    ② 选择量程：根据待测量选择合适的挡位和量程； <br>
+                    ③ 欧姆调零：测电阻时，将红黑表笔短接，调节欧姆调零旋钮使指针指在右端零欧姆处； <br>
+                    ④ 测量读数：将表笔接在待测物两端，读数时注意对应的刻度线； <br>
+                    ⑤ 使用完毕：将选择开关打到OFF挡或交流电压最高挡。 <br>
+                    <b>注意事项</b>：测电阻时，待测电阻要与其他元件断开；每换一次欧姆挡，都要重新欧姆调零；读数时指针尽量指在中间位置附近。 
+                </p>
+            </div>
+        </section>
+
+        <!-- 电能 能量守恒定律 章节 -->
+        <h1>电能 能量守恒定律</h1>
+
+        <section id="dlzh">
+            <div class="knowledge-card">
+                <h2>电路中的能量转化</h2>
+                <p>
+                    <b>电功</b>：电路中电场力对定向移动的电荷所做的功。公式 \(W = UIt\)。 <br>
+                    <b>电功率</b>：电流在一段电路中所做的功与通电时间之比。公式 \(P = \dfrac{W}{t} = UI\)。表示电流做功的快慢。 <br>
+                    <b>焦耳定律</b>：电流通过导体产生的热量跟电流的二次方成正比，跟导体的电阻成正比，跟通电时间成正比。公式 \(Q = I^2Rt\)。 <br>
+                    <b>纯电阻电路与非纯电阻电路</b>：<br>
+                    纯电阻电路（如电炉、电灯）：电能全部转化为内能，\(W = Q\)，\(UIt = I^2Rt\)，\(U = IR\)； <br>
+                    非纯电阻电路（如电动机、电解槽）：电能一部分转化为内能，一部分转化为其他形式的能，\(W > Q\)，\(UIt = I^2Rt + E_{\text{其他}}\)，\(U > IR\)。 <br>
+                    <b>功率关系</b>：电源提供的总功率 \(P_{\text{总}} = EI\)；外电路消耗的功率 \(P_{\text{出}} = UI\)；内电路消耗的功率 \(P_{\text{内}} = I^2r\)。满足 \(P_{\text{总}} = P_{\text{出}} + P_{\text{内}}\)。 
+                </p>
+            </div>
+        </section>
+
+        <section id="bhdl">
+            <div class="knowledge-card">
+                <h2>闭合电路的欧姆定律</h2>
+                <p>
+                    <b>电动势</b>：非静电力将单位正电荷从电源负极通过电源内部移到正极所做的功。公式 \(E = \dfrac{W_{\text{非}}}{q}\)。反映电源将其他形式能转化为电能的本领。 <br>
+                    <b>闭合电路欧姆定律</b>：闭合电路的电流跟电源的电动势成正比，跟内、外电路的电阻之和成反比。公式 \(I = \dfrac{E}{R + r}\)。 <br>
+                    <b>路端电压与外电阻的关系</b>：\(U = E - Ir\)。当外电阻 \(R\) 增大时，电流 \(I\) 减小，路端电压 \(U\) 增大；当外电阻 \(R\) 减小时，电流 \(I\) 增大，路端电压 \(U\) 减小。 <br>
+                    <b>电源的输出功率</b>：\(P_{\text{出}} = I^2R = \left(\dfrac{E}{R + r}\right)^2 R\)。当 \(R = r\) 时，电源的输出功率最大，\(P_{\text{m}} = \dfrac{E^2}{4r}\)。 <br>
+                    <b>电源的效率</b>：\(\eta = \dfrac{P_{\text{出}}}{P_{\text{总}}} \times 100\% = \dfrac{U}{E} \times 100\% = \dfrac{R}{R + r} \times 100\%\)。当 \(R\) 越大时，效率越高。 
+                </p>
+            </div>
+        </section>
+
+        <section id="dcdl">
+            <div class="knowledge-card">
+                <h2>实验：电池电动势和内阻的测量</h2>
+                <p>
+                    <b>实验原理</b>：根据闭合电路欧姆定律 \(E = U + Ir\)，改变外电阻，测量多组 \(U\)、\(I\) 值，通过图像法或计算法求出 \(E\) 和 \(r\)。 <br>
+                    <b>实验方法</b>：<br>
+                    ① 伏安法：用电压表和电流表测量； <br>
+                    ② 安阻法：用电流表和电阻箱测量； <br>
+                    ③ 伏阻法：用电压表和电阻箱测量。 <br>
+                    <b>数据处理</b>：<br>
+                    图像法：作 \(U-I\) 图像，纵轴截距为 \(E\)，斜率的绝对值为 \(r\)； <br>
+                    计算法：取两组数据列方程组求解。 <br>
+                    <b>误差分析</b>：<br>
+                    伏安法：电流表外接时，由于电压表分流，测量值偏小；电流表内接时，由于电流表分压，测量值也偏小。通常采用电流表外接法。 
+                </p>
+            </div>
+        </section>
+
+        <section id="nykc">
+            <div class="knowledge-card">
+                <h2>能源与可持续发展</h2>
+                <p>
+                    <b>能量守恒定律</b>：能量既不会凭空产生，也不会凭空消失，它只能从一种形式转化为其他形式，或者从一个物体转移到别的物体，在转化或转移的过程中，能量的总量保持不变。 <br>
+                    <b>能源的分类</b>：<br>
+                    可再生能源：水能、风能、太阳能、生物质能等； <br>
+                    不可再生能源：煤炭、石油、天然气等化石能源。 <br>
+                    <b>能量耗散</b>：在能量转化过程中，一部分能量转化为内能，分散到环境中，无法重新收集利用的现象。 <br>
+                    <b>能源与环境</b>：化石能源的使用带来环境污染、温室效应等问题。开发和利用新能源，提高能源利用率，实现可持续发展。 
+                </p>
+            </div>
+        </section>
+
+        <!-- 电磁感应与电磁波初步 章节 -->
+        <h1>电磁感应与电磁波初步</h1>
+
+        <section id="ccgx">
+            <div class="knowledge-card">
+                <h2>磁场 磁感线</h2>
+                <p>
+                    <b>磁体</b>：具有磁性的物体。磁体两端磁性最强的区域叫磁极（N极和S极），同名磁极相互排斥，异名磁极相互吸引。 <br>
+                    <b>电流的磁效应</b>：奥斯特实验表明，通电导线周围存在磁场，即“电生磁”。 <br>
+                    <b>磁场</b>：磁体或电流周围存在的一种特殊物质，它对放入其中的磁体或电流有力的作用。 <br>
+                    <b>磁感线</b>：在磁场中画出的有方向的曲线，曲线上每点的切线方向表示该点的磁场方向。磁感线是闭合曲线，在磁体外部从N极指向S极，在磁体内部从S极指向N极。 <br>
+                    <b>安培定则（右手螺旋定则）</b>：<br>
+                    ① 判断通电直导线周围的磁场：右手握住导线，让伸直的拇指所指的方向与电流方向一致，弯曲的四指所指的方向就是磁感线的环绕方向； <br>
+                    ② 判断环形电流和通电螺线管内部的磁场：右手握住螺线管，让弯曲的四指所指的方向与电流方向一致，拇指所指的方向就是螺线管内部磁感线的方向（即N极方向）。 
+                </p>
+            </div>
+        </section>
+
+        <section id="cgqd">
+            <div class="knowledge-card">
+                <h2>磁感应强度 磁通量</h2>
+                <p>
+                    <b>磁感应强度</b>：描述磁场强弱和方向的物理量。定义式 \(B = \dfrac{F}{IL}\)（电流元垂直放入磁场时）。单位特斯拉，符号 \(\text{T}\)。 <br>
+                    <b>磁感应强度是矢量</b>：方向即为该点的磁场方向。 <br>
+                    <b>匀强磁场</b>：磁感应强度大小相等、方向相同的磁场。磁感线是间距相等的平行直线。 <br>
+                    <b>磁通量</b>：在匀强磁场中，磁感应强度 \(B\) 与垂直磁场方向的面积 \(S\) 的乘积，叫做穿过这个面的磁通量。公式 \(\Phi = BS\)（条件：\(B \perp S\)）。如果面积与磁场方向不垂直，取面积在垂直磁场方向上的投影。 <br>
+                    <b>磁通量的单位</b>：韦伯，符号 \(\text{Wb}\)。\(1 \ \text{Wb} = 1 \ \text{T} \cdot \text{m}^2\)。 <br>
+                    <b>磁通量是标量</b>：但有正负，表示磁感线从正面穿入还是穿出。 
+                </p>
+            </div>
+        </section>
+
+        <section id="dcgy">
+            <div class="knowledge-card">
+                <h2>电磁感应现象及应用</h2>
+                <p>
+                    <b>电磁感应现象</b>：法拉第发现，当穿过闭合导体回路的磁通量发生变化时，回路中就会产生电流，这种现象叫电磁感应，产生的电流叫感应电流。 <br>
+                    <b>产生感应电流的条件</b>：① 电路闭合；② 穿过电路的磁通量发生变化。 <br>
+                    <b>楞次定律</b>：感应电流具有这样的方向，即感应电流的磁场总要阻碍引起感应电流的磁通量的变化。 <br>
+                    <b>右手定则</b>：伸开右手，使拇指与其余四个手指垂直，并且都与手掌在同一平面内；让磁感线从掌心进入，并使拇指指向导体运动的方向，这时四指所指的方向就是感应电流的方向。适用于导体切割磁感线产生感应电流的情形。 <br>
+                    <b>法拉第电磁感应定律</b>：闭合电路中感应电动势的大小，跟穿过这一电路的磁通量的变化率成正比。公式 \(E = n \dfrac{\Delta \Phi}{\Delta t}\)（\(n\) 为线圈匝数）。 <br>
+                    <b>导体切割磁感线产生的感应电动势</b>：\(E = BLv\)（\(B\)、\(L\)、\(v\) 三者两两垂直）。 <br>
+                    <b>电磁感应现象的应用</b>：发电机、变压器、电磁炉、磁卡等。 
+                </p>
+            </div>
+        </section>
+
+        <section id="dcb">
+            <div class="knowledge-card">
+                <h2>电磁波的发现及应用</h2>
+                <p>
+                    <b>麦克斯韦电磁场理论</b>：<br>
+                    ① 变化的磁场产生电场； <br>
+                    ② 变化的电场产生磁场； <br>
+                    ③ 变化的电场和变化的磁场交替产生，由近及远地向周围传播，形成电磁波。 <br>
+                    <b>赫兹实验</b>：赫兹通过实验证实了电磁波的存在，证明了麦克斯韦理论的正确性。 <br>
+                    <b>电磁波的特点</b>：<br>
+                    ① 电磁波是横波，电场方向、磁场方向与传播方向两两垂直； <br>
+                    ② 电磁波在真空中的传播速度等于光速 \(c = 3.0 \times 10^8 \ \text{m/s}\)； <br>
+                    ③ 电磁波具有波的一切特性，能发生反射、折射、干涉、衍射等现象； <br>
+                    ④ 电磁波传播不需要介质。 <br>
+                    <b>电磁波谱</b>：按电磁波的波长或频率顺序排列，包括无线电波、红外线、可见光、紫外线、X射线、\(\gamma\) 射线等。各波段有不同的特性和应用。 
+                </p>
+            </div>
+        </section>
+
+        <section id="nlzl">
+            <div class="knowledge-card">
+                <h2>能量量子化</h2>
+                <p>
+                    <b>黑体与黑体辐射</b>：能够完全吸收各种电磁辐射而不发生反射的物体称为黑体。黑体辐射的强度与波长和温度有关，实验曲线与经典理论不符，引出量子概念。 <br>
+                    <b>能量子假说</b>：普朗克提出，振动着的带电粒子的能量只能是某一最小能量值 \(\varepsilon\) 的整数倍，即能量是量子化的。这个不可再分的最小能量值 \(\varepsilon\) 叫作能量子，\(\varepsilon = h\nu\)，其中 \(\nu\) 是频率，\(h\) 是普朗克常量 (\(h = 6.63 \times 10^{-34} \ \text{J·s}\))。 <br>
+                    <b>光子说</b>：爱因斯坦提出，光本身就是由一个个不可分割的能量子组成的，这些能量子叫作光子，每个光子的能量 \(\varepsilon = h\nu\)。 <br>
+                    <b>光电效应</b>：当光照射到金属表面时，金属表面发射电子的现象。只有入射光的频率大于金属的截止频率时，才能发生光电效应。 <br>
+                    <b>能级</b>：原子内部不连续的能量值。原子处于基态时最稳定，吸收能量可跃迁到激发态，从激发态跃迁回低能级时辐射光子。 
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+          // 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

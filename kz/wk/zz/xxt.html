@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>政治选修二 · 法律与生活（详细版）</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #1e4d7c;      /* 法律深蓝 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e8f0fe;     /* 浅蓝底色 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #1e4d7c;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #1e4d7c;
+        }
+        .category-title:hover { background: rgba(30, 77, 124, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #1d3a5c;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: #1e4d7c;
+            font-weight: 600;
+            background-color: rgba(30, 77, 124, 0.12);
+            border-left: 3px solid #1e4d7c;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #1d3a5c;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8f0fe;
+            border: 2px dashed #6b9ac4;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #1e4d7c;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e4d7c;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #6b9ac4;
+            color: #1e4d7c;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #b8d4f0;
+            padding-bottom: 10px;
+            color: #1e4d7c;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 概念强调 */
+        .concept {
+            font-weight: 600;
+            color: #1e4d7c;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (浅蓝背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (政治选修二分类) 依据统编版选择性必修2《法律与生活》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>政治选修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一单元 民事权利与义务 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit1')">✚ 第一单元 民事权利与义务</div>
+            <div class="category-content" id="cat-unit1">
+                <a href="#lesson1-1">第一课 第1框 认真对待民事权利与义务</a>
+                <a href="#lesson1-2">第一课 第2框 积极维护人身权利</a>
+                <a href="#lesson2-1">第二课 第1框 保障各类物权</a>
+                <a href="#lesson2-2">第二课 第2框 尊重知识产权</a>
+                <a href="#lesson3-1">第三课 第1框 订立合同学问大</a>
+                <a href="#lesson3-2">第三课 第2框 有约必守 违约有责</a>
+                <a href="#lesson4-1">第四课 第1框 权利保障 于法有据</a>
+                <a href="#lesson4-2">第四课 第2框 权利行使 注意界限</a>
+            </div>
+        </div>
+        
+        <!-- 第二单元 家庭与婚姻 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit2')">✚ 第二单元 家庭与婚姻</div>
+            <div class="category-content" id="cat-unit2">
+                <a href="#lesson5-1">第五课 第1框 家和万事兴</a>
+                <a href="#lesson5-2">第五课 第2框 薪火相传有继承</a>
+                <a href="#lesson6-1">第六课 第1框 法律保护下的婚姻</a>
+                <a href="#lesson6-2">第六课 第2框 夫妻地位平等</a>
+            </div>
+        </div>
+        
+        <!-- 第三单元 就业与创业 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit3')">✚ 第三单元 就业与创业</div>
+            <div class="category-content" id="cat-unit3">
+                <a href="#lesson7-1">第七课 第1框 立足职场有法宝</a>
+                <a href="#lesson7-2">第七课 第2框 心中有数上职场</a>
+                <a href="#lesson8-1">第八课 第1框 自主创业 公平竞争</a>
+                <a href="#lesson8-2">第八课 第2框 诚信经营 依法纳税</a>
+            </div>
+        </div>
+        
+        <!-- 第四单元 社会争议解决 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit4')">✚ 第四单元 社会争议解决</div>
+            <div class="category-content" id="cat-unit4">
+                <a href="#lesson9-1">第九课 第1框 认识调解与仲裁</a>
+                <a href="#lesson9-2">第九课 第2框 解析三大诉讼</a>
+                <a href="#lesson10-1">第十课 第1框 正确行使诉讼权利</a>
+                <a href="#lesson10-2">第十课 第2框 严格遵守诉讼程序</a>
+                <a href="#lesson10-3">第十课 第3框 依法收集运用证据</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">学法用法 · 与法同行</div>
+    </nav>
+    
+    <!-- 主要内容：详细版政治选修二知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一单元 民事权利与义务 -->
+        <h1>第一单元 民事权利与义务</h1>
+        
+        <section id="lesson1-1">
+            <div class="knowledge-card">
+                <h2>第一课 第1框 认真对待民事权利与义务</h2>
+                <ul>
+                    <li><strong>民法的作用</strong>：民法在我们的生活中不可或缺，无论是衣食住行、生老病死，还是就业创业，无时无刻不受到民法的调整。民法调整平等主体的自然人、法人和非法人组织之间的人身关系和财产关系。</li>
+                    <li><strong>民事法律关系</strong>：就是由民法调整的人身关系和财产关系。它包含三个要素：主体、客体和内容。</li>
+                    <li><strong>民事主体</strong>：包括自然人、法人和非法人组织。
+                        <ul>
+                            <li>自然人：从出生时起到死亡时止，具有民事权利能力，依法享有民事权利，承担民事义务。自然人的民事行为能力分为完全民事行为能力人、限制民事行为能力人、无民事行为能力人。</li>
+                            <li>法人：是指具有民事权利能力和民事行为能力，依法独立享有民事权利和承担民事义务的组织。</li>
+                            <li>非法人组织：不具有法人资格，但是能够以自己的名义从事民事活动的组织。</li>
+                        </ul>
+                    </li>
+                    <li><strong>民事法律关系的客体</strong>：是民事权利和义务所指向的对象。它因具体的民事法律关系而有所不同。例如，所有权关系的客体是物，债权关系的客体是行为，知识产权关系的客体是智力成果和商业标记，人身关系的客体是人身利益。</li>
+                    <li><strong>民事法律关系的内容</strong>：就是民事主体享有的权利和承担的义务。在民事法律关系中，权利和义务既是相互对立的，也是相互联系的。往往一方的权利就是另一方的义务，一方的义务就是另一方的权利。</li>
+                    <li><strong>民事活动的基本原则</strong>：
+                        <ul>
+                            <li>平等原则：民事主体在民事活动中的法律地位一律平等。</li>
+                            <li>自愿原则：民事主体从事民事活动，应当遵循自愿原则，按照自己的意思设立、变更、终止民事法律关系。</li>
+                            <li>公平原则：民事主体从事民事活动，应当遵循公平原则，合理确定各方的权利和义务。</li>
+                            <li>诚信原则：民事主体从事民事活动，应当遵循诚信原则，秉持诚实，恪守承诺。</li>
+                            <li>守法和公序良俗原则：民事主体从事民事活动，不得违反法律，不得违背公序良俗。</li>
+                            <li>绿色原则：民事主体从事民事活动，应当有利于节约资源、保护生态环境。</li>
+                        </ul>
+                    </li>
+                    <li><strong>依法维权</strong>：我们不仅要依法行使民事权利，而且要自觉履行民事义务，学会运用民法维护自身权益。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson1-2">
+            <div class="knowledge-card">
+                <h2>第一课 第2框 积极维护人身权利</h2>
+                <ul>
+                    <li><strong>人身权的内容</strong>：自然人享有生命权、身体权、健康权、姓名权、肖像权、名誉权、荣誉权、隐私权等人格权，以及因婚姻家庭关系等产生的身份权。法人和非法人组织享有名称权、名誉权和荣誉权。</li>
+                    <li><strong>生命权、身体权和健康权</strong>：生命权、身体权和健康权是一个人最基础的权利。侵犯他人生命权、身体权、健康权的，应当承担法律责任。</li>
+                    <li><strong>姓名权</strong>：自然人有权依法决定、使用、变更或者许可他人使用自己的姓名，但是不得违背公序良俗。任何组织或者个人不得以干涉、盗用、假冒等方式侵害他人的姓名权。法人、非法人组织享有名称权，有权依法使用、转让自己的名称。</li>
+                    <li><strong>肖像权</strong>：自然人有权依法制作、使用、公开或者许可他人使用自己的肖像。任何组织或者个人不得以丑化、污损，或者利用信息技术手段伪造等方式侵害他人的肖像权。未经肖像权人同意，不得制作、使用、公开肖像权人的肖像。</li>
+                    <li><strong>名誉权与荣誉权</strong>：任何组织或者个人不得以侮辱、诽谤等方式侵害他人的名誉权。也不得非法剥夺他人的荣誉称号。</li>
+                    <li><strong>隐私权</strong>：隐私是自然人的私人生活安宁和不愿为他人知晓的私密空间、私密活动、私密信息。任何组织或者个人不得以刺探、侵扰、泄露、公开等方式侵害他人的隐私权。个人信息中的私密信息，适用有关隐私权的规定；没有规定的，适用有关个人信息保护的规定。</li>
+                    <li><strong>个人信息保护</strong>：处理个人信息应当遵循合法、正当、必要原则，不得过度处理。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2-1">
+            <div class="knowledge-card">
+                <h2>第二课 第1框 保障各类物权</h2>
+                <ul>
+                    <li><strong>财产权</strong>：财产权包括物权、债权、知识产权等能够给民事主体带来经济收益的权利。我国宪法和法律明确规定，保护国有财产、集体财产和公民合法的私有财产。</li>
+                    <li><strong>物权的含义</strong>：物权是权利人依法对特定的物享有直接支配和排他的权利，包括所有权、用益物权和担保物权。</li>
+                    <li><strong>所有权</strong>：是权利人对自己的不动产或者动产，依法享有的占有、使用、收益和处分的权利。所有权的取得方式，因不动产与动产而有所不同。对于动产，一般来说，所有人按照转让财产所有权的意图，直接把财产交给对方占有，对方就取得了该财产的所有权。对于房屋等不动产，除法律另有规定的情形外，必须到不动产登记机构办理登记，才能取得所有权。</li>
+                    <li><strong>用益物权</strong>：用益物权是对他人所有的不动产或者动产，依法享有占有、使用和收益的权利。包括土地承包经营权、宅基地使用权、建设用地使用权等。</li>
+                    <li><strong>担保物权</strong>：为了确保债务履行而设立的物权，包括抵押权、质权等。当债务人不履行债务时，债权人有权就该财产优先受偿。</li>
+                    <li><strong>物权法定原则</strong>：物权的种类和内容必须由法律规定，不得任意创设。</li>
+                    <li><strong>共有</strong>：不动产或者动产可以由两个以上组织、个人共有。共有包括按份共有和共同共有。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2-2">
+            <div class="knowledge-card">
+                <h2>第二课 第2框 尊重知识产权</h2>
+                <ul>
+                    <li><strong>知识产权</strong>：是权利人依法就作品、发明创造、商标等享有的专有权利，包括著作权、专利权、商标权等。我国制定了著作权法、专利法、商标法等法律法规，保护知识产权。</li>
+                    <li><strong>著作权</strong>：
+                        <ul>
+                            <li>含义：创作者对文学、艺术和科学作品享有的专有权利。</li>
+                            <li>内容：包括著作人身权和著作财产权。前者如发表权、署名权、修改权、保护作品完整权；后者如复制权、发行权、出租权、展览权等。</li>
+                            <li>保护期限：著作权属于自然人的，保护期是作者有生之年加去世后50年。法人或者非法人组织的作品，其发表权的保护期为50年。保护期届满，作品进入公共领域。</li>
+                        </ul>
+                    </li>
+                    <li><strong>专利权</strong>：
+                        <ul>
+                            <li>含义：发明人或者设计人完成发明创造后，可以向国家知识产权局申请专利。国家知识产权局经过审查，认为该申请符合条件的，则授予专利权。</li>
+                            <li>类型：发明、实用新型和外观设计。发明专利的保护期为20年，实用新型专利的保护期为10年，外观设计专利的保护期为15年，均自申请日起计算。</li>
+                            <li>意义：专利权是维护发明人或者设计人的利益、激励科技创新的重要法律制度。</li>
+                        </ul>
+                    </li>
+                    <li><strong>商标权</strong>：
+                        <ul>
+                            <li>含义：经营者用来标明自己提供的商品或服务的来源，并与其他经营者提供的商品或服务相区别的标志。</li>
+                            <li>注册商标：经国家知识产权局核准注册的商标为注册商标，商标注册人享有商标专用权，受法律保护。注册商标的有效期为10年，可以续展注册，续展次数不限。</li>
+                            <li>禁止作为商标的情形：与我国的国家名称、国旗、国徽等相同或者近似的标志，带有民族歧视性的标志，缺乏显著特征的标志等，不得作为商标注册。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson3-1">
+            <div class="knowledge-card">
+                <h2>第三课 第1框 订立合同学问大</h2>
+                <ul>
+                    <li><strong>合同</strong>：是民事主体之间设立、变更、终止民事法律关系的协议。合同在日常生活中无处不在，如买卖合同、租赁合同、运输合同等。</li>
+                    <li><strong>合同的订立</strong>：合同的订立包括要约和承诺两个阶段。
+                        <ul>
+                            <li>要约：是希望与他人订立合同的意思表示。要约的内容应当具体明确，表明经受要约人承诺，要约人即受该意思表示约束。</li>
+                            <li>承诺：是受要约人同意要约的意思表示。承诺应当由受要约人向要约人作出，并在要约确定的期限内到达，内容应当与要约的内容一致。</li>
+                        </ul>
+                    </li>
+                    <li><strong>承诺生效</strong>：承诺到达对方后，立即发生法律效力，合同即告成立。</li>
+                    <li><strong>有效合同</strong>：要求订立合同的行为人具有相应的民事行为能力，意思表示真实，内容合法，不违反法律、行政法规的强制性规定，不违背公序良俗。</li>
+                    <li><strong>无效合同</strong>：如果合同内容出现违反法律、行政法规的强制性规定，或者违背公序良俗等情形，可能导致合同全部无效或部分无效。</li>
+                    <li><strong>合同的形式</strong>：当事人订立合同，可以采用书面形式、口头形式或者其他形式。书面合同内容清晰，有利于督促当事人履行义务，可以作为发生纠纷时的有力证据。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson3-2">
+            <div class="knowledge-card">
+                <h2>第三课 第2框 有约必守 违约有责</h2>
+                <ul>
+                    <li><strong>履行合同的原则</strong>：当事人应当按照约定全面履行自己的义务。当事人应当遵循诚信原则，根据合同的性质、目的和交易习惯履行通知、协助、保密等义务。</li>
+                    <li><strong>违约责任</strong>：除法律规定或者当事人约定的免责事由外，不履行合同义务或者履行合同义务不符合约定的，守约方可以要求违约方承担违约责任。</li>
+                    <li><strong>违约责任的承担方式</strong>：继续履行、采取补救措施、赔偿损失、支付违约金、适用定金罚则等。</li>
+                    <li><strong>违约金</strong>：当事人可以约定一方违约时应当根据违约情况向对方支付一定数额的违约金。约定的违约金低于造成的损失的，当事人可以请求人民法院或者仲裁机构予以增加；约定的违约金过分高于造成的损失的，当事人可以请求人民法院或者仲裁机构予以适当减少。</li>
+                    <li><strong>定金</strong>：当事人可以约定一方向对方给付定金作为债权的担保。给付定金的一方不履行债务的，无权请求返还定金；收受定金的一方不履行债务的，应当双倍返还定金。</li>
+                    <li><strong>免责情形</strong>：在合同履行过程中遇到当事人约定的免责事由或不可抗力时，根据这些情形对合同履行所造成的影响，可全部或者部分免除当事人的违约责任。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson4-1">
+            <div class="knowledge-card">
+                <h2>第四课 第1框 权利保障 于法有据</h2>
+                <ul>
+                    <li><strong>侵权责任</strong>：行为人因过错侵害他人民事权益造成损害的，应当承担侵权责任。</li>
+                    <li><strong>一般侵权责任的构成要件</strong>：
+                        <ul>
+                            <li>民事主体的合法权益受到了损害。</li>
+                            <li>行为人主观上存在过错（故意或者过失）。</li>
+                            <li>该行为与损害结果之间存在因果关系。</li>
+                        </ul>
+                    </li>
+                    <li><strong>过错推定与无过错侵权责任</strong>：
+                        <ul>
+                            <li>过错推定：依照法律规定推定行为人有过错，其不能证明自己没有过错的，应当承担侵权责任。</li>
+                            <li>无过错侵权责任：法律规定无过错侵权的，则行为人只要损害了他人的民事权益，不论其有无过错，均应当承担侵权责任。</li>
+                        </ul>
+                    </li>
+                    <li><strong>诉讼时效</strong>：向人民法院请求保护民事权利的诉讼时效期间为三年，法律另有规定的除外。诉讼时效期间自权利人知道或者应当知道权利受到损害以及义务人之日起计算。超过诉讼时效期间，权利人可能丧失胜诉权。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson4-2">
+            <div class="knowledge-card">
+                <h2>第四课 第2框 权利行使 注意界限</h2>
+                <ul>
+                    <li><strong>民事权利的限制</strong>：民事主体行使民事权利不能超过正当的界限，不得滥用民事权利损害国家利益、社会公共利益或者他人合法权益。</li>
+                    <li><strong>相邻关系</strong>：相邻关系是对不动产所有权的限制或延伸。不动产的相邻权利人应当按照有利生产、方便生活、团结互助、公平合理的原则，正确处理相邻关系。法律、法规对处理相邻关系有规定的，依照其规定；法律、法规没有规定的，可以按照当地习惯。</li>
+                    <li><strong>知识产权的限制</strong>：对知识产权的限制包括合理使用和法定许可。
+                        <ul>
+                            <li>合理使用：在特定情形下，使用作品不需要著作权人同意，也不必支付使用费。如为个人学习、研究或者欣赏而使用他人作品等。</li>
+                            <li>法定许可：在某些情形下，使用作品可以不经著作权人同意，但应当按照规定支付使用费。如报刊转载等。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二单元 家庭与婚姻 -->
+        <h1>第二单元 家庭与婚姻</h1>
+        
+        <section id="lesson5-1">
+            <div class="knowledge-card">
+                <h2>第五课 第1框 家和万事兴</h2>
+                <ul>
+                    <li><strong>父母对子女的义务</strong>：
+                        <ul>
+                            <li>抚养义务：父母对未成年子女负有抚养、教育和保护的义务。父母不履行抚养义务时，未成年子女或不能独立生活的成年子女，有要求父母给付抚养费的权利。</li>
+                            <li>教育义务：父母应当让适龄子女按时入学，接受并完成义务教育，不得放任或者迫使应当接受义务教育的未成年人失学、辍学。</li>
+                            <li>保护义务：父母应当保护未成年子女的人身安全和身体健康，保护其财产权益，在未成年子女对国家、集体或者他人造成损害时，父母有承担民事责任的义务。</li>
+                        </ul>
+                    </li>
+                    <li><strong>子女对父母的义务</strong>：
+                        <ul>
+                            <li>赡养义务：成年子女对父母负有赡养、扶助和保护的义务。赡养父母，要求子女经济上供养父母、生活上照料父母、精神上慰藉父母，照顾父母的特殊需要。</li>
+                            <li>尊重义务：子女应当尊重父母的婚姻权利，不得干涉父母离婚、再婚以及婚后的生活。子女对父母的赡养义务，不因父母的婚姻关系变化而终止。</li>
+                        </ul>
+                    </li>
+                    <li><strong>家庭责任</strong>：家庭成员应当敬老爱幼，互相帮助，维护平等、和睦、文明的婚姻家庭关系。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson5-2">
+            <div class="knowledge-card">
+                <h2>第五课 第2框 薪火相传有继承</h2>
+                <ul>
+                    <li><strong>继承</strong>：是指将自然人死亡后遗留的个人合法财产依法转移给他人所有。继承制度在一定程度上保证了代与代之间财产上的“承接”，具有重要的社会功能。</li>
+                    <li><strong>继承权</strong>：继承人依法享有的取得被继承人遗产的权利。</li>
+                    <li><strong>法定继承</strong>：
+                        <ul>
+                            <li>含义：基于法律的直接规定进行的继承。</li>
+                            <li>继承顺序：第一顺序：配偶、子女、父母；第二顺序：兄弟姐妹、祖父母、外祖父母。继承开始后，由第一顺序继承人继承，第二顺序继承人不继承；没有第一顺序继承人继承的，由第二顺序继承人继承。</li>
+                            <li>代位继承：被继承人的子女先于被继承人死亡的，由被继承人的子女的直系晚辈血亲代位继承。</li>
+                        </ul>
+                    </li>
+                    <li><strong>遗嘱继承</strong>：
+                        <ul>
+                            <li>含义：基于合法有效的遗嘱进行的继承。</li>
+                            <li>遗嘱的形式：自书遗嘱、代书遗嘱、打印遗嘱、录音录像遗嘱、口头遗嘱、公证遗嘱。代书遗嘱、打印遗嘱、录音录像遗嘱、口头遗嘱应当有两个以上见证人在场见证。</li>
+                            <li>遗嘱的效力：立有数份遗嘱，内容相抵触的，以最后的遗嘱为准。</li>
+                            <li>遗赠：自然人可以立遗嘱将个人财产赠与国家、集体或者法定继承人以外的组织、个人，法律上称为遗赠。</li>
+                        </ul>
+                    </li>
+                    <li><strong>遗赠扶养协议</strong>：自然人可以与继承人以外的组织或者个人签订遗赠扶养协议。按照协议，该组织或者个人承担该自然人生养死葬的义务，享有受遗赠的权利。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson6-1">
+            <div class="knowledge-card">
+                <h2>第六课 第1框 法律保护下的婚姻</h2>
+                <ul>
+                    <li><strong>婚姻自由</strong>：结婚应当男女双方完全自愿，禁止任何一方对另一方加以强迫，禁止任何组织或者个人加以干涉。</li>
+                    <li><strong>一夫一妻</strong>：一夫一妻是基本原则，任何人都只能有一个配偶，禁止重婚。</li>
+                    <li><strong>法定婚龄</strong>：结婚年龄，男不得早于二十二周岁，女不得早于二十周岁。</li>
+                    <li><strong>禁止结婚的情形</strong>：直系血亲或者三代以内的旁系血亲禁止结婚。</li>
+                    <li><strong>结婚登记</strong>：要求结婚的男女双方应当亲自到婚姻登记机关申请结婚登记。符合法律规定的，予以登记，发给结婚证。完成结婚登记，即确立婚姻关系。</li>
+                    <li><strong>无效婚姻</strong>：重婚；有禁止结婚的亲属关系；未到法定婚龄的，婚姻无效。</li>
+                    <li><strong>可撤销婚姻</strong>：因胁迫结婚的，受胁迫的一方可以向人民法院请求撤销婚姻。一方患有重大疾病的，应当在结婚登记前如实告知另一方；不如实告知的，另一方可以向人民法院请求撤销婚姻。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson6-2">
+            <div class="knowledge-card">
+                <h2>第六课 第2框 夫妻地位平等</h2>
+                <ul>
+                    <li><strong>夫妻关系</strong>：夫妻在婚姻家庭中地位平等。夫妻平等意味着夫妻在家庭中地位平等，享有平等的人身权和财产权。</li>
+                    <li><strong>夫妻人身关系</strong>：
+                        <ul>
+                            <li>夫妻双方都有各自使用自己姓名的权利。</li>
+                            <li>夫妻双方都有参加生产、工作、学习和社会活动的自由，一方不得对另一方加以限制或者干涉。</li>
+                            <li>夫妻双方都有实行计划生育的义务。</li>
+                        </ul>
+                    </li>
+                    <li><strong>夫妻财产关系</strong>：
+                        <ul>
+                            <li>夫妻共同财产：婚姻关系存续期间所得的下列财产，为夫妻的共同财产，归夫妻共同所有：工资、奖金、劳务报酬；生产、经营、投资的收益；知识产权的收益；继承或者受赠的财产，但是遗嘱或者赠与合同中确定只归一方的财产除外；其他应当归共同所有的财产。</li>
+                            <li>夫妻个人财产：一方的婚前财产；一方因受到人身损害获得的赔偿或者补偿；遗嘱或者赠与合同中确定只归一方的财产；一方专用的生活用品；其他应当归一方的财产。</li>
+                            <li>约定财产制：男女双方可以约定婚姻关系存续期间所得的财产以及婚前财产归各自所有、共同所有或者部分各自所有、部分共同所有。约定应当采用书面形式。</li>
+                        </ul>
+                    </li>
+                    <li><strong>夫妻相互扶养义务</strong>：夫妻有相互扶养的义务。需要扶养的一方，在另一方不履行扶养义务时，有要求其给付扶养费的权利。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三单元 就业与创业 -->
+        <h1>第三单元 就业与创业</h1>
+        
+        <section id="lesson7-1">
+            <div class="knowledge-card">
+                <h2>第七课 第1框 立足职场有法宝</h2>
+                <ul>
+                    <li><strong>劳动法的基本原则</strong>：
+                        <ul>
+                            <li>保护劳动者的合法权益。</li>
+                            <li>劳动者享有平等就业和选择职业的权利。</li>
+                            <li>劳动者享有取得劳动报酬的权利、休息休假的权利、获得劳动安全卫生保护的权利、接受职业技能培训的权利、享受社会保险和福利的权利、提请劳动争议处理的权利以及法律规定的其他劳动权利。</li>
+                        </ul>
+                    </li>
+                    <li><strong>劳动合同</strong>：劳动者与用人单位确立劳动关系、明确双方权利和义务的协议。建立劳动关系应当订立书面劳动合同。</li>
+                    <li><strong>劳动合同的内容</strong>：包括必备条款和可备条款。必备条款包括用人单位名称、劳动者姓名、劳动合同期限、工作内容和工作地点、工作时间和休息休假、劳动报酬、社会保险、劳动保护等。可备条款如试用期、培训、保守秘密、补充保险和福利待遇等。</li>
+                    <li><strong>订立劳动合同的原则</strong>：应当遵循合法、公平、平等自愿、协商一致、诚实信用的原则。</li>
+                    <li><strong>无效劳动合同</strong>：以欺诈、胁迫的手段或者乘人之危，使对方在违背真实意思的情况下订立或者变更的劳动合同；用人单位免除自己的法定责任、排除劳动者权利的；违反法律、行政法规强制性规定的劳动合同。</li>
+                    <li><strong>劳动者的义务</strong>：劳动者应当完成劳动任务，提高职业技能，执行劳动安全卫生规程，遵守劳动纪律和职业道德。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson7-2">
+            <div class="knowledge-card">
+                <h2>第七课 第2框 心中有数上职场</h2>
+                <ul>
+                    <li><strong>劳动者的权利</strong>：
+                        <ul>
+                            <li>取得劳动报酬的权利：用人单位应当按照劳动合同约定和国家规定，向劳动者及时足额支付劳动报酬。</li>
+                            <li>休息休假的权利：劳动者每日工作时间不超过八小时、平均每周工作时间不超过四十四小时。用人单位应当保证劳动者每周至少休息一日。法定休假日安排劳动者工作的，支付不低于工资的百分之三百的工资报酬。</li>
+                            <li>获得劳动安全卫生保护的权利：用人单位必须建立、健全劳动安全卫生制度，提供符合国家规定的劳动安全卫生条件和必要的劳动防护用品。</li>
+                            <li>享受社会保险和福利的权利：用人单位和劳动者必须依法参加社会保险，缴纳社会保险费。</li>
+                        </ul>
+                    </li>
+                    <li><strong>劳动争议解决途径</strong>：
+                        <ul>
+                            <li>协商和解：劳动者与用人单位发生劳动争议，可以自愿协商解决。</li>
+                            <li>申请调解：协商不成，可以向调解组织申请调解。</li>
+                            <li>申请仲裁：不愿调解、调解不成或者达成调解协议后不履行的，可以向劳动争议仲裁委员会申请仲裁。</li>
+                            <li>提起诉讼：对仲裁裁决不服的，除特定情形外，可以向人民法院提起诉讼。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson8-1">
+            <div class="knowledge-card">
+                <h2>第八课 第1框 自主创业 公平竞争</h2>
+                <ul>
+                    <li><strong>创业的形式</strong>：创业者可以采取个体工商户、个人独资企业、合伙企业、有限责任公司等形式。不同组织形式在出资人责任、税收等方面存在差异。</li>
+                    <li><strong>企业登记</strong>：创办企业应当向企业登记机关申请设立登记，领取营业执照。未经设立登记，不得以企业名义从事经营活动。</li>
+                    <li><strong>公平竞争</strong>：市场经济要求公平竞争。经营者不得实施混淆行为，引人误认为是他人商品或者与他人存在特定联系；不得采用财物或者其他手段贿赂有关单位或者个人，以谋取交易机会或者竞争优势；不得对其商品的性能、功能、质量、销售状况、用户评价、曾获荣誉等作虚假或者引人误解的商业宣传，欺骗、误导消费者；不得侵犯他人的商业秘密；不得从事违法有奖销售和诋毁商誉等行为。</li>
+                    <li><strong>不正当竞争的法律责任</strong>：实施不正当竞争行为，应当依法承担相应的民事责任、行政责任，甚至刑事责任。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson8-2">
+            <div class="knowledge-card">
+                <h2>第八课 第2框 诚信经营 依法纳税</h2>
+                <ul>
+                    <li><strong>消费者权利</strong>：
+                        <ul>
+                            <li>安全消费权：消费者在购买、使用商品和接受服务时享有人身、财产安全不受损害的权利。</li>
+                            <li>知情权：消费者享有知悉其购买、使用的商品或者接受的服务的真实情况的权利。</li>
+                            <li>自主选择权：消费者享有自主选择商品或者服务的权利。</li>
+                            <li>公平交易权：消费者有权获得质量保障、价格合理、计量正确等公平交易条件。</li>
+                            <li>依法求偿权：消费者因购买、使用商品或者接受服务受到人身、财产损害的，享有依法获得赔偿的权利。</li>
+                        </ul>
+                    </li>
+                    <li><strong>消费者维权途径</strong>：与经营者协商和解；请求消费者协会或者依法成立的其他调解组织调解；向有关行政部门投诉；根据与经营者达成的仲裁协议提请仲裁机构仲裁；向人民法院提起诉讼。</li>
+                    <li><strong>依法纳税</strong>：
+                        <ul>
+                            <li>增值税：是以商品流转过程中产生的增值额为计税依据而征收的一种税。</li>
+                            <li>企业所得税：是对我国境内的企业和其他取得收入的组织的生产经营所得和其他所得征收的一种税。</li>
+                            <li>个人所得税：是调整征税机关与自然人（居民、非居民人）之间在个人所得税的征纳与管理过程中所发生的社会关系的法律规范的总称。居民个人按纳税年度合并计算个人所得税，有综合所得、经营所得等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>税收的意义</strong>：税收是国家财政的重要来源，取之于民，用之于民。个人或者企业均应当依法履行纳税义务。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四单元 社会争议解决 -->
+        <h1>第四单元 社会争议解决</h1>
+        
+        <section id="lesson9-1">
+            <div class="knowledge-card">
+                <h2>第九课 第1框 认识调解与仲裁</h2>
+                <ul>
+                    <li><strong>调解</strong>：
+                        <ul>
+                            <li>含义：通过第三方的排解疏导，说服教育，促使发生纠纷的双方当事人依法自愿达成协议，从而解决纠纷。</li>
+                            <li>类型：人民调解、行政调解、仲裁调解、诉讼调解等。人民调解是在人民调解委员会的组织下进行的调解，被誉为伟大的“东方经验”。</li>
+                            <li>人民调解协议：经人民调解委员会调解达成的调解协议，具有法律约束力，当事人应当按照约定履行。双方当事人认为有必要的，可以自调解协议生效之日起三十日内共同向人民法院申请司法确认。经人民法院依法确认有效的调解协议，具有强制执行效力。</li>
+                        </ul>
+                    </li>
+                    <li><strong>仲裁</strong>：
+                        <ul>
+                            <li>含义：发生争议的双方当事人根据其在争议发生前后达成的仲裁协议，自愿将该争议提交中立的第三者进行裁判的争议解决制度。</li>
+                            <li>类型：商事仲裁、劳动争议仲裁、农村土地承包经营纠纷仲裁等。</li>
+                            <li>仲裁的特点：程序比较灵活，审理一般不公开进行，一裁终局。当事人对仲裁裁决不服的，不得再向人民法院提起诉讼。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson9-2">
+            <div class="knowledge-card">
+                <h2>第九课 第2框 解析三大诉讼</h2>
+                <ul>
+                    <li><strong>诉讼的含义</strong>：俗称“打官司”，是在纠纷主体的参与下，由人民法院依照法定程序解决具体纠纷的活动。</li>
+                    <li><strong>诉讼的类型</strong>：民事诉讼、行政诉讼、刑事诉讼。
+                        <ul>
+                            <li>民事诉讼：解决平等主体之间的民事权利和义务纠纷。由不服行政机关具体行政行为的当事人提起。</li>
+                            <li>行政诉讼：解决国家行政机关实施的行政行为是否合法的问题。由当事人认为行政机关和行政机关工作人员的行政行为侵犯其合法权益而提起。</li>
+                            <li>刑事诉讼：解决涉嫌犯罪的人是否犯罪、犯什么罪以及应处何种刑罚的问题。由人民检察院代表国家提起公诉，或者由自诉人提起自诉。</li>
+                        </ul>
+                    </li>
+                    <li><strong>诉讼的基本原则</strong>：人民法院独立行使审判权；以事实为根据，以法律为准绳；对一切公民适用法律一律平等；使用本民族语言、文字进行诉讼等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson10-1">
+            <div class="knowledge-card">
+                <h2>第十课 第1框 正确行使诉讼权利</h2>
+                <ul>
+                    <li><strong>当事人的诉讼权利</strong>：
+                        <ul>
+                            <li>委托诉讼代理人或辩护人的权利：当事人、法定代理人可以委托一至二人作为诉讼代理人。犯罪嫌疑人、被告人除自己行使辩护权以外，还可以委托一至二人作为辩护人。</li>
+                            <li>申请回避的权利：当事人认为审判人员、书记员、翻译人员、鉴定人、勘验人等与本案有利害关系或者其他关系，可能影响公正审判的，有权申请他们回避。</li>
+                            <li>上诉的权利：当事人如果不服一审裁判，可以在规定期限内提出上诉。</li>
+                        </ul>
+                    </li>
+                    <li><strong>国家司法救助</strong>：对于经济困难没有能力聘请诉讼代理人或辩护人的当事人，可以按照规定申请法律援助。</li>
+                    <li><strong>法律援助</strong>：是国家建立的为经济困难公民和符合法定条件的其他当事人无偿提供法律咨询、代理、刑事辩护等法律服务的制度。法律援助机构可以指派律师、基层法律服务工作者等提供法律援助。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson10-2">
+            <div class="knowledge-card">
+                <h2>第十课 第2框 严格遵守诉讼程序</h2>
+                <ul>
+                    <li><strong>起诉与立案</strong>：起诉是诉讼程序的起点。起诉应当向有管辖权的人民法院递交起诉状。人民法院对符合法律规定的起诉，必须受理。当场不能判定是否符合法律规定的，应当在法定期限内决定是否立案。</li>
+                    <li><strong>审理程序</strong>：民事诉讼和行政诉讼的一审程序包括开庭准备、法庭调查、法庭辩论、评议与宣判等阶段。刑事诉讼程序还包括侦查、提起公诉等环节。</li>
+                    <li><strong>证据交换与质证</strong>：当事人应当在法庭上出示证据，并围绕证据的真实性、合法性、关联性进行质证。</li>
+                    <li><strong>判决与上诉</strong>：人民法院对案件作出判决后，当事人不服一审判决的，有权在判决书送达之日起十五日内向上一级人民法院提起上诉。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson10-3">
+            <div class="knowledge-card">
+                <h2>第十课 第3框 依法收集运用证据</h2>
+                <ul>
+                    <li><strong>证据的含义</strong>：证据是证明案件事实的依据，是诉讼的灵魂。打官司就是打证据。</li>
+                    <li><strong>证据的种类</strong>：民事诉讼法规定的证据有当事人的陈述、书证、物证、视听资料、电子数据、证人证言、鉴定意见、勘验笔录。刑事诉讼法规定有物证，书证，证人证言，被害人陈述，犯罪嫌疑人、被告人供述和辩解，鉴定意见，勘验、检查、辨认、侦查实验等笔录，视听资料、电子数据。行政诉讼法规定的证据有书证，物证，视听资料，电子数据，证人证言，当事人的陈述，鉴定意见，勘验笔录、现场笔录。</li>
+                    <li><strong>举证责任</strong>：
+                        <ul>
+                            <li>民事诉讼：实行“谁主张，谁举证”的原则。当事人对自己提出的主张，有责任提供证据。</li>
+                            <li>行政诉讼：作为被告的行政机关应当提供作出该行政行为的证据和所依据的规范性文件。</li>
+                            <li>刑事诉讼：公诉案件中被告人有罪的举证责任由人民检察院承担，自诉案件中被告人有罪的举证责任由自诉人承担。</li>
+                        </ul>
+                    </li>
+                    <li><strong>证据的收集与保存</strong>：在日常生活中，应当注意保存合同、票据、录音录像、电子邮件、微信记录等证据，以备发生纠纷时使用。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#1e4d7c';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

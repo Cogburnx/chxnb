@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>信息必修二</title>
+    
+    <!-- KaTeX 核心库（用于公式） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .knowledge-card h3 {
+            font-size: 1.1em;
+            margin: 15px 0 5px;
+            color: var(--accent-color);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 10px;
+        }
+        .knowledge-card ul {
+            margin: 5px 0 10px 20px;
+            padding-left: 0;
+        }
+        .knowledge-card li {
+            margin-bottom: 5px;
+        }
+        .knowledge-card p {
+            margin: 0 0 10px;
+        }
+
+        .knowledge-card .code {
+            font-family: 'Courier New', monospace;
+            background-color: rgba(0,0,0,0.05);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>信息必修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch1')">✚ 第一章 信息系统概述</div>
+            <div class="category-content" id="cat-ch1">
+                <a href="#sec1-1">1.1 信息技术与信息系统</a>
+                <a href="#sec1-2">1.2 信息系统的组成与功能</a>
+                <a href="#sec1-3">1.3 信息系统的应用</a>
+                <a href="#sec1-4">1.4 信息社会及其发展</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch2')">✚ 第二章 信息系统的支撑技术</div>
+            <div class="category-content" id="cat-ch2">
+                <a href="#sec2-1">2.1 计算机硬件</a>
+                <a href="#sec2-2">2.2 计算机软件</a>
+                <a href="#sec2-3">2.3 移动终端</a>
+                <a href="#sec2-4">2.4 传感与控制</a>
+                <a href="#sec2-5">2.5 网络系统</a>
+                <a href="#sec2-6">2.6 网络应用软件开发</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch3')">✚ 第三章 信息系统安全</div>
+            <div class="category-content" id="cat-ch3">
+                <a href="#sec3-1">3.1 信息安全与保护</a>
+                <a href="#sec3-2">3.2 信息系统安全与防护</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch4')">✚ 第四章 信息系统的搭建实例</div>
+            <div class="category-content" id="cat-ch4">
+                <a href="#sec4-1">4.1 搭建信息系统的前期准备</a>
+                <a href="#sec4-2">4.2 搭建信息系统</a>
+                <a href="#sec4-3">4.3 完善信息系统</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <main>
+        <!-- 第一章 信息系统概述 -->
+        <h1>第一章 信息系统概述</h1>
+        
+        <section id="sec1-1">
+            <div class="knowledge-card">
+                <h2>1.1 信息技术与信息系统</h2>
+                <h3>信息技术的定义</h3>
+                <ul>
+                    <li>信息技术是指获取、传输、存储、加工和表达信息的各种技术的总和。</li>
+                    <li>信息技术主要包括计算机技术、网络通信技术，也包括电视、电话等相关通信技术。</li>
+                </ul>
+                <h3>信息技术的发展历史</h3>
+                <ul>
+                    <li><b>前机械时期（公元前3000年—1450年）</b>：信息被文字存储下来。代表：楔形文字、甲骨文、希腊字母、罗马字母、造纸术。</li>
+                    <li><b>机械时期（1450—1840年）</b>：信息检索和加工技术发展。代表：活字印刷术、计算尺、加法器、莱布尼兹计算器。</li>
+                    <li><b>电子机械时期（1840—1940年）</b>：信息以电子脉冲方式传输。代表：电报、电话、收音机。</li>
+                    <li><b>电子化时期（1940年至今）</b>：计算机技术的发展。代表：ENIAC、四代数字计算机、个人计算机。</li>
+                </ul>
+                <h3>信息系统的定义</h3>
+                <ul>
+                    <li>信息系统是由硬件、软件、数据、通信网络和用户构成的人机交互系统。</li>
+                    <li>本质是通过对信息的采集、传递、存储、检索、操控和显示而实现的工作系统。</li>
+                    <li>例如：网上预约挂号系统、办公自动化系统、网络学习平台、电子商务系统。</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="sec1-2">
+            <div class="knowledge-card">
+                <h2>1.2 信息系统的组成与功能</h2>
+                <h3>信息系统的组成要素</h3>
+                <ul>
+                    <li><b>硬件</b>：包括计算机硬件、移动终端硬件和通信网络设备等。</li>
+                    <li><b>软件</b>：包括系统软件（操作系统、数据库软件）和应用软件。</li>
+                    <li><b>数据</b>：有组织的数据是信息系统的重要资源。信息系统能够采集、分析、加工信息。</li>
+                    <li><b>通信网络</b>：用于信息发送、接收、转换和传输的设施，如无线网络、有线网络、光纤、卫星等。</li>
+                    <li><b>用户</b>：包括信息系统的使用者、操作维护人员、程序设计员、数据库管理员、系统分析员等。</li>
+                </ul>
+                <h3>信息系统的功能</h3>
+                <ul>
+                    <li><b>数据收集和输入功能</b>：把数据收集并记录下来，整理成信息系统要求的格式。</li>
+                    <li><b>数据存储功能</b>：当数据达到一定数量后形成“数据仓库”。</li>
+                    <li><b>数据传输功能</b>：把信息从一个子系统传送到另一个子系统，即数据通信。</li>
+                    <li><b>数据加工处理功能</b>：包括查询、排序、合并、计算，以及复杂的优化计算、统计分析、预测决策等。</li>
+                    <li><b>数据输出功能</b>：根据不同需要，以不同形式和格式输出数据。</li>
+                    <li><b>数据查询功能</b>：支持单项查询、组合查询和模糊查询，可实现本地或远程信息查询。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-3">
+            <div class="knowledge-card">
+                <h2>1.3 信息系统的应用</h2>
+                <h3>信息系统的分类</h3>
+                <ul>
+                    <li><b>按规模分类</b>：简单系统、复杂系统。简单系统可以是复杂系统的子系统。</li>
+                    <li><b>按技术发展阶段分类</b>：数据处理系统（初级阶段）、管理信息系统（发展阶段）、决策信息系统（发展阶段）。</li>
+                    <li><b>按应用领域分类</b>：通用信息系统、制造业信息系统、医疗保健信息系统、学校管理信息系统、银行信息系统、政府信息系统等。</li>
+                </ul>
+                <h3>信息系统的优势</h3>
+                <ul>
+                    <li>规范工作流程，提高工作效率。</li>
+                    <li>跨越时空限制，服务随时随处。</li>
+                    <li>基于数据分析，支持科学决策。</li>
+                    <li>便捷保存数据，利于共享追踪。</li>
+                </ul>
+                <h3>信息系统的劣势</h3>
+                <ul>
+                    <li>对外部环境有依赖性（如停电、极端天气）。</li>
+                    <li>本身有安全隐患（感染病毒、系统漏洞、黑客入侵）。</li>
+                    <li>技术门槛可能加剧数字鸿沟（不同年龄段、不同地域学习成本不同）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-4">
+            <div class="knowledge-card">
+                <h2>1.4 信息社会及其发展</h2>
+                <h3>信息社会的基本内涵</h3>
+                <ul>
+                    <li>信息社会是以人为本的：社会发展以人为中心，体现包容性，实现人与社会均衡发展。</li>
+                    <li>信息社会是可持续发展的。</li>
+                    <li>信息社会是以信息和知识作为重要资源的。</li>
+                </ul>
+                <h3>信息社会的主要特征</h3>
+                <ul>
+                    <li>信息经济、网络社会、在线政府、数字生活四个方面。</li>
+                    <li>通常用信息社会指数（ISI）衡量信息社会发展水平。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 信息系统的支撑技术 -->
+        <h1>第二章 信息系统的支撑技术</h1>
+
+        <section id="sec2-1">
+            <div class="knowledge-card">
+                <h2>2.1 计算机硬件</h2>
+                <h3>计算机的发展阶段</h3>
+                <ul>
+                    <li>经历了电子管、晶体管、集成电路、大规模超大规模集成电路四个发展阶段。</li>
+                    <li>未来计算机向巨型化（超级计算机）、微型化（民用计算机）、智能化、网络化发展。</li>
+                </ul>
+                <h3>计算机硬件组成（五大部件）</h3>
+                <ul>
+                    <li><b>运算器</b>：进行算术运算和逻辑运算。</li>
+                    <li><b>控制器</b>：控制各部件协调工作。</li>
+                    <li><b>存储器</b>：存放程序和数据。</li>
+                    <li><b>输入设备</b>：将程序和数据输入计算机。</li>
+                    <li><b>输出设备</b>：将处理结果输出。</li>
+                </ul>
+                <h3>中央处理器（CPU）</h3>
+                <ul>
+                    <li>包括运算器和控制器，现代处理器还包括浮点处理部件（FPU）、高速缓冲存储器（Cache）和存储管理部件。</li>
+                    <li><b>性能指标</b>：
+                        <ul>
+                            <li>时钟频率（主频）：主频越高，运算速度越快。</li>
+                            <li>字长：CPU能一次处理的二进制位数，字长越长处理能力越强（32位、64位）。</li>
+                            <li>核心数量：CPU的内核数量。</li>
+                            <li>高速缓存（Cache）：平衡CPU处理速度和内存读取速度，分一级缓存、二级缓存等。</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>存储器分类</h3>
+                <ul>
+                    <li><b>RAM（随机存储器）</b>：读写速度快，断电后数据丢失，用作内存（运存）。</li>
+                    <li><b>ROM（只读存储器）</b>：断电后数据保留，数据只能写入一次。EEPROM成为外存的主要材料。</li>
+                    <li><b>硬盘</b>：机械硬盘（HDD）和固态硬盘（SSD）。SSD具有快速读写、重量轻、能耗低的特点。</li>
+                    <li><b>闪存盘（U盘）</b>：以闪存为存储介质，USB接口，即插即用。</li>
+                    <li>读写速度由快到慢：Cache > 内存 > 硬盘 > U盘。</li>
+                </ul>
+                <h3>输入输出设备</h3>
+                <ul>
+                    <li>输入设备：键盘、鼠标、扫描仪、麦克风等。</li>
+                    <li>输出设备：显示器、打印机、音箱等。</li>
+                    <li>兼具输入输出功能的设备：网卡、声卡、光驱。</li>
+                </ul>
+                <h3>计算机工作原理</h3>
+                <ul>
+                    <li>计算机处理信息包括输入、处理（运算和控制）、存储、输出四个步骤。</li>
+                    <li>基于“存储程序式”（冯·诺依曼式）体系结构。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-2">
+            <div class="knowledge-card">
+                <h2>2.2 计算机软件</h2>
+                <h3>系统软件</h3>
+                <ul>
+                    <li>包括操作系统、数据库软件、编程语言。</li>
+                    <li>常见操作系统：Windows（微软）、Mac OS（苹果）、Linux（开源免费）、UNIX。</li>
+                </ul>
+                <h3>应用软件</h3>
+                <ul>
+                    <li>利用计算机软硬件资源为解决某一应用领域的某个实际问题而专门开发的软件。</li>
+                    <li>例如：办公软件、图像处理软件、游戏软件等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-3">
+            <div class="knowledge-card">
+                <h2>2.3 移动终端</h2>
+                <h3>移动终端处理器</h3>
+                <ul>
+                    <li>移动终端（手机、平板等）的处理器是整个终端的控制核心。</li>
+                    <li>常见处理器厂商：苹果、三星、高通、英特尔、英伟达、联发科。</li>
+                    <li>麒麟（华为）是我国首款国产移动终端中央处理器。</li>
+                </ul>
+                <h3>X86架构与ARM架构</h3>
+                <ul>
+                    <li><b>X86架构</b>：使用标准指令集，性能优越，扩展性强，功耗高（用于计算机处理器）。</li>
+                    <li><b>ARM架构</b>：使用精简指令集，效率高，功耗低，性能“够用就好”（用于移动终端处理器）。</li>
+                </ul>
+                <h3>移动终端操作系统</h3>
+                <ul>
+                    <li>Android（基于Linux）、iOS（苹果）、Windows、HarmonyOS（鸿蒙OS/华为）。</li>
+                    <li>常见安卓手机系统：MIUI（小米）、MagicUI（荣耀）、ColorOS（OPPO）、OriginOS（vivo）。</li>
+                </ul>
+                <h3>移动终端常见传感器</h3>
+                <ul>
+                    <li><b>光线传感器</b>：自动调节屏幕亮度。</li>
+                    <li><b>距离传感器</b>：检测手机是否贴在耳朵上，自动调暗屏幕。</li>
+                    <li><b>重力传感器</b>：横竖屏切换、拍照朝向转换。</li>
+                    <li><b>加速度传感器</b>：计步、检测睡眠。</li>
+                    <li><b>指纹传感器</b>：加密、解锁、电子支付。</li>
+                    <li><b>霍尔传感器</b>：翻盖自动解锁、合盖锁屏。</li>
+                    <li><b>磁场传感器</b>：电子指南针、电子金属探测器。</li>
+                    <li><b>光学心率传感器</b>：检测心率。</li>
+                    <li><b>皮电反应传感器</b>：检测运动状态。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-4">
+            <div class="knowledge-card">
+                <h2>2.4 传感与控制</h2>
+                <h3>现代信息系统三大支柱</h3>
+                <ul>
+                    <li>传感器技术、通信技术、计算机技术。</li>
+                </ul>
+                <h3>传感器</h3>
+                <ul>
+                    <li>能感受被测量并按照一定规律转换成可用输出信号的器件或装置。</li>
+                    <li>通常由敏感元件和转换元件组成。</li>
+                </ul>
+                <h3>射频识别（RFID）</h3>
+                <ul>
+                    <li><b>无源标签工作过程</b>：读写器天线发射电磁波 → 无源标签被激活 → 内置芯片发送信息 → 读写器解码并传输到信息系统。</li>
+                    <li><b>电子标签分类</b>：
+                        <ul>
+                            <li>按有无电池：有源标签、无源标签。</li>
+                            <li>按工作频率：低频（LF）、高频（HF）、超高频（UHF）、微波频段（MW）。</li>
+                        </ul>
+                    </li>
+                    <li><b>应用实例</b>：公交卡、食堂餐卡、银行卡（闪付）、门禁卡、二代居民身份证。</li>
+                    <li><b>NFC</b>：短距（10cm内）、高频（13.56MHz）无线识别技术，内置在手机中，用于移动支付。</li>
+                </ul>
+                <h3>串口通信</h3>
+                <ul>
+                    <li>串行通信总线，发送端和接收端必须设置相同波特率才能正常通信。</li>
+                    <li>相比并行通信，线路更简单，一般只要一对传输线。</li>
+                </ul>
+                <h3>控制方式</h3>
+                <ul>
+                    <li>传感技术负责采集外部信息，控制技术负责实现对外部世界的控制。</li>
+                    <li>分为开环控制和闭环控制。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-5">
+            <div class="knowledge-card">
+                <h2>2.5 网络系统</h2>
+                <h3>网络的功能与作用</h3>
+                <ul>
+                    <li>数据通信功能、资源共享功能、分布处理功能（云计算、边缘计算）。</li>
+                </ul>
+                <h3>网络的分类</h3>
+                <ul>
+                    <li><b>按应用领域</b>：计算机网络、移动通信网络、广播电视网络。</li>
+                    <li><b>按覆盖范围</b>：局域网（LAN）、城域网（MAN）、广域网（WAN）。</li>
+                    <li><b>按拓扑结构</b>：总线型、环型、星型、树型、网型。网型容错率高，使用最广泛。</li>
+                    <li><b>按数据交换方式</b>：电路交换、报文交换、分组交换。现代计算机网络使用分组交换。</li>
+                </ul>
+                <h3>移动通信网络发展</h3>
+                <ul>
+                    <li>1G：仅能语音通话。</li>
+                    <li>2G：可以发送短信。</li>
+                    <li>3G：可以传输图像和音乐。</li>
+                    <li>4G：实现在线看视频。</li>
+                    <li>5G：用于实现物联网和车联网。</li>
+                </ul>
+                <h3>广播电视网络（HFC）</h3>
+                <ul>
+                    <li>特点：频带宽、容量大、功能多、成本低、抗干扰能力强。</li>
+                    <li>缺点：用户数据在一条线上传输，有被搭线窃听风险；树形结构易单点故障；用户增多会拥堵。</li>
+                </ul>
+                <h3>三网融合</h3>
+                <ul>
+                    <li>数字技术发展使语音、视频统一为二进制流传输。</li>
+                    <li>光纤技术和IP技术进一步发展。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-6">
+            <div class="knowledge-card">
+                <h2>2.6 网络应用软件开发</h2>
+                <h3>网络应用软件架构</h3>
+                <ul>
+                    <li><b>C/S架构（客户端/服务器）</b>：客户端需安装专门应用程序，服务器端处理数据。如：手机App、FTP客户端。</li>
+                    <li><b>B/S架构（浏览器/服务器）</b>：客户端通过浏览器访问，应用程序集中于服务器端。如：Web网站、在线办公系统。</li>
+                    <li>B/S架构是对C/S架构的改进，降低了开发和维护成本，客户端无需安装专门软件。</li>
+                </ul>
+                <h3>Web应用开发框架（Flask）</h3>
+                <ul>
+                    <li>Flask是Python的轻量级Web框架，具有精简、可扩展的特点。</li>
+                    <li>基本开发步骤：
+                        <ul>
+                            <li>导入Flask模块：<span class="code">from flask import Flask</span></li>
+                            <li>创建应用实例：<span class="code">app = Flask(__name__)</span></li>
+                            <li>定义路由：<span class="code">@app.route('/')</span></li>
+                            <li>编写视图函数：<span class="code">def index(): return ...</span></li>
+                            <li>运行应用：<span class="code">app.run()</span></li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>数据库支持</h3>
+                <ul>
+                    <li>网络应用程序通常需要数据库支持，如SQLite（轻量级数据库，跨平台、占用资源低、零配置）。</li>
+                    <li>SQLite属于关系型数据库，不是非关系型数据库。</li>
+                </ul>
+                <h3>网络应用规划设计</h3>
+                <ul>
+                    <li>分析应用的目的。</li>
+                    <li>确定总体架构（B/S或C/S）。</li>
+                    <li>划分应用的功能组成（模块设计）。</li>
+                    <li>界面设计及代码实现。</li>
+                </ul>
+                <h3>HTML</h3>
+                <ul>
+                    <li>超文本标记语言，用于描述网页文件。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 信息系统安全 -->
+        <h1>第三章 信息系统安全</h1>
+
+        <section id="sec3-1">
+            <div class="knowledge-card">
+                <h2>3.1 信息安全与保护</h2>
+                <ul>
+                    <li>信息安全涉及信息的保密性、完整性、可用性。</li>
+                    <li>常见信息安全威胁：计算机病毒、黑客攻击、系统漏洞、信息泄露、网络诈骗等。</li>
+                    <li>信息安全保护措施：安装杀毒软件、设置防火墙、定期更新系统补丁、数据加密、身份认证等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-2">
+            <div class="knowledge-card">
+                <h2>3.2 信息系统安全与防护</h2>
+                <ul>
+                    <li><b>物理安全</b>：机房环境控制、设备防盗防毁、电源保护。</li>
+                    <li><b>网络安全</b>：防火墙、入侵检测、虚拟专用网络（VPN）、访问控制。</li>
+                    <li><b>数据安全</b>：数据备份、数据加密、数据校验（MD5、CRC、SHA-1）。</li>
+                    <li><b>管理安全</b>：安全制度、人员管理、应急预案。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 信息系统的搭建实例 -->
+        <h1>第四章 信息系统的搭建实例</h1>
+
+        <section id="sec4-1">
+            <div class="knowledge-card">
+                <h2>4.1 搭建信息系统的前期准备</h2>
+                <ul>
+                    <li><b>需求分析</b>：明确系统要解决的问题，确定功能需求、性能需求、用户需求。</li>
+                    <li><b>可行性分析</b>：技术可行性、经济可行性、操作可行性。</li>
+                    <li><b>方案设计</b>：确定系统架构（B/S或C/S）、选择开发工具和平台、设计数据库结构。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-2">
+            <div class="knowledge-card">
+                <h2>4.2 搭建信息系统</h2>
+                <ul>
+                    <li><b>数据库设计</b>：设计数据表结构（字段名称、数据类型）。</li>
+                    <li><b>编写程序代码</b>：实现各功能模块（数据采集、数据传输、数据呈现等）。</li>
+                    <li><b>测试运行</b>：测试各项功能是否正常，记录测试结果。</li>
+                    <li><b>数据流向理解</b>：用户通过浏览器（客户端）发送请求 → 服务器处理请求 → 与数据库交互 → 返回结果呈现给用户。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-3">
+            <div class="knowledge-card">
+                <h2>4.3 完善信息系统</h2>
+                <ul>
+                    <li><b>系统不足分析</b>：发现系统中存在的问题和不足。</li>
+                    <li><b>改进方案</b>：针对问题提出改进措施。</li>
+                    <li><b>系统维护</b>：持续更新优化，保障系统稳定运行。</li>
+                    <li><b>知识迁移</b>：理解其他类似信息系统的工作原理，将经验应用于后续开发。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

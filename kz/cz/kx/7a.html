@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>初中科学·七年级上册（详细版）</title>
+    
+    <!-- KaTeX 渲染 (用于可能的公式) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2c7da0;      /* 科学蓝色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e6f4ff;     /* 浅蓝背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #2c7da0;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #2c7da0;
+        }
+        .category-title:hover { background: rgba(44, 125, 160, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #1e5a73;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+        .category-content a.active {
+            color: #2c7da0;
+            font-weight: 600;
+            background-color: rgba(44, 125, 160, 0.12);
+            border-left: 3px solid #2c7da0;
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #1e5a73;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e0f0f5;
+            border: 2px dashed #7fb4c4;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2c7da0;
+        }
+
+        body.collapsed nav { padding: 20px 5px; }
+        body.collapsed .sidebar-header h2 { opacity: 0; width: 0; margin: 0; pointer-events: none; }
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home { display: none !important; }
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c7da0;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #7fb4c4;
+            color: #2c7da0;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #c2dfe9;
+            padding-bottom: 10px;
+            color: #2c7da0;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 170px 1fr; }
+            body.collapsed { grid-template-columns: 55px 1fr; }
+            nav { padding: 15px 8px; }
+            .sidebar-header h2 { font-size: 16px; }
+            #toggleSidebar { font-size: 22px; width: 28px; height: 28px; }
+            .category-title { font-size: 14px; padding: 6px 4px; }
+            .category-content a { font-size: 12px; padding: 4px 0; }
+            main { padding: 15px 15px; }
+            h1 { font-size: 22px; margin: 20px 0; }
+            body.collapsed .category-title::before { font-size: 18px; }
+        }
+        @media (max-width: 480px) {
+            body { grid-template-columns: 140px 1fr; }
+            body.collapsed { grid-template-columns: 48px 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>科学·七年级上册</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch1')">✚ 第一章 科学入门</div>
+            <div class="category-content" id="cat-ch1">
+                <a href="#sec1-1">1.1 科学并不神秘</a>
+                <a href="#sec1-2">1.2 走进科学实验室</a>
+                <a href="#sec1-3">1.3 科学观察</a>
+                <a href="#sec1-4">1.4 科学测量</a>
+                <a href="#sec1-5">1.5 科学探究</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch2')">✚ 第二章 观察生物</div>
+            <div class="category-content" id="cat-ch2">
+                <a href="#sec2-1">2.1 生物与非生物</a>
+                <a href="#sec2-2">2.2 细胞</a>
+                <a href="#sec2-3">2.3 生物体的结构层次</a>
+                <a href="#sec2-4">2.4 常见的动物</a>
+                <a href="#sec2-5">2.5 常见的植物</a>
+                <a href="#sec2-6">2.6 物种的多样性</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch3')">✚ 第三章 人类的家园——地球</div>
+            <div class="category-content" id="cat-ch3">
+                <a href="#sec3-1">3.1 地球的形状和内部结构</a>
+                <a href="#sec3-2">3.2 地球仪和地图</a>
+                <a href="#sec3-3">3.3 组成地壳的岩石</a>
+                <a href="#sec3-4">3.4 地壳变动和火山地震</a>
+                <a href="#sec3-5">3.5 泥石流</a>
+                <a href="#sec3-6">3.6 地球表面的板块</a>
+                <a href="#sec3-7">3.7 地形和地形图</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch4')">✚ 第四章 物质的特性</div>
+            <div class="category-content" id="cat-ch4">
+                <a href="#sec4-1">4.1 物质的构成</a>
+                <a href="#sec4-2">4.2 质量的测量</a>
+                <a href="#sec4-3">4.3 物质的密度</a>
+                <a href="#sec4-4">4.4 物质的比热</a>
+                <a href="#sec4-5">4.5 熔化与凝固</a>
+                <a href="#sec4-6">4.6 汽化与液化</a>
+                <a href="#sec4-7">4.7 升华与凝华</a>
+                <a href="#sec4-8">4.8 物理性质与化学性质</a>
+            </div>
+        </div>
+        
+        <a href="/kz/cz/cz.html" class="back-home">返回首页</a>
+        <div class="ad-space">探索科学 · 认识世界</div>
+    </nav>
+    
+    <main>
+        <!-- 第一章 科学入门 -->
+        <h1>第一章 科学入门</h1>
+        <section id="sec1-1">
+            <div class="knowledge-card">
+                <h2>1.1 科学并不神秘</h2>
+                <ul>
+                    <li><strong>科学</strong>：科学是一门研究各种自然现象，并寻找它们产生、发展的原因和规律的学科。</li>
+                    <li><strong>科学探究的意义</strong>：科学就在我们身边，只要留心观察，就能发现许多有趣的自然现象。科学能帮助我们解释自然界的奥秘，并用于指导生产生活。</li>
+                    <li><strong>科学技术对社会的影响</strong>：科学技术的发展极大地推动了社会进步，但也可能带来环境问题、资源问题等，需要合理利用。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-2">
+            <div class="knowledge-card">
+                <h2>1.2 走进科学实验室</h2>
+                <ul>
+                    <li><strong>常见实验仪器</strong>：试管、酒精灯、烧杯、量筒、滴管、显微镜、天平、温度计等，要了解其用途和使用注意事项。</li>
+                    <li><strong>实验室安全规则</strong>：
+                        <ul>
+                            <li>严禁在实验室饮食、嬉戏打闹。</li>
+                            <li>实验前认真阅读实验步骤，了解药品性质。</li>
+                            <li>加热时试管口不对人，酒精灯用火柴点燃，用灯帽盖灭。</li>
+                            <li>不能用手接触药品，不能凑近闻药品气味，不能尝药品。</li>
+                            <li>废液倒入指定容器，不能随意倾倒。</li>
+                            <li>发生意外及时报告老师。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-3">
+            <div class="knowledge-card">
+                <h2>1.3 科学观察</h2>
+                <ul>
+                    <li><strong>观察</strong>：观察是科学探究的一种基本方法。观察分为直接观察（用感官）和间接观察（借助仪器）。</li>
+                    <li><strong>观察的重要性</strong>：许多科学发现源于细致观察。观察要全面、细致、实事求是，并及时记录。</li>
+                    <li><strong>观察记录</strong>：常用文字、表格、图形、照片等方式记录观察结果。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-4">
+            <div class="knowledge-card">
+                <h2>1.4 科学测量</h2>
+                <ul>
+                    <li><strong>测量</strong>：测量是一个将待测的量与公认的标准量进行比较的过程。</li>
+                    <li><strong>长度测量</strong>：
+                        <ul>
+                            <li>单位：国际单位制中长度的单位是米（m），其他常用单位有千米（km）、分米（dm）、厘米（cm）、毫米（mm）、微米（μm）、纳米（nm）。</li>
+                            <li>测量工具：刻度尺。使用前观察零刻度线、量程和分度值。使用时刻度尺紧贴被测物体，读数时视线与尺面垂直，估读到分度值的下一位。</li>
+                        </ul>
+                    </li>
+                    <li><strong>体积测量</strong>：
+                        <ul>
+                            <li>单位：立方米（m³），常用升（L）、毫升（mL）。1L=1dm³，1mL=1cm³。</li>
+                            <li>测量工具：量筒、量杯。读数时视线与凹液面最低处相平。</li>
+                        </ul>
+                    </li>
+                    <li><strong>温度测量</strong>：
+                        <ul>
+                            <li>单位：摄氏度（℃）。</li>
+                            <li>测量工具：温度计。常用液体温度计（酒精、水银）利用液体热胀冷缩原理。使用前观察量程和分度值，使用时玻璃泡完全浸入被测液体，不能接触容器底或壁，待示数稳定后读数，读数时玻璃泡不能离开被测物体。</li>
+                        </ul>
+                    </li>
+                    <li><strong>质量测量</strong>：
+                        <ul>
+                            <li>单位：千克（kg），常用克（g）、毫克（mg）、吨（t）。</li>
+                            <li>测量工具：托盘天平。使用前调平（游码归零，调节平衡螺母）。使用时左物右码，加砝码由大到小，用镊子取放，读数=砝码+游码示数。</li>
+                        </ul>
+                    </li>
+                    <li><strong>时间测量</strong>：
+                        <ul>
+                            <li>单位：秒（s），常用时（h）、分（min）。</li>
+                            <li>测量工具：停表、秒表。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-5">
+            <div class="knowledge-card">
+                <h2>1.5 科学探究</h2>
+                <ul>
+                    <li><strong>科学探究的基本过程</strong>：
+                        <ol>
+                            <li>提出问题：从日常生活或自然现象中发现问题。</li>
+                            <li>建立猜想与假设：对问题产生的原因提出猜想。</li>
+                            <li>设计实验方案：确定实验方法、材料、步骤，设置对照组和实验组，控制变量。</li>
+                            <li>获取事实与证据：进行实验，观察记录现象和数据。</li>
+                            <li>得出结论：分析数据，验证假设，得出科学结论。</li>
+                            <li>表达与交流：撰写报告，交流讨论。</li>
+                        </ol>
+                    </li>
+                    <li><strong>控制变量法</strong>：当研究多个因素对结果的影响时，每次只改变一个因素，保持其他因素不变，这种方法叫控制变量法。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 观察生物 -->
+        <h1>第二章 观察生物</h1>
+        <section id="sec2-1">
+            <div class="knowledge-card">
+                <h2>2.1 生物与非生物</h2>
+                <ul>
+                    <li><strong>生物的基本特征</strong>：
+                        <ul>
+                            <li>需要营养（新陈代谢）。</li>
+                            <li>能进行呼吸。</li>
+                            <li>能排出体内废物。</li>
+                            <li>能对外界刺激作出反应（应激性）。</li>
+                            <li>能生长和繁殖。</li>
+                            <li>有遗传和变异现象。</li>
+                            <li>除病毒外，生物都由细胞构成。</li>
+                        </ul>
+                    </li>
+                    <li><strong>区分生物与非生物</strong>：依据生物的基本特征进行判断。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-2">
+            <div class="knowledge-card">
+                <h2>2.2 细胞</h2>
+                <ul>
+                    <li><strong>细胞学说</strong>：细胞是生物体结构和功能的基本单位；细胞通过分裂产生新细胞；所有动物和植物都由细胞构成。施莱登和施旺提出细胞学说。</li>
+                    <li><strong>细胞的结构</strong>：
+                        <ul>
+                            <li>动物细胞：细胞膜、细胞质、细胞核。</li>
+                            <li>植物细胞：细胞壁、细胞膜、细胞质、细胞核、液泡、叶绿体（绿色部分）。</li>
+                            <li>细胞膜：保护和控制物质进出。</li>
+                            <li>细胞质：进行生命活动的主要场所。</li>
+                            <li>细胞核：含有遗传物质，控制细胞生命活动。</li>
+                            <li>细胞壁：保护和支持细胞（植物细胞特有）。</li>
+                            <li>液泡：含细胞液，储存物质（植物细胞特有）。</li>
+                            <li>叶绿体：进行光合作用的场所（植物细胞特有）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>显微镜的使用</strong>：
+                        <ul>
+                            <li>取镜安放→对光（低倍镜，转动反光镜，看到明亮视野）→放置玻片→调焦（先粗准焦螺旋下降至接近玻片，再缓缓上升，直到看清物像）→观察。</li>
+                            <li>放大倍数=目镜倍数×物镜倍数。</li>
+                            <li>视野中物像为倒像，移动方向相反。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-3">
+            <div class="knowledge-card">
+                <h2>2.3 生物体的结构层次</h2>
+                <ul>
+                    <li><strong>细胞分裂</strong>：一个细胞分成两个细胞的过程，使细胞数目增多。</li>
+                    <li><strong>细胞生长</strong>：新细胞吸收营养，体积增大的过程。</li>
+                    <li><strong>细胞分化</strong>：分裂后的细胞在形态、结构和功能上发生差异的过程，形成各种组织。</li>
+                    <li><strong>组织</strong>：由形态相似、结构功能相同的细胞联合在一起形成的细胞群。
+                        <ul>
+                            <li>植物组织：保护组织、营养组织、输导组织、机械组织、分生组织等。</li>
+                            <li>动物组织：上皮组织、结缔组织、肌肉组织、神经组织等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>器官</strong>：不同组织按照一定次序结合，形成具有一定功能的结构。如植物的根、茎、叶、花、果实、种子；动物的心脏、肺、胃等。</li>
+                    <li><strong>系统</strong>：能够共同完成一种或几种生理功能的多个器官按照一定次序组合在一起。如人体的消化系统、呼吸系统、循环系统等。</li>
+                    <li><strong>生物体结构层次</strong>：
+                        <ul>
+                            <li>植物：细胞→组织→器官→植物体。</li>
+                            <li>动物：细胞→组织→器官→系统→动物体。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-4">
+            <div class="knowledge-card">
+                <h2>2.4 常见的动物</h2>
+                <ul>
+                    <li><strong>动物的分类</strong>：根据体内有无脊椎骨，分为脊椎动物和无脊椎动物。
+                        <ul>
+                            <li>脊椎动物：鱼类、两栖类、爬行类、鸟类、哺乳类。</li>
+                            <li>无脊椎动物：节肢动物、软体动物、环节动物、腔肠动物等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>脊椎动物的主要特征</strong>：
+                        <ul>
+                            <li>鱼类：生活在水中，用鳃呼吸，用鳍游泳，体表有鳞片，变温动物。</li>
+                            <li>两栖类：幼体水生用鳃呼吸，成体水陆两栖用肺呼吸兼皮肤辅助，变温动物。</li>
+                            <li>爬行类：体表有鳞片或甲，用肺呼吸，变温动物，卵生。</li>
+                            <li>鸟类：体表被羽，前肢变成翼，恒温动物，卵生。</li>
+                            <li>哺乳类：体表被毛，胎生哺乳，恒温动物。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-5">
+            <div class="knowledge-card">
+                <h2>2.5 常见的植物</h2>
+                <ul>
+                    <li><strong>植物的分类</strong>：根据能否产生种子，分为种子植物和孢子植物。
+                        <ul>
+                            <li>种子植物：用种子繁殖，包括被子植物（有花、果实）和裸子植物（无花、种子裸露）。</li>
+                            <li>孢子植物：用孢子繁殖，包括蕨类植物（有根茎叶）、苔藓植物（有茎叶无根）、藻类植物（无根茎叶分化）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>主要植物类群特征</strong>：
+                        <ul>
+                            <li>被子植物：有真正的花和果实，种子有果皮包被。</li>
+                            <li>裸子植物：无花，种子裸露，无果皮。</li>
+                            <li>蕨类植物：有根、茎、叶，孢子繁殖，有输导组织。</li>
+                            <li>苔藓植物：有茎和叶，无根，无输导组织，矮小。</li>
+                            <li>藻类植物：无根茎叶分化，大多生活在水中。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-6">
+            <div class="knowledge-card">
+                <h2>2.6 物种的多样性</h2>
+                <ul>
+                    <li><strong>生物多样性</strong>：包括物种多样性、遗传多样性和生态系统多样性。</li>
+                    <li><strong>物种多样性</strong>：地球上生物种类的丰富程度。</li>
+                    <li><strong>保护生物多样性</strong>：
+                        <ul>
+                            <li>建立自然保护区（就地保护）。</li>
+                            <li>迁地保护（动物园、植物园）。</li>
+                            <li>加强立法和宣传教育。</li>
+                            <li>合理利用生物资源。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 人类的家园——地球 -->
+        <h1>第三章 人类的家园——地球</h1>
+        <section id="sec3-1">
+            <div class="knowledge-card">
+                <h2>3.1 地球的形状和内部结构</h2>
+                <ul>
+                    <li><strong>地球的形状</strong>：地球是一个两极稍扁、赤道略鼓的球体。证明：麦哲伦环球航行、月食时地球的影子、海岸线看船先见桅杆后见船身等。</li>
+                    <li><strong>地球的大小</strong>：平均半径6371千米，赤道周长约4万千米，表面积约5.1亿平方千米。</li>
+                    <li><strong>地球的内部结构</strong>：从外到内分为地壳、地幔、地核（内核、外核）。地壳是固态岩石，地幔为固态（软流层为熔融状态），地核主要由铁、镍组成。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-2">
+            <div class="knowledge-card">
+                <h2>3.2 地球仪和地图</h2>
+                <ul>
+                    <li><strong>地球仪</strong>：地球的模型，可以直观地展示地球的形状、经纬线、海陆分布。</li>
+                    <li><strong>经线和纬线</strong>：
+                        <ul>
+                            <li>纬线：与地轴垂直的圆圈，赤道是最长纬线，指示东西方向。</li>
+                            <li>经线：连接南北两极的半圆，指示南北方向，所有经线长度相等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>经纬度</strong>：
+                        <ul>
+                            <li>纬度：赤道为0°，向北为北纬（N），向南为南纬（S），极点为90°。</li>
+                            <li>经度：本初子午线（0°经线，通过英国格林尼治天文台旧址），向东为东经（E），向西为西经（W），东西经各180°。</li>
+                        </ul>
+                    </li>
+                    <li><strong>地图的三要素</strong>：比例尺、方向、图例和注记。
+                        <ul>
+                            <li>比例尺：表示图上距离比实地距离缩小的程度，公式=图上距离/实地距离。大比例尺表示范围小、内容详细。</li>
+                            <li>方向：一般地图“上北下南，左西右东”；有指向标的地图按指向标；经纬网地图按经纬线定方向。</li>
+                            <li>图例：地图上各种符号的说明。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-3">
+            <div class="knowledge-card">
+                <h2>3.3 组成地壳的岩石</h2>
+                <ul>
+                    <li><strong>岩石类型</strong>：
+                        <ul>
+                            <li>岩浆岩：由岩浆冷却凝固而成，如花岗岩（侵入岩）、玄武岩（喷出岩）。</li>
+                            <li>沉积岩：由碎屑物经沉积、压实、胶结而成，有层理结构，可能含化石，如砂岩、石灰岩、页岩。</li>
+                            <li>变质岩：原有岩石在高温高压下变质形成，如大理岩（石灰岩变质）、板岩（页岩变质）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-4">
+            <div class="knowledge-card">
+                <h2>3.4 地壳变动和火山地震</h2>
+                <ul>
+                    <li><strong>地壳变动</strong>：地壳的升降、水平运动。证据：弯曲的岩层、高山上的海洋生物化石、海底的森林遗迹等。</li>
+                    <li><strong>火山</strong>：岩浆喷出地表的现象。火山由火山口、火山锥、岩浆通道组成。火山分为活火山、休眠火山、死火山。火山活动对人类有利有弊。</li>
+                    <li><strong>地震</strong>：地壳快速释放能量引起的震动。震源、震中、震源深度、震级、烈度等概念。世界地震主要分布在环太平洋地带和地中海—喜马拉雅地带。地震预报困难，需加强防震减灾意识。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-5">
+            <div class="knowledge-card">
+                <h2>3.5 泥石流</h2>
+                <ul>
+                    <li><strong>泥石流</strong>：山区沟谷中由暴雨、冰雪融水等引发的含有大量泥沙石块的特殊洪流。</li>
+                    <li><strong>形成条件</strong>：陡峭的地形、破碎的岩石、丰富的水源、植被破坏等。</li>
+                    <li><strong>危害</strong>：冲毁房屋、道路、农田，堵塞河道，造成人员伤亡。</li>
+                    <li><strong>防治措施</strong>：植树造林、修建拦沙坝、排水沟、加强监测预警等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-6">
+            <div class="knowledge-card">
+                <h2>3.6 地球表面的板块</h2>
+                <ul>
+                    <li><strong>大陆漂移假说</strong>：魏格纳提出，认为大陆原来连在一起，后来分裂漂移。</li>
+                    <li><strong>板块构造学说</strong>：地球的岩石圈由六大板块组成（亚欧板块、非洲板块、印度洋板块、太平洋板块、美洲板块、南极洲板块），板块在软流层上缓慢运动。板块内部相对稳定，交界处地壳活跃，多火山地震。</li>
+                    <li><strong>板块运动形式</strong>：张裂（形成裂谷、海洋）、碰撞（形成山脉、海沟）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-7">
+            <div class="knowledge-card">
+                <h2>3.7 地形和地形图</h2>
+                <ul>
+                    <li><strong>地形类型</strong>：山地、丘陵、高原、平原、盆地。</li>
+                    <li><strong>地形图</strong>：用等高线表示地表起伏的地图。
+                        <ul>
+                            <li>等高线：把海拔相等的点连成的线。</li>
+                            <li>等高线疏密：密表示坡度陡，疏表示坡度缓。</li>
+                            <li>常见地形判读：山顶（闭合曲线，中心高）、鞍部（两个山顶之间）、山谷（凸向高处）、山脊（凸向低处）、陡崖（等高线重合）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 物质的特性 -->
+        <h1>第四章 物质的特性</h1>
+        <section id="sec4-1">
+            <div class="knowledge-card">
+                <h2>4.1 物质的构成</h2>
+                <ul>
+                    <li><strong>分子</strong>：物质是由分子构成的，分子是保持物质化学性质的最小微粒。分子间有间隙，分子在永不停息地做无规则运动（扩散现象）。分子间存在引力和斥力。</li>
+                    <li><strong>原子的概念</strong>：原子是化学变化中的最小微粒，由原子核和核外电子构成。分子由原子构成。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-2">
+            <div class="knowledge-card">
+                <h2>4.2 质量的测量</h2>
+                <ul>
+                    <li><strong>质量</strong>：物体所含物质的多少，是物体的基本属性，不随形状、状态、位置、温度的改变而改变。</li>
+                    <li><strong>单位</strong>：千克（kg），常用克（g）、毫克（mg）、吨（t）。</li>
+                    <li><strong>天平使用</strong>：见1.4节测量部分。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-3">
+            <div class="knowledge-card">
+                <h2>4.3 物质的密度</h2>
+                <ul>
+                    <li><strong>密度</strong>：单位体积的某种物质的质量，是物质的一种特性。公式：\(\rho = \frac{m}{V}\)，单位kg/m³或g/cm³（1g/cm³=1000kg/m³）。</li>
+                    <li><strong>应用</strong>：鉴别物质、计算质量或体积。密度与温度有关（热胀冷缩），水在4℃时密度最大。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-4">
+            <div class="knowledge-card">
+                <h2>4.4 物质的比热</h2>
+                <ul>
+                    <li><strong>热量</strong>：物体在热传递过程中吸收或放出的能量。单位焦耳（J）。</li>
+                    <li><strong>比热容（比热）</strong>：单位质量的某种物质温度升高（或降低）1℃所吸收（或放出）的热量，是物质的一种特性。单位J/(kg·℃)。水的比热较大，常用作冷却剂。</li>
+                    <li><strong>热传递</strong>：热量从高温物体传到低温物体，方式有热传导、对流、热辐射。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-5">
+            <div class="knowledge-card">
+                <h2>4.5 熔化与凝固</h2>
+                <ul>
+                    <li><strong>熔化</strong>：物质从固态变成液态的过程，吸热。晶体熔化时有固定温度（熔点），非晶体没有固定熔点。</li>
+                    <li><strong>凝固</strong>：物质从液态变成固态的过程，放热。晶体凝固时有凝固点，同种物质凝固点等于熔点。</li>
+                    <li><strong>晶体熔化条件</strong>：达到熔点，继续吸热。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-6">
+            <div class="knowledge-card">
+                <h2>4.6 汽化与液化</h2>
+                <ul>
+                    <li><strong>汽化</strong>：物质从液态变成气态的过程，吸热。包括蒸发和沸腾。
+                        <ul>
+                            <li>蒸发：在任何温度下，只在液体表面进行的缓慢汽化。影响因素：温度、表面积、空气流速。</li>
+                            <li>沸腾：在液体内部和表面同时进行的剧烈汽化。沸点与气压有关（气压高沸点高）。沸腾条件：达到沸点，继续吸热。</li>
+                        </ul>
+                    </li>
+                    <li><strong>液化</strong>：物质从气态变成液态的过程，放热。方法：降低温度、压缩体积。常见现象：雾、露、白气（不是水蒸气）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-7">
+            <div class="knowledge-card">
+                <h2>4.7 升华与凝华</h2>
+                <ul>
+                    <li><strong>升华</strong>：物质从固态直接变成气态的过程，吸热。如樟脑丸变小、冰冻衣服变干。</li>
+                    <li><strong>凝华</strong>：物质从气态直接变成固态的过程，放热。如霜、雪、雾凇。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-8">
+            <div class="knowledge-card">
+                <h2>4.8 物理性质与化学性质</h2>
+                <ul>
+                    <li><strong>物理变化</strong>：没有新物质生成的变化。如状态变化、形状变化。</li>
+                    <li><strong>化学变化</strong>：有新物质生成的变化，常伴随发光、发热、颜色变化、产生气体、沉淀等现象。</li>
+                    <li><strong>物理性质</strong>：不需要发生化学变化就能表现出来的性质，如颜色、状态、气味、密度、熔点、沸点、溶解性等。</li>
+                    <li><strong>化学性质</strong>：在化学变化中表现出来的性质，如可燃性、稳定性、氧化性、还原性、酸性、碱性等。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particle-container');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.2 + 0.6;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = '#2c7da0';
+                }
+                update(mouse) {
+                    if (mouse.x !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < mouse.radius) {
+                            const force = (mouse.radius - distance) / mouse.radius;
+                            const angle = Math.atan2(dy, dx);
+                            this.speedX += Math.cos(angle) * force * 0.03;
+                            this.speedY += Math.sin(angle) * force * 0.03;
+                        }
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            const mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            
+            const particlesArray = Array.from({ length: 40 }, () => new Particle());
+
+            function connect() {
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a+1; b < particlesArray.length; b++) {
+                        const dx = particlesArray[a].x - particlesArray[b].x;
+                        const dy = particlesArray[a].y - particlesArray[b].y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < 100) {
+                            ctx.strokeStyle = `rgba(44, 125, 160, ${1 - distance/100})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+                connect();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => { requestAnimationFrame(updateActiveNav); });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

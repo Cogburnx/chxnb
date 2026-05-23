@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>化学选修一</title>
+    
+    <!-- KaTeX 核心库 + 自动渲染 + mhchem 扩展 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/mhchem.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        /* 子标题和列表样式 */
+        .knowledge-card h3 {
+            font-size: 1.1em;
+            margin: 15px 0 5px;
+            color: var(--accent-color);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 10px;
+        }
+        .knowledge-card ul {
+            margin: 5px 0 10px 20px;
+            padding-left: 0;
+        }
+        .knowledge-card li {
+            margin-bottom: 5px;
+        }
+        .knowledge-card p {
+            margin: 0 0 10px;
+        }
+
+        /* 化学方程式单独样式 */
+        .knowledge-card .chem {
+            font-family: 'KaTeX_Main', 'Times New Roman', serif;
+            white-space: nowrap;
+            background-color: rgba(255,255,255,0.3);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (化学选修一/化学反应原理分类) 根据人教版2019目录整理 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>化学选修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-rx')">✚ 化学反应的热效应</div>
+            <div class="category-content" id="cat-rx">
+                <a href="#rxybh">反应热与焓变</a>
+                <a href="#rxjs">反应热的计算</a>
+                <a href="#gsdl">盖斯定律</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-pl')">✚ 化学反应速率与化学平衡</div>
+            <div class="category-content" id="cat-pl">
+                <a href="#hxyl">化学反应速率</a>
+                <a href="#yxph">影响反应速率的因素</a>
+                <a href="#hxph">化学平衡</a>
+                <a href="#phyd">平衡移动</a>
+                <a href="#phcs">平衡常数</a>
+                <a href="#fxyx">反应方向</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-lz')">✚ 水溶液中的离子反应与平衡</div>
+            <div class="category-content" id="cat-lz">
+                <a href="#dlds">电离平衡</a>
+                <a href="#sdph">水的电离和pH</a>
+                <a href="#yh">盐类的水解</a>
+                <a href="#cdrj">沉淀溶解平衡</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-dn')">✚ 化学反应与电能</div>
+            <div class="category-content" id="cat-dn">
+                <a href="#ydc">原电池</a>
+                <a href="#djc">电解池</a>
+                <a href="#jsfh">金属的腐蚀与防护</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：化学选修一知识点卡片（化学反应原理） -->
+    <main>
+        <!-- 第一章 化学反应的热效应 -->
+        <h1>第一章 化学反应的热效应</h1>
+        
+        <section id="rxybh">
+            <div class="knowledge-card">
+                <h2>反应热与焓变</h2>
+                <h3>反应热</h3>
+                <ul>
+                    <li><b>定义</b>：化学反应过程中吸收或释放的热量。</li>
+                    <li><b>单位</b>：kJ/mol 或 kJ·mol⁻¹</li>
+                </ul>
+                <h3>焓变 (ΔH)</h3>
+                <ul>
+                    <li><b>定义</b>：等压条件下的反应热，<span class="chem">\(\Delta H = H_{\text{产物}} - H_{\text{反应物}}\)</span></li>
+                    <li><b>符号</b>：ΔH < 0 为放热反应，ΔH > 0 为吸热反应</li>
+                    <li><b>与键能关系</b>：<span class="chem">\(\Delta H = \sum E_{\text{反应物键能}} - \sum E_{\text{生成物键能}}\)</span></li>
+                </ul>
+                <h3>常见放热反应</h3>
+                <ul>
+                    <li>活泼金属与水或酸的反应：<span class="chem">\(\ce{2Na + 2H2O -> 2NaOH + H2 ^}\)</span></li>
+                    <li>酸碱中和反应：<span class="chem">\(\ce{H+ + OH- -> H2O}\)</span></li>
+                    <li>燃烧反应：<span class="chem">\(\ce{CH4 + 2O2 ->[\text{点燃}] CO2 + 2H2O}\)</span></li>
+                    <li>多数的化合反应、铝热反应</li>
+                </ul>
+                <h3>常见吸热反应</h3>
+                <ul>
+                    <li>多数的分解反应：<span class="chem">\(\ce{CaCO3 ->[\text{高温}] CaO + CO2 ^}\)</span></li>
+                    <li><span class="chem">\(\ce{2NH4Cl(s) + Ba(OH)2·8H2O(s) -> BaCl2 + 2NH3 ^ + 10H2O}\)</span></li>
+                    <li><span class="chem">\(\ce{C + H2O(g) ->[\text{高温}] CO + H2}\)</span></li>
+                </ul>
+                <h3>热化学方程式</h3>
+                <ul>
+                    <li><b>书写要点</b>：注明物质状态(g、l、s、aq)；ΔH 单位 kJ/mol；ΔH 与计量数对应；可逆反应写“⇌”</li>
+                    <li><b>示例</b>：<span class="chem">\(\ce{H2(g) + 1/2O2(g) -> H2O(l)}\)</span> <span class="chem">\(\Delta H = -285.8\ \text{kJ/mol}\)</span></li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="rxjs">
+            <div class="knowledge-card">
+                <h2>反应热的计算</h2>
+                <h3>燃烧热</h3>
+                <ul>
+                    <li><b>定义</b>：101 kPa 时，1 mol 纯物质完全燃烧生成稳定氧化物时所放出的热量。</li>
+                    <li><b>稳定氧化物</b>：如 <span class="chem">\(\ce{CO2(g)}\)</span>、<span class="chem">\(\ce{H2O(l)}\)</span>、<span class="chem">\(\ce{SO2(g)}\)</span> 等。</li>
+                </ul>
+                <h3>中和热</h3>
+                <ul>
+                    <li><b>定义</b>：在稀溶液中，强酸与强碱发生中和反应生成 1 mol <span class="chem">\(\ce{H2O}\)</span> 时的反应热，约为 -57.3 kJ/mol。</li>
+                    <li><b>实验测定</b>：用量热计测量温度变化。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="gsdl">
+            <div class="knowledge-card">
+                <h2>盖斯定律</h2>
+                <ul>
+                    <li><b>内容</b>：在条件不变的情况下，化学反应的热效应只与起始和终了状态有关，与变化途径无关。</li>
+                    <li><b>应用</b>：计算难以直接测定的反应热。</li>
+                    <li><b>示例</b>：若 <span class="chem">\(\ce{C(s) + O2(g) -> CO2(g)}\)</span> ΔH₁，<span class="chem">\(\ce{CO(g) + 1/2O2(g) -> CO2(g)}\)</span> ΔH₂，则 <span class="chem">\(\ce{C(s) + 1/2O2(g) -> CO(g)}\)</span> ΔH = ΔH₁ - ΔH₂。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 化学反应速率与化学平衡 -->
+        <h1>第二章 化学反应速率与化学平衡</h1>
+
+        <section id="hxyl">
+            <div class="knowledge-card">
+                <h2>化学反应速率</h2>
+                <ul>
+                    <li><b>定义</b>：单位时间内反应物浓度的减少或生成物浓度的增加。</li>
+                    <li><b>表达式</b>：<span class="chem">\(v = \frac{\Delta c}{\Delta t}\)</span>，单位 mol·L⁻¹·s⁻¹ 或 mol·L⁻¹·min⁻¹。</li>
+                    <li><b>平均速率与瞬时速率</b>：通常用平均速率表示一段时间内的反应快慢。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="yxph">
+            <div class="knowledge-card">
+                <h2>影响反应速率的因素</h2>
+                <h3>内因</h3>
+                <ul><li>反应物本身的性质（决定因素）。</li></ul>
+                <h3>外因</h3>
+                <ul>
+                    <li><b>浓度</b>：增大反应物浓度，速率加快（质量作用定律）。</li>
+                    <li><b>压强</b>：对有气体参加的反应，增大压强（缩小体积），速率加快。</li>
+                    <li><b>温度</b>：升高温度，速率加快（阿伦尼乌斯公式）。</li>
+                    <li><b>催化剂</b>：正催化剂加快反应速率，负催化剂减慢反应速率。</li>
+                    <li><b>接触面积</b>：固体表面积越大，反应速率越快。</li>
+                </ul>
+                <h3>有效碰撞理论</h3>
+                <ul>
+                    <li><b>有效碰撞</b>：能发生化学反应的碰撞。</li>
+                    <li><b>活化分子</b>：能量足够高、能发生有效碰撞的分子。</li>
+                    <li><b>活化能</b>：活化分子的平均能量与所有分子平均能量之差。催化剂通过降低活化能加快反应速率。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="hxph">
+            <div class="knowledge-card">
+                <h2>化学平衡</h2>
+                <h3>可逆反应</h3>
+                <ul><li>在同一条件下既能正向进行又能逆向进行的反应。</li></ul>
+                <h3>化学平衡状态</h3>
+                <ul>
+                    <li><b>定义</b>：正反应速率与逆反应速率相等，反应物和生成物浓度不再改变的状态。</li>
+                    <li><b>特征</b>：逆、等、动、定、变。</li>
+                    <li><b>判断标志</b>：① <span class="chem">\(v_{\text{正}} = v_{\text{逆}}\)</span>；② 各组分的浓度、含量不变；③ 对于气体反应，Δvg ≠ 0 时，总压强、总物质的量不变可作为判据。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="phyd">
+            <div class="knowledge-card">
+                <h2>平衡移动</h2>
+                <h3>勒夏特列原理</h3>
+                <ul><li>如果改变影响平衡的条件之一（浓度、压强、温度），平衡将向着减弱这种改变的方向移动。</li></ul>
+                <h3>影响因素</h3>
+                <ul>
+                    <li><b>浓度</b>：增大反应物浓度或减小生成物浓度，平衡正向移动。</li>
+                    <li><b>压强</b>：增大压强，平衡向气体体积减小的方向移动。</li>
+                    <li><b>温度</b>：升高温度，平衡向吸热方向移动；降低温度，平衡向放热方向移动。</li>
+                    <li><b>催化剂</b>：同等改变正逆反应速率，平衡不移动。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="phcs">
+            <div class="knowledge-card">
+                <h2>平衡常数</h2>
+                <h3>化学平衡常数 (K)</h3>
+                <ul>
+                    <li><b>表达式</b>：对于反应 <span class="chem">\(aA + bB \rightleftharpoons cC + dD\)</span>，<span class="chem">\(K = \frac{[C]^c [D]^d}{[A]^a [B]^b}\)</span>（固体和纯液体不写入）。</li>
+                    <li><b>意义</b>：K 越大，反应进行越完全。</li>
+                    <li><b>影响因素</b>：只与温度有关，与浓度无关。</li>
+                    <li><b>正逆反应平衡常数关系</b>：<span class="chem">\(K_{\text{正}} = 1/K_{\text{逆}}\)</span></li>
+                </ul>
+                <h3>转化率</h3>
+                <ul><li><span class="chem">\(\text{转化率} = \frac{\text{反应物转化的量}}{\text{反应物初始量}} \times 100\%\)</span></li></ul>
+            </div>
+        </section>
+
+        <section id="fxyx">
+            <div class="knowledge-card">
+                <h2>反应方向</h2>
+                <h3>吉布斯自由能</h3>
+                <ul>
+                    <li><b>公式</b>：<span class="chem">\(\Delta G = \Delta H - T\Delta S\)</span></li>
+                    <li><b>判断依据</b>：
+                        <ul>
+                            <li><span class="chem">\(\Delta G < 0\)</span>：反应自发进行</li>
+                            <li><span class="chem">\(\Delta G = 0\)</span>：平衡状态</li>
+                            <li><span class="chem">\(\Delta G > 0\)</span>：反应非自发</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>熵变 (ΔS)</h3>
+                <ul>
+                    <li><b>定义</b>：体系的混乱度（无序度）的变化。</li>
+                    <li><b>规律</b>：气体分子数增加的反应，ΔS > 0。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 水溶液中的离子反应与平衡 -->
+        <h1>第三章 水溶液中的离子反应与平衡</h1>
+
+        <section id="dlds">
+            <div class="knowledge-card">
+                <h2>电离平衡</h2>
+                <h3>强电解质与弱电解质</h3>
+                <ul>
+                    <li><b>强电解质</b>：完全电离（强酸、强碱、大多数盐），用“→”表示。</li>
+                    <li><b>弱电解质</b>：部分电离（弱酸、弱碱、水），用“⇌”表示。</li>
+                </ul>
+                <h3>弱电解质的电离平衡</h3>
+                <ul>
+                    <li>特点：动、定、变。</li>
+                    <li>电离平衡常数 (Ka 或 Kb)：<span class="chem">\(K_a = \frac{[H+][A-]}{[HA]}\)</span>，只与温度有关。</li>
+                    <li>多元弱酸分步电离，<span class="chem">\(K_{a1} \gg K_{a2} \gg K_{a3}\)</span>，以第一步电离为主。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sdph">
+            <div class="knowledge-card">
+                <h2>水的电离和pH</h2>
+                <h3>水的电离</h3>
+                <ul>
+                    <li><span class="chem">\(\ce{H2O <=> H+ + OH-}\)</span>，ΔH > 0（吸热）。</li>
+                    <li><b>水的离子积常数 (Kw)</b>：<span class="chem">\(K_w = [H+][OH-]\)</span>，25℃时 <span class="chem">\(K_w = 1.0 \times 10^{-14}\)</span>。</li>
+                    <li>Kw 只与温度有关，温度升高，Kw 增大。</li>
+                </ul>
+                <h3>溶液的酸碱性</h3>
+                <ul>
+                    <li>酸性：<span class="chem">\([H+] > [OH-]\)</span></li>
+                    <li>中性：<span class="chem">\([H+] = [OH-]\)</span></li>
+                    <li>碱性：<span class="chem">\([H+] < [OH-]\)</span></li>
+                </ul>
+                <h3>pH</h3>
+                <ul>
+                    <li><b>定义</b>：<span class="chem">\(pH = -\lg[H+]\)</span></li>
+                    <li>适用范围：<span class="chem">\([H+] \leq 1 \text{ mol/L}\)</span></li>
+                    <li><b>pH 计算</b>：强酸直接算 H⁺；强碱先算 OH⁻，再由 Kw 求 H⁺。</li>
+                </ul>
+                <h3>酸碱中和滴定</h3>
+                <ul>
+                    <li><b>原理</b>：<span class="chem">\(c_{\text{标}}V_{\text{标}} = c_{\text{待}}V_{\text{待}}\)</span>（一元酸碱）</li>
+                    <li><b>指示剂选择</b>：强酸强碱用酚酞或甲基橙；强酸弱碱用甲基橙；强碱弱酸用酚酞。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="yh">
+            <div class="knowledge-card">
+                <h2>盐类的水解</h2>
+                <h3>水解的实质</h3>
+                <ul>
+                    <li>盐电离出的离子与水电离出的 H⁺ 或 OH⁻ 结合生成弱电解质，破坏了水的电离平衡。</li>
+                    <li><b>规律</b>：有弱才水解，无弱不水解；谁弱谁水解，越弱越水解；都弱都水解；谁强显谁性。</li>
+                </ul>
+                <h3>水解方程式</h3>
+                <ul>
+                    <li>一般用“⇌”，不写“=”，不标“↑”“↓”。</li>
+                    <li>多元弱酸根分步水解，以第一步为主。</li>
+                    <li>示例：<span class="chem">\(\ce{CH3COO- + H2O <=> CH3COOH + OH-}\)</span></li>
+                </ul>
+                <h3>影响水解的因素</h3>
+                <ul>
+                    <li><b>内因</b>：弱酸或弱碱越弱，对应离子的水解程度越大。</li>
+                    <li><b>外因</b>：温度（升高促进水解）、浓度（稀释促进水解）、酸碱性（同离子效应抑制水解）。</li>
+                </ul>
+                <h3>水解的应用</h3>
+                <ul>
+                    <li>配制易水解盐溶液时加酸抑制水解（如 <span class="chem">\(\ce{FeCl3}\)</span> 加盐酸）。</li>
+                    <li>明矾净水：<span class="chem">\(\ce{Al^{3+} + 3H2O <=> Al(OH)3 (胶体) + 3H+}\)</span></li>
+                    <li>纯碱去油污：加热促进水解，增强碱性。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="cdrj">
+            <div class="knowledge-card">
+                <h2>沉淀溶解平衡</h2>
+                <h3>溶度积常数 (Ksp)</h3>
+                <ul>
+                    <li>对于沉淀溶解平衡 <span class="chem">\(\ce{MmAn(s) <=> mM^{n+}(aq) + nA^{m-}(aq)}\)</span>，<span class="chem">\(K_{sp} = [M^{n+}]^m [A^{m-}]^n\)</span></li>
+                    <li>Ksp 只与温度有关，反映物质的溶解能力。</li>
+                </ul>
+                <h3>沉淀的生成与溶解</h3>
+                <ul>
+                    <li><b>Q < Ksp</b>：不饱和溶液，无沉淀或沉淀溶解</li>
+                    <li><b>Q = Ksp</b>：饱和溶液，平衡状态</li>
+                    <li><b>Q > Ksp</b>：过饱和溶液，有沉淀析出</li>
+                </ul>
+                <h3>沉淀的转化</h3>
+                <ul>
+                    <li>一般来说，溶解度小的沉淀容易转化成溶解度更小的沉淀。</li>
+                    <li>示例：<span class="chem">\(\ce{AgCl(s) + I- -> AgI(s) + Cl-}\)</span></li>
+                </ul>
+                <h3>分步沉淀</h3>
+                <ul><li>溶液中同时存在多种离子时，加入沉淀剂，Ksp 小的离子先沉淀。</li></ul>
+            </div>
+        </section>
+
+        <!-- 第四章 化学反应与电能 -->
+        <h1>第四章 化学反应与电能</h1>
+
+        <section id="ydc">
+            <div class="knowledge-card">
+                <h2>原电池</h2>
+                <h3>原电池原理</h3>
+                <ul>
+                    <li>将化学能转化为电能的装置。</li>
+                    <li><b>构成条件</b>：两个活泼性不同的电极、电解质溶液、形成闭合回路、自发的氧化还原反应。</li>
+                    <li><b>电极判断</b>：负极（较活泼金属）发生氧化反应；正极（较不活泼金属或导电非金属）发生还原反应。</li>
+                </ul>
+                <h3>电极反应式书写</h3>
+                <ul>
+                    <li>锌铜原电池（稀硫酸）：<br>
+                        负极：<span class="chem">\(\ce{Zn -> Zn^{2+} + 2e^-}\)</span><br>
+                        正极：<span class="chem">\(\ce{2H+ + 2e^- -> H2 ^}\)</span></li>
+                </ul>
+                <h3>化学电源</h3>
+                <ul>
+                    <li><b>一次电池</b>：不可充电（如锌锰干电池）</li>
+                    <li><b>二次电池</b>：可充电（如铅蓄电池）：<br>
+                        放电：<span class="chem">\(\ce{Pb + PbO2 + 2H2SO4 -> 2PbSO4 + 2H2O}\)</span><br>
+                        充电：<span class="chem">\(\ce{2PbSO4 + 2H2O -> Pb + PbO2 + 2H2SO4}\)</span></li>
+                    <li><b>燃料电池</b>：<span class="chem">\(\ce{2H2 + O2 -> 2H2O}\)</span>（氢氧燃料电池）</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="djc">
+            <div class="knowledge-card">
+                <h2>电解池</h2>
+                <h3>电解原理</h3>
+                <ul>
+                    <li>将电能转化为化学能的装置。</li>
+                    <li><b>构成条件</b>：直流电源、两个电极、电解质溶液（或熔融电解质）、形成闭合回路。</li>
+                    <li><b>电极判断</b>：阳极（与电源正极相连）发生氧化反应；阴极（与电源负极相连）发生还原反应。</li>
+                </ul>
+                <h3>放电顺序</h3>
+                <ul>
+                    <li><b>阳极（惰性电极）</b>：活性电极 > S²⁻ > I⁻ > Br⁻ > Cl⁻ > OH⁻ > 含氧酸根 > F⁻</li>
+                    <li><b>阴极</b>：Ag⁺ > Cu²⁺ > H⁺（酸） > Fe²⁺ > Zn²⁺ > H⁺（水） > Al³⁺ > Mg²⁺ > Na⁺</li>
+                </ul>
+                <h3>电解应用</h3>
+                <ul>
+                    <li><b>氯碱工业</b>：电解饱和食盐水<br>
+                        阳极：<span class="chem">\(\ce{2Cl- -> Cl2 ^ + 2e^-}\)</span><br>
+                        阴极：<span class="chem">\(\ce{2H2O + 2e^- -> H2 ^ + 2OH-}\)</span><br>
+                        总反应：<span class="chem">\(\ce{2NaCl + 2H2O ->[\text{通电}] 2NaOH + H2 ^ + Cl2 ^}\)</span></li>
+                    <li><b>电镀</b>：镀层金属作阳极，镀件作阴极，含镀层金属离子的溶液作电镀液。</li>
+                    <li><b>铜的精炼</b>：粗铜作阳极，纯铜作阴极，电解质为 <span class="chem">\(\ce{CuSO4}\)</span> 溶液。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="jsfh">
+            <div class="knowledge-card">
+                <h2>金属的腐蚀与防护</h2>
+                <h3>金属腐蚀</h3>
+                <ul>
+                    <li><b>化学腐蚀</b>：金属与干燥气体或非电解质直接反应。</li>
+                    <li><b>电化学腐蚀</b>（更普遍）：<br>
+                        析氢腐蚀（酸性环境）：负极 <span class="chem">\(\ce{Fe -> Fe^{2+} + 2e^-}\)</span>，正极 <span class="chem">\(\ce{2H+ + 2e^- -> H2 ^}\)</span><br>
+                        吸氧腐蚀（中性或碱性环境）：负极 <span class="chem">\(\ce{2Fe -> 2Fe^{2+} + 4e^-}\)</span>，正极 <span class="chem">\(\ce{O2 + 4e^- + 2H2O -> 4OH-}\)</span></li>
+                </ul>
+                <h3>防护方法</h3>
+                <ul>
+                    <li><b>改变内部结构</b>：如制成不锈钢。</li>
+                    <li><b>覆盖保护层</b>：涂漆、电镀、搪瓷等。</li>
+                    <li><b>电化学保护</b>：牺牲阳极的阴极保护法（连接更活泼金属）、外加电流的阴极保护法。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ],
+                trust: true
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

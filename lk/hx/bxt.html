@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>化学必修二</title>
+    
+    <!-- KaTeX 核心库 + 自动渲染 + mhchem 扩展（专门处理化学式） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/mhchem.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        /* 优化卡片内排版：增加子标题、列表样式 */
+        .knowledge-card h3 {
+            font-size: 1.1em;
+            margin: 15px 0 5px;
+            color: var(--accent-color);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 10px;
+        }
+        .knowledge-card ul {
+            margin: 5px 0 10px 20px;
+            padding-left: 0;
+        }
+        .knowledge-card li {
+            margin-bottom: 5px;
+        }
+        .knowledge-card p {
+            margin: 0 0 10px;
+        }
+
+        /* 化学方程式单独样式（使公式更清晰） */
+        .knowledge-card .chem {
+            font-family: 'KaTeX_Main', 'Times New Roman', serif;
+            white-space: nowrap;
+            background-color: rgba(255,255,255,0.3);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (化学必修二分类) 根据人教版2019目录整理 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>化学必修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-fjs')">✚ 非金属元素</div>
+            <div class="category-content" id="cat-fjs">
+                <a href="#ljqhw">硫及其化合物</a>
+                <a href="#dqhw">氮及其化合物</a>
+                <a href="#gjqhw">硅及其化合物</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-hxny')">✚ 化学反应与能量</div>
+            <div class="category-content" id="cat-hxny">
+                <a href="#hxyrn">化学反应与热能</a>
+                <a href="#hxydn">化学反应与电能</a>
+                <a href="#hxlyl">化学反应的速率与限度</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-yjh')">✚ 有机化合物</div>
+            <div class="category-content" id="cat-yjh">
+                <a href="#yjw">有机物的结构特点</a>
+                <a href="#jth">甲烷与烷烃</a>
+                <a href="#yxx">乙烯与烯烃</a>
+                <a href="#bq">苯及其同系物</a>
+                <a href="#yw">乙醇、乙酸、基本营养物质</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-hxkxfz')">✚ 化学与可持续发展</div>
+            <div class="category-content" id="cat-hxkxfz">
+                <a href="#zrzy">自然资源的开发利用</a>
+                <a href="#hxpl">化学品的合理使用</a>
+                <a href="#hjbh">环境保护与绿色化学</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：化学必修二知识点卡片（所有加热条件均用汉字“加热”） -->
+    <main>
+        <!-- 第五章 化工生产中的重要非金属元素 -->
+        <h1>第五章 化工生产中的重要非金属元素</h1>
+        
+        <section id="ljqhw">
+            <div class="knowledge-card">
+                <h2>硫及其化合物</h2>
+                <h3>硫单质</h3>
+                <ul>
+                    <li><b>物理性质</b>：俗称硫黄，黄色晶体，不溶于水，微溶于酒精，易溶于二硫化碳。</li>
+                    <li><b>化学性质</b>：
+                        <ul>
+                            <li>与金属反应：<span class="chem">\(\ce{Fe + S ->[\text{加热}] FeS}\)</span>、<span class="chem">\(\ce{2Cu + S ->[\text{加热}] Cu2S}\)</span></li>
+                            <li>与非金属反应：<span class="chem">\(\ce{S + O2 ->[\text{点燃}] SO2}\)</span></li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>二氧化硫 (<span class="chem">\(\ce{SO2}\)</span>)</h3>
+                <ul>
+                    <li><b>物理性质</b>：无色有刺激性气味的有毒气体，密度比空气大，易液化，易溶于水。</li>
+                    <li><b>化学性质</b>：
+                        <ul>
+                            <li><b>酸性氧化物</b>：与水反应 <span class="chem">\(\ce{SO2 + H2O <=> H2SO3}\)</span>；与碱反应 <span class="chem">\(\ce{SO2 + 2NaOH -> Na2SO3 + H2O}\)</span></li>
+                            <li><b>还原性</b>：能被 <span class="chem">\(\ce{O2}\)</span>、<span class="chem">\(\ce{Cl2}\)</span>、<span class="chem">\(\ce{KMnO4}\)</span> 等氧化，如 <span class="chem">\(\ce{2SO2 + O2 <=>[催化剂][\text{加热}] 2SO3}\)</span>（可逆）</li>
+                            <li><b>氧化性</b>：与 <span class="chem">\(\ce{H2S}\)</span> 反应 <span class="chem">\(\ce{SO2 + 2H2S -> 3S v + 2H2O}\)</span></li>
+                            <li><b>漂白性</b>：能使品红溶液褪色（加热恢复），用于漂白纸浆、毛、丝等。</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>三氧化硫 (<span class="chem">\(\ce{SO3}\)</span>)</h3>
+                <ul><li>无色易挥发晶体，遇水剧烈反应 <span class="chem">\(\ce{SO3 + H2O -> H2SO4}\)</span>（放热）。</li></ul>
+                <h3>硫酸 (<span class="chem">\(\ce{H2SO4}\)</span>)</h3>
+                <ul>
+                    <li><b>稀硫酸</b>：具有酸的通性。</li>
+                    <li><b>浓硫酸的特性</b>：
+                        <ul>
+                            <li><b>吸水性</b>：常用作干燥剂（不能干燥碱性气体和还原性气体如 <span class="chem">\(\ce{H2S}\)</span>、<span class="chem">\(\ce{HI}\)</span>）</li>
+                            <li><b>脱水性</b>：能将有机物中的氢氧元素按2:1脱去，使蔗糖、纸张等炭化</li>
+                            <li><b>强氧化性</b>：常温下使 <span class="chem">\(\ce{Fe}\)</span>、<span class="chem">\(\ce{Al}\)</span> 钝化；加热时能与大多数金属反应，如 <span class="chem">\(\ce{Cu + 2H2SO4(浓) ->[\text{加热}] CuSO4 + SO2 ^ + 2H2O}\)</span>；也能与非金属反应，如 <span class="chem">\(\ce{C + 2H2SO4(浓) ->[\text{加热}] CO2 ^ + 2SO2 ^ + 2H2O}\)</span></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="dqhw">
+            <div class="knowledge-card">
+                <h2>氮及其化合物</h2>
+                <h3>氮气 (<span class="chem">\(\ce{N2}\)</span>)</h3>
+                <ul>
+                    <li>无色无味气体，约占空气体积的78%，化学性质稳定（含 <span class="chem">\(\ce{N≡N}\)</span> 三键）。</li>
+                    <li>一定条件下反应：<span class="chem">\(\ce{N2 + O2 ->[放电] 2NO}\)</span>，<span class="chem">\(\ce{N2 + 3H2 ->[高温、高压、催化剂] 2NH3}\)</span>。</li>
+                </ul>
+                <h3>一氧化氮 (<span class="chem">\(\ce{NO}\)</span>)</h3>
+                <ul><li>无色无味有毒气体，不溶于水，在空气中易被氧化：<span class="chem">\(\ce{2NO + O2 -> 2NO2}\)</span>。</li></ul>
+                <h3>二氧化氮 (<span class="chem">\(\ce{NO2}\)</span>)</h3>
+                <ul><li>红棕色有刺激性气味气体，易溶于水：<span class="chem">\(\ce{3NO2 + H2O -> 2HNO3 + NO}\)</span>。</li></ul>
+                <h3>氨 (<span class="chem">\(\ce{NH3}\)</span>)</h3>
+                <ul>
+                    <li><b>物理性质</b>：无色刺激性气味气体，密度比空气小，极易溶于水（1:700），易液化。</li>
+                    <li><b>化学性质</b>：
+                        <ul>
+                            <li>与水反应：<span class="chem">\(\ce{NH3 + H2O <=> NH3·H2O <=> NH4+ + OH-}\)</span>（可逆，氨水显弱碱性）</li>
+                            <li>与酸反应：<span class="chem">\(\ce{NH3 + HCl -> NH4Cl}\)</span>（白烟）</li>
+                            <li>催化氧化：<span class="chem">\(\ce{4NH3 + 5O2 ->[Pt][\text{加热}] 4NO + 6H2O}\)</span></li>
+                            <li>实验室制法：<span class="chem">\(\ce{2NH4Cl + Ca(OH)2 ->[\text{加热}] CaCl2 + 2NH3 ^ + 2H2O}\)</span></li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>铵盐</h3>
+                <ul>
+                    <li>易溶于水，受热易分解：<span class="chem">\(\ce{NH4Cl ->[\text{加热}] NH3 ^ + HCl ^}\)</span>，<span class="chem">\(\ce{NH4HCO3 ->[\text{加热}] NH3 ^ + CO2 ^ + H2O}\)</span></li>
+                    <li>与碱反应：<span class="chem">\(\ce{NH4+ + OH- -> NH3 ^ + H2O}\)</span>（检验铵根）</li>
+                </ul>
+                <h3>硝酸 (<span class="chem">\(\ce{HNO3}\)</span>)</h3>
+                <ul>
+                    <li><b>物理性质</b>：无色易挥发液体，有刺激性气味。</li>
+                    <li><b>化学性质</b>：
+                        <ul>
+                            <li><b>不稳定性</b>：<span class="chem">\(\ce{4HNO3(浓) ->[光照或\text{加热}] 4NO2 ^ + O2 ^ + 2H2O}\)</span>，应保存在棕色瓶中</li>
+                            <li><b>强氧化性</b>：浓硝酸与大多数金属反应，不生成 <span class="chem">\(\ce{H2}\)</span>，如 <span class="chem">\(\ce{Cu + 4HNO3(浓) -> Cu(NO3)2 + 2NO2 ^ + 2H2O}\)</span>，<span class="chem">\(\ce{3Cu + 8HNO3(稀) -> 3Cu(NO3)2 + 2NO ^ + 4H2O}\)</span>；常温下使 <span class="chem">\(\ce{Fe}\)</span>、<span class="chem">\(\ce{Al}\)</span> 钝化</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="gjqhw">
+            <div class="knowledge-card">
+                <h2>硅及其化合物</h2>
+                <h3>硅单质</h3>
+                <ul>
+                    <li><b>物理性质</b>：灰黑色固体，有金属光泽，硬而脆，半导体材料。</li>
+                    <li><b>化学性质</b>：常温下只与 <span class="chem">\(\ce{F2}\)</span>、<span class="chem">\(\ce{HF}\)</span> 和强碱反应：<span class="chem">\(\ce{Si + 4HF -> SiF4 ^ + 2H2 ^}\)</span>，<span class="chem">\(\ce{Si + 2NaOH + H2O -> Na2SiO3 + 2H2 ^}\)</span>。</li>
+                </ul>
+                <h3>二氧化硅 (<span class="chem">\(\ce{SiO2}\)</span>)</h3>
+                <ul>
+                    <li><b>物理性质</b>：坚硬难熔固体，不溶于水。</li>
+                    <li><b>化学性质</b>：
+                        <ul>
+                            <li>与氢氟酸反应（特性）：<span class="chem">\(\ce{SiO2 + 4HF -> SiF4 ^ + 2H2O}\)</span>（用于雕刻玻璃）</li>
+                            <li>与碱反应：<span class="chem">\(\ce{SiO2 + 2NaOH -> Na2SiO3 + H2O}\)</span>（碱液不用玻璃塞）</li>
+                            <li>高温下与碱性氧化物反应：<span class="chem">\(\ce{SiO2 + CaO ->[\text{高温}] CaSiO3}\)</span></li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>硅酸 (<span class="chem">\(\ce{H2SiO3}\)</span>)</h3>
+                <ul><li>难溶于水的弱酸，由硅酸盐与酸反应制得：<span class="chem">\(\ce{Na2SiO3 + 2HCl -> 2NaCl + H2SiO3 v}\)</span>。</li></ul>
+                <h3>硅酸盐</h3>
+                <ul>
+                    <li>硅酸钠 (<span class="chem">\(\ce{Na2SiO3}\)</span>)：俗称泡花碱，水溶液俗称水玻璃，可作黏合剂、防火剂。</li>
+                    <li>传统硅酸盐材料：陶瓷、玻璃、水泥。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第六章 化学反应与能量 -->
+        <h1>第六章 化学反应与能量</h1>
+
+        <section id="hxyrn">
+            <div class="knowledge-card">
+                <h2>化学反应与热能</h2>
+                <h3>放热反应与吸热反应</h3>
+                <ul>
+                    <li><b>放热反应</b>：反应物总能量 > 生成物总能量，如中和、燃烧、金属与酸、大多数化合反应。</li>
+                    <li><b>吸热反应</b>：反应物总能量 < 生成物总能量，如大多数分解反应、<span class="chem">\(\ce{C}\)</span> 与 <span class="chem">\(\ce{CO2}\)</span> 反应、<span class="chem">\(\ce{Ba(OH)2·8H2O}\)</span> 与 <span class="chem">\(\ce{NH4Cl}\)</span> 反应。</li>
+                </ul>
+                <h3>反应热与焓变</h3>
+                <ul>
+                    <li>恒压条件下，反应的热效应等于焓变 <span class="chem">\(\Delta H\)</span>，单位 kJ/mol。</li>
+                    <li><span class="chem">\(\Delta H\)</span> = 生成物总能量 – 反应物总能量 = 反应物键能总和 – 生成物键能总和。</li>
+                    <li><span class="chem">\(\Delta H < 0\)</span> 为放热，<span class="chem">\(\Delta H > 0\)</span> 为吸热。</li>
+                </ul>
+                <h3>热化学方程式</h3>
+                <ul><li>需注明物质状态和反应热，如 <span class="chem">\(\ce{H2(g) + 1/2O2(g) = H2O(l)}\)</span> <span class="chem">\(\Delta H = -285.8\ \text{kJ/mol}\)</span>。</li></ul>
+                <h3>中和热</h3>
+                <ul><li>稀溶液中，强酸强碱中和生成 1 mol <span class="chem">\(\ce{H2O}\)</span> 的反应热，约为 –57.3 kJ/mol。</li></ul>
+                <h3>燃烧热</h3>
+                <ul><li>101 kPa 时，1 mol 纯物质完全燃烧生成稳定氧化物时所放出的热量。</li></ul>
+            </div>
+        </section>
+
+        <section id="hxydn">
+            <div class="knowledge-card">
+                <h2>化学反应与电能</h2>
+                <h3>原电池</h3>
+                <ul>
+                    <li><b>定义</b>：将化学能转化为电能的装置。</li>
+                    <li><b>构成条件</b>：两个活泼性不同的电极、电解质溶液、形成闭合回路、自发的氧化还原反应。</li>
+                    <li><b>工作原理</b>：
+                        <ul>
+                            <li>负极：发生氧化反应（较活泼金属，电子流出）</li>
+                            <li>正极：发生还原反应（较不活泼金属或导电非金属，电子流入）</li>
+                            <li>溶液中阳离子向正极移动，阴离子向负极移动</li>
+                        </ul>
+                    </li>
+                    <li><b>举例</b>：锌铜原电池，负极 <span class="chem">\(\ce{Zn -> Zn^{2+} + 2e^-}\)</span>，正极 <span class="chem">\(\ce{2H+ + 2e^- -> H2 ^}\)</span>。</li>
+                </ul>
+                <h3>化学电源</h3>
+                <ul>
+                    <li><b>一次电池</b>：不能充电，如普通干电池。</li>
+                    <li><b>二次电池</b>：可充电，如铅蓄电池。</li>
+                    <li><b>燃料电池</b>：将燃料与氧化剂的化学能直接转化为电能，如氢氧燃料电池，总反应 <span class="chem">\(\ce{2H2 + O2 -> 2H2O}\)</span>。</li>
+                </ul>
+                <h3>金属的腐蚀与防护</h3>
+                <ul>
+                    <li><b>电化学腐蚀</b>：钢铁的析氢腐蚀（酸性环境）和吸氧腐蚀（中性或碱性环境）。</li>
+                    <li><b>防护方法</b>：覆盖保护层、改变内部结构、电化学保护法（牺牲阳极的阴极保护法、外加电流的阴极保护法）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="hxlyl">
+            <div class="knowledge-card">
+                <h2>化学反应的速率与限度</h2>
+                <h3>化学反应速率</h3>
+                <ul>
+                    <li><b>定义</b>：单位时间内反应物浓度的减少或生成物浓度的增加，单位 mol/(L·s) 或 mol/(L·min)。公式 <span class="chem">\(v = \frac{\Delta c}{\Delta t}\)</span>。</li>
+                    <li><b>影响因素</b>：
+                        <ul>
+                            <li>内因：反应物本身的性质。</li>
+                            <li>外因：浓度（增大浓度，速率加快）、压强（对有气体参加的反应，增大压强，速率加快）、温度（升高温度，速率加快）、催化剂（正催化剂加快反应速率）、接触面积等。</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>可逆反应与化学平衡</h3>
+                <ul>
+                    <li><b>可逆反应</b>：在同一条件下既能正向进行又能逆向进行的反应。</li>
+                    <li><b>化学平衡状态</b>：正反应速率与逆反应速率相等，反应物和生成物浓度不再改变的状态。特征：逆、等、动、定、变。</li>
+                </ul>
+                <h3>化学平衡的移动</h3>
+                <ul><li><b>勒夏特列原理</b>：如果改变影响平衡的条件之一（浓度、压强、温度），平衡将向着减弱这种改变的方向移动。催化剂不改变平衡移动。</li></ul>
+            </div>
+        </section>
+
+        <!-- 第七章 有机化合物 -->
+        <h1>第七章 有机化合物</h1>
+
+        <section id="yjw">
+            <div class="knowledge-card">
+                <h2>有机物的结构特点</h2>
+                <ul>
+                    <li><b>有机化合物</b>：含有碳元素的化合物（但 <span class="chem">\(\ce{CO}\)</span>、<span class="chem">\(\ce{CO2}\)</span>、碳酸盐等除外）。</li>
+                    <li><b>碳原子的成键特点</b>：碳原子易形成4个共价键，可以形成单键、双键、三键，碳原子间可连接成链状或环状。</li>
+                    <li><b>同分异构现象</b>：化合物具有相同的分子式，但结构不同的现象。同分异构体性质有差异。</li>
+                    <li><b>官能团</b>：决定有机物特性的原子或原子团，如碳碳双键、羟基（-OH）、羧基（-COOH）、酯基（-COO-）等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="jth">
+            <div class="knowledge-card">
+                <h2>甲烷与烷烃</h2>
+                <h3>甲烷 (<span class="chem">\(\ce{CH4}\)</span>)</h3>
+                <ul>
+                    <li><b>物理性质</b>：无色无味气体，难溶于水，密度比空气小。</li>
+                    <li><b>化学性质</b>：
+                        <ul>
+                            <li>氧化反应：燃烧 <span class="chem">\(\ce{CH4 + 2O2 ->[\text{点燃}] CO2 + 2H2O}\)</span>（淡蓝色火焰）</li>
+                            <li>取代反应：光照下与氯气发生取代，产物混合物：<span class="chem">\(\ce{CH3Cl}\)</span>、<span class="chem">\(\ce{CH2Cl2}\)</span>、<span class="chem">\(\ce{CHCl3}\)</span>、<span class="chem">\(\ce{CCl4}\)</span>、<span class="chem">\(\ce{HCl}\)</span></li>
+                            <li>分解反应：<span class="chem">\(\ce{CH4 ->[\text{高温}] C + 2H2}\)</span></li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>烷烃</h3>
+                <ul>
+                    <li>通式 <span class="chem">\(\ce{C_nH_{2n+2}}\)</span> (n≥1)。</li>
+                    <li>性质：熔沸点随碳原子数增加而升高，均难溶于水，化学性质稳定，可发生燃烧和取代反应。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="yxx">
+            <div class="knowledge-card">
+                <h2>乙烯与烯烃</h2>
+                <h3>乙烯 (<span class="chem">\(\ce{C2H4}\)</span>)</h3>
+                <ul>
+                    <li><b>物理性质</b>：无色稍有气味的气体，难溶于水，密度比空气略小。</li>
+                    <li><b>化学性质</b>：
+                        <ul>
+                            <li>氧化反应：燃烧火焰明亮有黑烟；能使酸性 <span class="chem">\(\ce{KMnO4}\)</span> 溶液褪色</li>
+                            <li>加成反应：与 <span class="chem">\(\ce{Br2}\)</span> 的 <span class="chem">\(\ce{CCl4}\)</span> 溶液反应 <span class="chem">\(\ce{CH2=CH2 + Br2 -> CH2BrCH2Br}\)</span>；与 <span class="chem">\(\ce{H2O}\)</span> 加成制乙醇；与 <span class="chem">\(\ce{HCl}\)</span> 加成制氯乙烷</li>
+                            <li>加聚反应：<span class="chem">\(\ce{nCH2=CH2 ->[催化剂] [CH2-CH2]_n}\)</span></li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>烯烃</h3>
+                <ul><li>含碳碳双键的不饱和烃，通式 <span class="chem">\(\ce{C_nH_{2n}}\)</span> (n≥2)，能发生加成、加聚、氧化等反应。</li></ul>
+            </div>
+        </section>
+
+        <section id="bq">
+            <div class="knowledge-card">
+                <h2>苯及其同系物</h2>
+                <h3>苯 (<span class="chem">\(\ce{C6H6}\)</span>)</h3>
+                <ul>
+                    <li><b>物理性质</b>：无色有特殊气味的液体，密度比水小，不溶于水，易挥发，有毒。</li>
+                    <li><b>分子结构</b>：平面正六边形，键介于单双键之间，所有原子共平面。</li>
+                    <li><b>化学性质</b>：
+                        <ul>
+                            <li>氧化反应：燃烧火焰明亮有浓烟；不能使酸性 <span class="chem">\(\ce{KMnO4}\)</span> 褪色</li>
+                            <li>取代反应：卤代 <span class="chem">\(\ce{C6H6 + Br2 ->[FeBr3] C6H5Br + HBr}\)</span>；硝化 <span class="chem">\(\ce{C6H6 + HNO3(浓) ->[浓H2SO4][50-60℃] C6H5NO2 + H2O}\)</span></li>
+                            <li>加成反应：<span class="chem">\(\ce{C6H6 + 3H2 ->[Ni][\text{加热}] C6H12}\)</span></li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>苯的同系物</h3>
+                <ul><li>烷基苯，通式 <span class="chem">\(\ce{C_nH_{2n-6}}\)</span> (n≥6)，侧链能被酸性 <span class="chem">\(\ce{KMnO4}\)</span> 氧化（如甲苯使 <span class="chem">\(\ce{KMnO4}\)</span> 褪色）。</li></ul>
+            </div>
+        </section>
+
+        <section id="yw">
+            <div class="knowledge-card">
+                <h2>乙醇、乙酸、基本营养物质</h2>
+                <h3>乙醇 (<span class="chem">\(\ce{C2H5OH}\)</span>)</h3>
+                <ul>
+                    <li><b>物理性质</b>：无色特殊香味的液体，易挥发，与水任意比互溶。</li>
+                    <li><b>化学性质</b>：
+                        <ul>
+                            <li>与钠反应：<span class="chem">\(\ce{2C2H5OH + 2Na -> 2C2H5ONa + H2 ^}\)</span></li>
+                            <li>氧化反应：燃烧 <span class="chem">\(\ce{C2H5OH + 3O2 ->[\text{点燃}] 2CO2 + 3H2O}\)</span>；催化氧化 <span class="chem">\(\ce{2C2H5OH + O2 ->[Cu或Ag][\text{加热}] 2CH3CHO + 2H2O}\)</span></li>
+                            <li>酯化反应：与乙酸反应生成乙酸乙酯</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>乙酸 (<span class="chem">\(\ce{CH3COOH}\)</span>)</h3>
+                <ul>
+                    <li><b>物理性质</b>：强烈刺激性气味的液体，易溶于水。</li>
+                    <li><b>化学性质</b>：
+                        <ul>
+                            <li>酸性：具有酸的通性，能使紫色石蕊变红</li>
+                            <li>酯化反应：<span class="chem">\(\ce{CH3COOH + C2H5OH <=>[浓H2SO4][\text{加热}] CH3COOC2H5 + H2O}\)</span>（可逆）</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>基本营养物质</h3>
+                <ul>
+                    <li><b>糖类</b>：单糖（葡萄糖、果糖）、二糖（蔗糖、麦芽糖）、多糖（淀粉、纤维素）。葡萄糖能发生银镜反应，淀粉遇碘变蓝。</li>
+                    <li><b>油脂</b>：高级脂肪酸甘油酯，碱性条件下水解生成高级脂肪酸盐（肥皂）和甘油（皂化反应）。</li>
+                    <li><b>蛋白质</b>：由氨基酸脱水缩合而成，盐析（可逆）与变性（不可逆）的区别；蛋白质遇浓硝酸变黄（颜色反应）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第八章 化学与可持续发展 -->
+        <h1>第八章 化学与可持续发展</h1>
+
+        <section id="zrzy">
+            <div class="knowledge-card">
+                <h2>自然资源的开发利用</h2>
+                <h3>金属矿物的开发利用</h3>
+                <ul>
+                    <li><b>热分解法</b>（不活泼金属如 <span class="chem">\(\ce{Hg}\)</span>、<span class="chem">\(\ce{Ag}\)</span>）</li>
+                    <li><b>热还原法</b>（中等活泼金属如 <span class="chem">\(\ce{Fe}\)</span>、<span class="chem">\(\ce{Cu}\)</span>）</li>
+                    <li><b>电解法</b>（活泼金属如 <span class="chem">\(\ce{Na}\)</span>、<span class="chem">\(\ce{Mg}\)</span>、<span class="chem">\(\ce{Al}\)</span>）</li>
+                </ul>
+                <h3>海水资源的开发利用</h3>
+                <ul>
+                    <li>海水制盐、海水提溴（空气吹出法）、海水提镁、海水淡化。</li>
+                </ul>
+                <h3>化石燃料的综合利用</h3>
+                <ul>
+                    <li><b>煤</b>：干馏（化学变化）、气化、液化。</li>
+                    <li><b>石油</b>：分馏（物理变化）、裂化、裂解、催化重整。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="hxpl">
+            <div class="knowledge-card">
+                <h2>化学品的合理使用</h2>
+                <ul>
+                    <li><b>化肥、农药的合理施用</b>：过量使用会导致土壤酸化、水体富营养化。</li>
+                    <li><b>常见药物的正确使用</b>：解热镇痛药（阿司匹林）、抗生素（青霉素需皮试）、抗酸药（胃舒平）。</li>
+                    <li><b>食品添加剂</b>：着色剂、增味剂、防腐剂、抗氧化剂等，合理使用可改善食品品质。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="hjbh">
+            <div class="knowledge-card">
+                <h2>环境保护与绿色化学</h2>
+                <h3>环境问题</h3>
+                <ul>
+                    <li><b>大气污染</b>：<span class="chem">\(\ce{SO2}\)</span>、<span class="chem">\(\ce{NOx}\)</span>、可吸入颗粒物等导致酸雨、光化学烟雾、温室效应。</li>
+                    <li><b>水体污染</b>：富营养化（赤潮、水华）、重金属污染。</li>
+                    <li><b>土壤污染</b>：化肥、农药、重金属等。</li>
+                </ul>
+                <h3>绿色化学</h3>
+                <ul>
+                    <li><b>核心</b>：从源头上减少或消除对环境的污染。</li>
+                    <li><b>原则</b>：原子经济性（原子利用率100%）、高选择性、使用无毒无害原料等。</li>
+                    <li><b>示例</b>：乙烯直接氧化法制环氧乙烷（传统氯醇法有污染）。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染（确保 mhchem 生效）
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ],
+                trust: true
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+          // 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

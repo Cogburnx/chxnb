@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>地理必修一</title>
+    
+    <!-- KaTeX 渲染 (备用，可能用于公式) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #b95e0e;      /* 地理土橙色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f5e6d3;     /* 浅土色背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #b95e0e;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #b95e0e;
+        }
+        .category-title:hover { background: rgba(185, 94, 14, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #5a3e2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮土橙色 */
+        .category-content a.active {
+            color: #b95e0e;
+            font-weight: 600;
+            background-color: rgba(185, 94, 14, 0.12);
+            border-left: 3px solid #b95e0e;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #5a3e2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fae6d1;
+            border: 2px dashed #e3a56d;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #b95e0e;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #b95e0e;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e3a56d;
+            color: #b95e0e;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #f0cfb5;
+            padding-bottom: 10px;
+            color: #b95e0e;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 公式或特殊标记 */
+        .formula {
+            font-weight: 600;
+            color: #a0522d;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (土色背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (地理必修一分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>地理必修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一章 宇宙中的地球 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-universe')">✚ 宇宙中的地球</div>
+            <div class="category-content" id="cat-universe">
+                <a href="#earth-cosmos">地球的宇宙环境</a>
+                <a href="#sun-effect">太阳对地球的影响</a>
+                <a href="#earth-motion">地球的运动（自转与公转）</a>
+                <a href="#geographic-significance">地球运动的地理意义</a>
+                <a href="#earth-structure">地球的圈层结构</a>
+            </div>
+        </div>
+        
+        <!-- 第二章 地球上的大气 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-atmosphere')">✚ 地球上的大气</div>
+            <div class="category-content" id="cat-atmosphere">
+                <a href="#atmos-composition">大气的组成和垂直分层</a>
+                <a href="#heating-process">大气的受热过程</a>
+                <a href="#pressure-wind">气压带和风带</a>
+                <a href="#weather-system">常见天气系统</a>
+                <a href="#climate">全球气候变化</a>
+            </div>
+        </div>
+        
+        <!-- 第三章 地球上的水 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-water')">✚ 地球上的水</div>
+            <div class="category-content" id="cat-water">
+                <a href="#water-cycle">水循环的过程和意义</a>
+                <a href="#sea-water">海水的性质（温度、盐度、密度）</a>
+                <a href="#ocean-movement">海水的运动（波浪、潮汐、洋流）</a>
+                <a href="#water-resource">陆地水体及其相互关系</a>
+            </div>
+        </div>
+        
+        <!-- 第四章 地表形态的塑造 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-landform')">✚ 地表形态的塑造</div>
+            <div class="category-content" id="cat-landform">
+                <a href="#rock-cycle">岩石圈物质循环</a>
+                <a href="#internal-force">内力作用与地貌</a>
+                <a href="#external-force">外力作用与地貌</a>
+                <a href="#river-landform">河流地貌的发育</a>
+            </div>
+        </div>
+        
+        <!-- 第五章 自然环境的整体性与差异性 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-nature')">✚ 自然环境的整体性与差异性</div>
+            <div class="category-content" id="cat-nature">
+                <a href="#holism">自然环境的整体性</a>
+                <a href="#zonality">水平地域分异规律</a>
+                <a href="#vertical">垂直地域分异规律</a>
+                <a href="#soil-vegetation">土壤与植被</a>
+            </div>
+        </div>
+        
+        <!-- 第六章 自然灾害 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-disaster')">✚ 自然灾害</div>
+            <div class="category-content" id="cat-disaster">
+                <a href="#common-disaster">常见自然灾害（气象、地质）</a>
+                <a href="#disaster-mechanism">成因与分布</a>
+                <a href="#disaster-prevention">防灾减灾措施</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">认识自然 · 和谐共生</div>
+    </nav>
+    
+    <!-- 主要内容：详细版地理必修一知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一章 宇宙中的地球 (详细) -->
+        <h1>第一章 宇宙中的地球</h1>
+        <section id="earth-cosmos">
+            <div class="knowledge-card">
+                <h2>地球的宇宙环境</h2>
+                <ul>
+                    <li><strong>天体系统层次</strong>：地月系 → 太阳系 → 银河系 → 可观测宇宙。
+                        <ul>
+                            <li>银河系与河外星系共同组成宇宙。</li>
+                        </ul>
+                    </li>
+                    <li><strong>太阳系</strong>：
+                        <ul>
+                            <li>中心天体：太阳（质量占99.86%）。</li>
+                            <li>八大行星（距日由近到远）：水、金、地、火、木、土、天王、海王。小行星带位于火星和木星之间。</li>
+                            <li>类地行星：水、金、地、火（体积小、密度大、卫星少、有固体表面）。</li>
+                            <li>巨行星：木、土；远日行星：天王、海王。</li>
+                        </ul>
+                    </li>
+                    <li><strong>地球存在生命的条件</strong>：
+                        <ul>
+                            <li>外部条件：安全的宇宙环境（行星轨道稳定）、稳定的太阳光照。</li>
+                            <li>自身条件：适宜的温度（日地距离适中）、适合呼吸的大气（体积质量适中）、液态水（温度适宜）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sun-effect">
+            <div class="knowledge-card">
+                <h2>太阳对地球的影响</h2>
+                <ul>
+                    <li><strong>太阳辐射</strong>：
+                        <ul>
+                            <li>能量来源：太阳内部的核聚变反应。</li>
+                            <li>对地球的影响：为地球提供光热资源，维持地表温度；是大气、水、生物活动的主要动力；为人类生产生活提供能源（太阳能、化石能源）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>太阳活动</strong>：
+                        <ul>
+                            <li>类型：黑子（光球层，周期约11年）、耀斑（色球层，释放巨大能量）、日珥、太阳风（日冕层）。</li>
+                            <li>对地球的影响：
+                                <ul>
+                                    <li>扰动电离层，影响无线电短波通信。</li>
+                                    <li>产生磁暴现象，指南针失灵。</li>
+                                    <li>两极地区出现极光（太阳风与高层大气碰撞）。</li>
+                                    <li>与自然灾害有一定相关性（如地震、旱涝）。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="earth-motion">
+            <div class="knowledge-card">
+                <h2>地球的运动（自转与公转）</h2>
+                <ul>
+                    <li><strong>自转</strong>：
+                        <ul>
+                            <li>方向：自西向东（北极上空看为逆时针，南极上空看为顺时针）。</li>
+                            <li>周期：恒星日（23时56分4秒，真正周期）；太阳日（24小时，昼夜交替周期）。</li>
+                            <li>速度：角速度除南北极点外均15°/h；线速度从赤道向两极递减（赤道约1670km/h）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>公转</strong>：
+                        <ul>
+                            <li>方向：自西向东（与自转相同）。</li>
+                            <li>轨道：近似正圆的椭圆，太阳位于一个焦点上。近日点（1月初）速度较快，远日点（7月初）速度较慢。</li>
+                            <li>周期：恒星年（365日6时9分10秒）；回归年（365日5时48分46秒，用于历法）。</li>
+                            <li>黄赤交角：23°26′，导致太阳直射点在南、北回归线之间往返移动。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="geographic-significance">
+            <div class="knowledge-card">
+                <h2>地球运动的地理意义</h2>
+                <ul>
+                    <li><strong>自转的地理意义</strong>：
+                        <ul>
+                            <li>昼夜交替（周期24小时，使地表温度变化适中）。</li>
+                            <li>时差（经度每隔15°，地方时相差1小时）。时区划分：零时区（中时区）以0°经线为中央经线，向东向西各12个时区（东十二区与西十二区各7.5°）。国际日期变更线大致与180°经线重合，自东向西越过日期加一天，自西向东减一天。</li>
+                            <li>水平运动的物体发生偏转（北半球向右偏，南半球向左偏，赤道不偏）。影响气流、洋流、河流流向。</li>
+                            <li>塑造地球形状（赤道略鼓，两极稍扁）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>公转的地理意义</strong>：
+                        <ul>
+                            <li>正午太阳高度的变化：
+                                <ul>
+                                    <li>由太阳直射点向南北两侧递减。</li>
+                                    <li>夏至日，北回归线及其以北地区正午太阳高度最大，南半球最小；冬至日相反。</li>
+                                </ul>
+                            </li>
+                            <li>昼夜长短的变化：
+                                <ul>
+                                    <li>夏半年（春分-秋分），太阳直射北半球，北半球昼长夜短，纬度越高昼越长，北极圈内出现极昼；南半球相反。</li>
+                                    <li>冬半年（秋分-次年春分），北半球昼短夜长，纬度越高昼越短，北极圈内出现极夜。</li>
+                                    <li>赤道全年昼夜等长（各12h）。</li>
+                                </ul>
+                            </li>
+                            <li>四季的更替：
+                                <ul>
+                                    <li>天文四季：夏季是一年中白昼最长、正午太阳高度最高的季节；冬季相反。我国传统以立春、立夏、立秋、立冬为四季起点；欧美以春分、夏至、秋分、冬至为起点。</li>
+                                    <li>气候四季：3-5月为春季，6-8月夏季，9-11月秋季，12-次年2月冬季（北温带常用）。</li>
+                                </ul>
+                            </li>
+                            <li>五带划分：以回归线和极圈为界，分为热带、北温带、南温带、北寒带、南寒带。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="earth-structure">
+            <div class="knowledge-card">
+                <h2>地球的圈层结构</h2>
+                <ul>
+                    <li><strong>内部圈层</strong>（以地震波划分）：
+                        <ul>
+                            <li>地壳：莫霍面以上，平均厚度17km（大陆平均33km，海洋平均6km）。</li>
+                            <li>地幔：莫霍面与古登堡面之间，上地幔顶部存在软流层（一般认为岩浆发源地）。</li>
+                            <li>地核：古登堡面以下，分内核（固态，铁镍）和外核（液态，横波不能通过）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>外部圈层</strong>：
+                        <ul>
+                            <li>大气圈：由气体和悬浮物组成，主要成分氮、氧。</li>
+                            <li>水圈：连续但不规则的圈层，包括海洋、河流、湖泊、冰川、地下水等。</li>
+                            <li>生物圈：地球生命及其生存环境的总称，包括大气圈底部、水圈全部和岩石圈上部。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 地球上的大气 (详细) -->
+        <h1>第二章 地球上的大气</h1>
+        <section id="atmos-composition">
+            <div class="knowledge-card">
+                <h2>大气的组成和垂直分层</h2>
+                <ul>
+                    <li><strong>组成</strong>：
+                        <ul>
+                            <li>干洁空气：氮气（78%）、氧气（21%）、氩气（0.93%）、二氧化碳（0.03%，可变）、臭氧等。</li>
+                            <li>水汽和杂质：含量虽少，但影响天气变化（成云致雨的必要条件）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>垂直分层</strong>（自下而上）：
+                        <ul>
+                            <li><strong>对流层</strong>：厚度8~18km（低纬厚、高纬薄）。气温随高度升高而降低（每升高100m，气温下降0.6℃），因为地面是直接热源。空气对流显著，天气现象复杂多变（云、雨、雾、雪等）。</li>
+                            <li><strong>平流层</strong>：从对流层顶到50~55km。下层气温变化小，30km以上气温随高度升高而升高，因臭氧吸收紫外线。气流以平流运动为主，适合航空飞行；有臭氧层，保护地球生命。</li>
+                            <li><strong>高层大气</strong>：平流层顶以上。气压低，空气稀薄。电离层能反射无线电波（极光发生于此）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="heating-process">
+            <div class="knowledge-card">
+                <h2>大气的受热过程</h2>
+                <ul>
+                    <li><strong>能量来源</strong>：太阳辐射（短波辐射）。大气对太阳辐射的吸收很少（臭氧吸收紫外线，水汽吸收红外线），大部分太阳辐射到达地面。</li>
+                    <li><strong>地面受热</strong>：地面吸收太阳辐射而增温，同时向外辐射能量（地面长波辐射）。</li>
+                    <li><strong>大气受热</strong>：大气中的水汽、二氧化碳等强烈吸收地面长波辐射而增温，同时大气也向外辐射能量（大气辐射）。</li>
+                    <li><strong>大气逆辐射</strong>：大气辐射射向地面的部分，把热量返还地面，对地面起保温作用（多云夜晚气温较高）。</li>
+                    <li><strong>结论</strong>：太阳暖大地 → 大地暖大气 → 大气还大地。温室气体增多，大气逆辐射增强，导致全球变暖。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="pressure-wind">
+            <div class="knowledge-card">
+                <h2>气压带和风带</h2>
+                <ul>
+                    <li><strong>单圈环流</strong>（不考虑地球自转）：赤道空气受热上升，极地冷却下沉，形成赤道-极地的闭合环流。</li>
+                    <li><strong>三圈环流</strong>（考虑地转偏向力）：
+                        <ul>
+                            <li>赤道低气压带（赤道附近，空气上升，多雨）。</li>
+                            <li>副热带高气压带（30°附近，空气下沉，干燥）。</li>
+                            <li>副极地低气压带（60°附近，暖湿气流与干冷气流相遇，上升）。</li>
+                            <li>极地高气压带（90°附近，下沉）。</li>
+                            <li>风带：低纬信风带（北半球东北信风，南半球东南信风）；中纬西风带（北半球西南风，南半球西北风）；极地东风带。</li>
+                        </ul>
+                    </li>
+                    <li><strong>气压带风带季节移动</strong>：随太阳直射点南北移动，北半球夏季偏北，冬季偏南。</li>
+                    <li><strong>海陆分布对气压带的影响</strong>：
+                        <ul>
+                            <li>北半球：陆地面积大，7月亚洲低压切断了副热带高气压带，使其保留在海洋上（夏威夷高压、亚速尔高压）；1月亚洲高压切断副极地低气压带，形成阿留申低压、冰岛低压。</li>
+                            <li>南半球：海洋占优势，气压带基本呈带状分布。</li>
+                        </ul>
+                    </li>
+                    <li><strong>季风环流</strong>：
+                        <ul>
+                            <li>东亚季风：海陆热力性质差异。夏季东南风（高温多雨），冬季西北风（寒冷干燥）。</li>
+                            <li>南亚季风：夏季西南风（气压带风带北移，东南信风越过赤道偏转形成）——带来丰沛降水；冬季东北风（海陆热力性质差异）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="weather-system">
+            <div class="knowledge-card">
+                <h2>常见天气系统</h2>
+                <ul>
+                    <li><strong>锋面系统</strong>：
+                        <ul>
+                            <li><strong>冷锋</strong>：冷气团主动向暖气团移动。过境时常出现大风、雨雪、降温；过境后气温下降，气压上升，天气转好。实例：北方夏季暴雨、冬季寒潮、春季沙尘暴。</li>
+                            <li><strong>暖锋</strong>：暖气团主动向冷气团移动。过境时常形成连续性降水；过境后气温上升，气压下降，天气转晴。</li>
+                            <li><strong>准静止锋</strong>：冷暖气团势均力敌，锋面停留。带来持续性阴雨天气。如江淮准静止锋（梅雨）、昆明准静止锋（冬半年）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>气旋（低压）和反气旋（高压）</strong>：
+                        <ul>
+                            <li><strong>气旋</strong>：中心气压低，气流上升（北半球逆时针辐合，南半球顺时针辐合）。多阴雨天气。如温带气旋、热带气旋（台风）。</li>
+                            <li><strong>反气旋</strong>：中心气压高，气流下沉（北半球顺时针辐散，南半球逆时针辐散）。多晴朗干燥天气。如夏季长江流域的伏旱（副高控制）、冬季蒙古高压。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="climate">
+            <div class="knowledge-card">
+                <h2>全球气候变化</h2>
+                <ul>
+                    <li><strong>气候变化史</strong>：地质时期（冰期与间冰期）、历史时期（近几千年来波动）、近代（工业革命以来明显增暖）。</li>
+                    <li><strong>全球变暖原因</strong>：自然原因（太阳活动、火山等）和人为原因（化石燃料燃烧、森林破坏导致温室气体增多）。</li>
+                    <li><strong>影响</strong>：海平面上升（冰川融化、海水热膨胀）；极端天气频发；影响农业生产（低纬度可能减产，高纬度可能增产）；威胁生物多样性。</li>
+                    <li><strong>对策</strong>：减少温室气体排放（调整能源结构、提高能效）、增加碳汇（植树造林）、适应措施（建设防护堤、改良作物）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 地球上的水 (详细) -->
+        <h1>第三章 地球上的水</h1>
+        <section id="water-cycle">
+            <div class="knowledge-card">
+                <h2>水循环的过程和意义</h2>
+                <ul>
+                    <li><strong>水循环类型</strong>：
+                        <ul>
+                            <li>海陆间循环（大循环）：海洋水蒸发→水汽输送→降水到陆地→径流返回海洋。最重要，使陆地水不断更新。</li>
+                            <li>陆地内循环：陆地水蒸发→降水→仍落陆地（如内陆湖泊、塔里木河流域）。</li>
+                            <li>海上内循环：海洋水蒸发→降水到海洋，水量最大。</li>
+                        </ul>
+                    </li>
+                    <li><strong>主要环节</strong>：蒸发、蒸腾、水汽输送、降水、下渗、地表径流、地下径流。</li>
+                    <li><strong>意义</strong>：
+                        <ul>
+                            <li>使水资源不断更新（维持全球水量平衡）。</li>
+                            <li>调节全球热量平衡（通过潜热输送）。</li>
+                            <li>塑造地表形态（流水侵蚀、搬运、堆积）。</li>
+                            <li>促进物质迁移（溶解盐类、泥沙等）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sea-water">
+            <div class="knowledge-card">
+                <h2>海水的性质（温度、盐度、密度）</h2>
+                <ul>
+                    <li><strong>海水温度</strong>：
+                        <ul>
+                            <li>分布规律：水平方向，从低纬向高纬递减；垂直方向，从表层向深层递减，1000米以下水温变化小。</li>
+                            <li>影响因素：太阳辐射、洋流、季节等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>海水盐度</strong>：
+                        <ul>
+                            <li>概念：单位质量海水中溶解盐类物质的质量（平均约35‰）。</li>
+                            <li>分布规律：副热带海区最高（蒸发强烈，降水少）；赤道地区略低（降水多）；高纬度较低（蒸发弱，融冰稀释）。</li>
+                            <li>影响因素：蒸发与降水、入海径流、洋流、结冰融冰等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>海水密度</strong>：
+                        <ul>
+                            <li>与温度、盐度、压力有关。温度低、盐度高、压力大，密度大。</li>
+                            <li>分布：水平方向，从低纬向高纬递增；垂直方向，随深度增加而增大（出现密度跃层）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="ocean-movement">
+            <div class="knowledge-card">
+                <h2>海水的运动（波浪、潮汐、洋流）</h2>
+                <ul>
+                    <li><strong>波浪</strong>：
+                        <ul>
+                            <li>风浪：风力作用下形成，是海洋最普遍的现象。海啸是由海底地震、火山爆发等引起的巨浪。</li>
+                        </ul>
+                    </li>
+                    <li><strong>潮汐</strong>：
+                        <ul>
+                            <li>由月球和太阳引力引起的海水周期性涨落。初一、十五前后为大潮，上弦月、下弦月为小潮。</li>
+                            <li>潮汐能可用于发电。</li>
+                        </ul>
+                    </li>
+                    <li><strong>洋流</strong>：
+                        <ul>
+                            <li>按性质分：暖流（水温高于流经海区）和寒流（水温低于流经海区）。</li>
+                            <li>按成因分：风海流（盛行风吹拂，如南北赤道暖流、西风漂流）、密度流（直布罗陀海峡底层）、补偿流（秘鲁寒流上升流）。</li>
+                            <li>分布规律（世界洋流模式）：
+                                <ul>
+                                    <li>中低纬度海区：以副热带为中心的大洋环流，北半球顺时针，南半球逆时针。大洋西岸为暖流，东岸为寒流。</li>
+                                    <li>中高纬度海区：北半球以副极地为中心的逆时针环流，大洋西岸为寒流，东岸为暖流。</li>
+                                    <li>南极大陆外围：西风漂流（寒流）。</li>
+                                    <li>北印度洋海区：季风洋流，冬季逆时针，夏季顺时针。</li>
+                                </ul>
+                            </li>
+                            <li>对地理环境的影响：
+                                <ul>
+                                    <li>气候：暖流增温增湿，寒流降温减湿（如西欧温带海洋性气候得益于北大西洋暖流）。</li>
+                                    <li>海洋生物：寒暖流交汇处（北海道渔场、纽芬兰渔场、北海渔场）和上升流（秘鲁渔场）形成渔场。</li>
+                                    <li>航运：顺流加速，逆流减速；寒暖流相遇易形成海雾。</li>
+                                    <li>海洋污染：扩大污染范围，但加速净化。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="water-resource">
+            <div class="knowledge-card">
+                <h2>陆地水体及其相互关系</h2>
+                <ul>
+                    <li><strong>类型</strong>：河流、湖泊、冰川、沼泽、地下水等。冰川是地球上淡水主体（两极和高山）。</li>
+                    <li><strong>补给关系</strong>：
+                        <ul>
+                            <li>大气降水补给：主要补给类型（尤其是湿润地区）。</li>
+                            <li>冰川融水补给：西北内陆河流（如塔里木河），流量随气温变化。</li>
+                            <li>湖泊水补给：对河流起调蓄作用（削峰补枯）。</li>
+                            <li>地下水补给：稳定而可靠，与河流互补。</li>
+                        </ul>
+                    </li>
+                    <li><strong>河流的流量过程线</strong>：分析水源补给类型及季节变化。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 地表形态的塑造 (详细) -->
+        <h1>第四章 地表形态的塑造</h1>
+        <section id="rock-cycle">
+            <div class="knowledge-card">
+                <h2>岩石圈物质循环</h2>
+                <ul>
+                    <li><strong>三大类岩石</strong>：
+                        <ul>
+                            <li>岩浆岩：岩浆侵入或喷出冷却凝固而成。如花岗岩（侵入岩）、玄武岩（喷出岩，常见气孔）。</li>
+                            <li>沉积岩：外力作用（风化、侵蚀、搬运、沉积、固结成岩）形成，具有层理构造，常含化石。如石灰岩、砂岩、页岩。</li>
+                            <li>变质岩：原有岩石在高温高压下变质形成。如大理岩（石灰岩变质）、板岩（页岩变质）、石英岩（砂岩变质）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>物质循环过程</strong>：
+                        <ul>
+                            <li>岩浆 → 侵入/喷出 → 岩浆岩。</li>
+                            <li>岩浆岩、沉积岩、变质岩 → 外力作用 → 沉积岩。</li>
+                            <li>岩浆岩、沉积岩、变质岩 → 变质作用 → 变质岩。</li>
+                            <li>所有岩石 → 重熔再生 → 岩浆。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="internal-force">
+            <div class="knowledge-card">
+                <h2>内力作用与地貌</h2>
+                <ul>
+                    <li><strong>地壳运动</strong>：
+                        <ul>
+                            <li>水平运动：形成巨大褶皱山系（如喜马拉雅山、阿尔卑斯山）和断裂带（如东非大裂谷）。</li>
+                            <li>垂直运动：引起地表高低起伏（如高原、盆地、断块山）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>板块构造学说</strong>：
+                        <ul>
+                            <li>岩石圈被断裂带分割成六大板块：亚欧板块、非洲板块、印度洋板块、太平洋板块、美洲板块、南极洲板块。</li>
+                            <li>板块内部稳定，交界处地壳活跃。生长边界（张裂）形成裂谷、海洋（如红海、大西洋中脊）；消亡边界（碰撞）形成山脉、海沟、岛弧（如太平洋沿岸）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>地质构造</strong>：
+                        <ul>
+                            <li><strong>褶皱</strong>：岩层受挤压弯曲。背斜（岩层向上拱起，中心老两翼新，常成山，有时成谷），向斜（岩层向下弯曲，中心新两翼老，常成谷，有时成山）。</li>
+                            <li><strong>断层</strong>：岩层断裂并位移。地垒（上升，如华山、庐山）形成块状山；地堑（下沉，如渭河平原、汾河谷地）形成谷地。断层处易发育河流、泉水。</li>
+                        </ul>
+                    </li>
+                    <li><strong>地震和火山</strong>：
+                        <ul>
+                            <li>地震：地壳快速释放能量造成的震动，震级表示能量大小，烈度表示破坏程度。多发生于板块交界处。</li>
+                            <li>火山：岩浆沿裂隙喷出，形成火山锥、熔岩高原等。活火山、死火山、休眠火山。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="external-force">
+            <div class="knowledge-card">
+                <h2>外力作用与地貌</h2>
+                <ul>
+                    <li><strong>风化作用</strong>：
+                        <ul>
+                            <li>物理风化：岩石机械破碎（温差、冻融、盐类结晶）。</li>
+                            <li>化学风化：岩石成分改变（溶解、水化、氧化等）。</li>
+                            <li>生物风化：生物活动导致破碎或成分改变。</li>
+                        </ul>
+                    </li>
+                    <li><strong>侵蚀作用</strong>：
+                        <ul>
+                            <li>流水侵蚀：峡谷（V形谷）、沟谷、瀑布、喀斯特地貌（溶沟、石林、溶洞）。</li>
+                            <li>风力侵蚀：风蚀蘑菇、风蚀洼地、雅丹地貌。</li>
+                            <li>冰川侵蚀：U形谷、冰斗、刃脊、峡湾。</li>
+                            <li>海浪侵蚀：海蚀崖、海蚀柱、海蚀穴。</li>
+                        </ul>
+                    </li>
+                    <li><strong>搬运作用</strong>：风、流水、冰川等将风化侵蚀物搬运到远处。</li>
+                    <li><strong>沉积作用</strong>：
+                        <ul>
+                            <li>流水沉积：冲积扇（山前）、冲积平原（中下游）、河口三角洲（入海口）。</li>
+                            <li>风力沉积：沙丘（新月形沙丘）、黄土高原。</li>
+                            <li>冰川沉积：冰碛丘陵、侧碛、终碛。</li>
+                            <li>海浪沉积：沙滩、潟湖。</li>
+                        </ul>
+                    </li>
+                    <li><strong>固结成岩</strong>：松散沉积物经压实、胶结形成沉积岩。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="river-landform">
+            <div class="knowledge-card">
+                <h2>河流地貌的发育</h2>
+                <ul>
+                    <li><strong>河谷发育阶段</strong>：
+                        <ul>
+                            <li>初期：下蚀为主，形成V形谷。</li>
+                            <li>中期：下蚀减弱，侧蚀加强，出现河湾、凹岸侵蚀、凸岸堆积。</li>
+                            <li>成熟期：侧蚀为主，河谷宽而浅，形成槽形谷、河漫滩、牛轭湖。</li>
+                        </ul>
+                    </li>
+                    <li><strong>冲积扇</strong>：山区河流出山口处，坡度骤减，流速变慢，泥沙沉积，呈扇形。</li>
+                    <li><strong>三角洲</strong>：河流入海口处，受海水顶托，流速减慢，泥沙沉积形成。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五章 自然环境的整体性与差异性 (详细) -->
+        <h1>第五章 自然环境的整体性与差异性</h1>
+        <section id="holism">
+            <div class="knowledge-card">
+                <h2>自然环境的整体性</h2>
+                <ul>
+                    <li><strong>概念</strong>：自然环境各要素（气候、水文、土壤、生物、地貌）相互联系、相互制约，形成有机整体。</li>
+                    <li><strong>表现</strong>：
+                        <ul>
+                            <li>一个要素的变化会影响其他要素，甚至导致整个环境变化。例如，砍伐森林导致水土流失、土壤退化、气候变化、生物多样性减少。</li>
+                            <li>自然环境具有统一的演化过程（如黄土高原的形成：风力搬运堆积→土壤发育→人类活动加速侵蚀）。</li>
+                            <li>某一区域自然环境特征是该区域各要素综合作用的产物（如我国西北内陆干旱环境：深居内陆→降水少→风成地貌→耐旱动植物→土壤发育差）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="zonality">
+            <div class="knowledge-card">
+                <h2>水平地域分异规律</h2>
+                <ul>
+                    <li><strong>纬度地带性（从赤道到两极）</strong>：
+                        <ul>
+                            <li>成因：太阳辐射能随纬度变化，热量从低纬向高纬递减。</li>
+                            <li>典型：热带雨林带→热带草原带→热带荒漠带→亚热带常绿硬叶林/阔叶林带→温带落叶阔叶林带→亚寒带针叶林带→苔原带→冰原带。</li>
+                        </ul>
+                    </li>
+                    <li><strong>经度地带性（从沿海到内陆）</strong>：
+                        <ul>
+                            <li>成因：降水从沿海向内陆递减。</li>
+                            <li>典型：中纬度地区，森林带→草原带→荒漠带。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="vertical">
+            <div class="knowledge-card">
+                <h2>垂直地域分异规律</h2>
+                <ul>
+                    <li><strong>成因</strong>：高山地区，随海拔升高，水热条件变化，形成垂直带谱。</li>
+                    <li><strong>特点</strong>：
+                        <ul>
+                            <li>基带与当地水平自然带一致。</li>
+                            <li>带谱复杂程度取决于山体海拔、纬度、坡向等。纬度越低，海拔越高，垂直带谱越完整。</li>
+                            <li>同一山体，阳坡雪线高于阴坡（阳坡气温高，积雪少），迎风坡雪线低于背风坡（降水多）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="soil-vegetation">
+            <div class="knowledge-card">
+                <h2>土壤与植被</h2>
+                <ul>
+                    <li><strong>土壤形成因素</strong>：成土母质、气候、生物、地形、时间、人类活动。生物在土壤形成中起主导作用（有机质积累）。</li>
+                    <li><strong>土壤剖面</strong>：有机质层、腐殖质层、淋溶层、淀积层、母质层等。</li>
+                    <li><strong>主要植被类型</strong>：森林（热带雨林、常绿阔叶林、落叶阔叶林、针叶林）、草原（热带草原、温带草原）、荒漠植被、苔原等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第六章 自然灾害 (详细) -->
+        <h1>第六章 自然灾害</h1>
+        <section id="common-disaster">
+            <div class="knowledge-card">
+                <h2>常见自然灾害（气象、地质）</h2>
+                <ul>
+                    <li><strong>气象灾害</strong>：
+                        <ul>
+                            <li>洪涝：强降水、冰雪融水导致江河水位上涨，淹没农田、城镇。我国东部季风区多发。</li>
+                            <li>干旱：长期无雨或少雨，影响作物生长、人畜饮水。如华北春旱、长江流域伏旱。</li>
+                            <li>台风：热带气旋，强风、暴雨、风暴潮，影响沿海地区。</li>
+                            <li>寒潮：强冷空气入侵，剧烈降温、大风、霜冻，危害农牧业。</li>
+                        </ul>
+                    </li>
+                    <li><strong>地质灾害</strong>：
+                        <ul>
+                            <li>地震：地壳快速释放能量，造成房屋倒塌、人员伤亡。多发于板块交界处。</li>
+                            <li>滑坡：斜坡上的岩体或土体在重力作用下整体下滑。常发生在坡度陡、岩体破碎的山区。</li>
+                            <li>泥石流：山区沟谷中由暴雨或冰雪融水引发的饱含泥沙石块的特殊洪流。破坏力极强。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="disaster-mechanism">
+            <div class="knowledge-card">
+                <h2>成因与分布</h2>
+                <ul>
+                    <li><strong>洪涝</strong>：自然原因（气候、地形、水系）；人为原因（破坏植被、围湖造田）。分布：河流中下游平原、沿海低地。</li>
+                    <li><strong>干旱</strong>：降水季节变化大、蒸发强、水利设施不足。分布：干旱半干旱区、季风气候区。</li>
+                    <li><strong>台风</strong>：热带洋面水温高于26.5℃，形成热带气旋。分布：西北太平洋、孟加拉湾、墨西哥湾等。</li>
+                    <li><strong>地震</strong>：板块交界、断裂带。我国主要分布在青藏高原、新疆、华北、台湾等。</li>
+                    <li><strong>滑坡/泥石流</strong>：地形陡峻、岩石破碎、植被稀少、暴雨集中。我国西南山区多发。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="disaster-prevention">
+            <div class="knowledge-card">
+                <h2>防灾减灾措施</h2>
+                <ul>
+                    <li><strong>监测预警</strong>：建立监测网络（气象站、地震台、水文站），及时发布预警信息。</li>
+                    <li><strong>工程措施</strong>：
+                        <ul>
+                            <li>防洪：修建水库、堤坝，疏通河道，建设分洪区。</li>
+                            <li>抗震：提高建筑物抗震等级，合理规划城市。</li>
+                            <li>防滑坡/泥石流：植树造林，修筑护坡，导流渠等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>非工程措施</strong>：
+                        <ul>
+                            <li>制定应急预案，加强防灾减灾教育，提高公众自救互救能力。</li>
+                            <li>建立保险制度，灾后重建规划。</li>
+                            <li>生态保护：退耕还林还草，保护湿地，改善生态环境。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

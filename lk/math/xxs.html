@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>数学选修三</title>
+    
+    <!-- KaTeX 渲染（选修三公式密集） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        /* 无图片，保留样式以备将来 */
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;  /* 移动端固定左侧宽度 */
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (数学选修三分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>数学选修三</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-jsyl')">✚ 计数原理</div>
+            <div class="category-content" id="cat-jsyl">
+                <a href="#jlfyl">分类加法与分步乘法</a>
+                <a href="#plzh">排列与组合</a>
+                <a href="#zldy">排列数与组合数</a>
+                <a href="#exsdl">二项式定理</a>
+                <a href="#exsxs">二项式系数的性质</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-sjbl')">✚ 随机变量及其分布</div>
+            <div class="category-content" id="cat-sjbl">
+                <a href="#tjgl">条件概率与全概率公式</a>
+                <a href="#lsjbl">离散型随机变量及其分布列</a>
+                <a href="#sztd">数字特征（期望与方差）</a>
+                <a href="#ebf">二项分布</a>
+                <a href="#cgjfb">超几何分布</a>
+                <a href="#ztfb">正态分布</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-cdsj')">✚ 成对数据的统计分析</div>
+            <div class="category-content" id="cat-cdsj">
+                <a href="#xghx">变量的相关关系</a>
+                <a href="#yxxs">样本相关系数</a>
+                <a href="#yxhg">一元线性回归模型</a>
+                <a href="#cclf">残差分析</a>
+                <a href="#dulxj">列联表与独立性检验</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：数学选修三知识点卡片（纯文字，无图片） -->
+    <main>
+        <!-- 计数原理 章节 -->
+        <h1>计数原理</h1>
+        
+        <section id="jlfyl">
+            <div class="knowledge-card">
+                <h2>分类加法与分步乘法</h2>
+                <p>
+                    <b>分类加法计数原理</b>：完成一件事有两类不同方案，在第1类方案中有 \(m\) 种不同的方法，在第2类方案中有 \(n\) 种不同的方法，那么完成这件事共有 \(N = m + n\) 种不同的方法。推广：如果完成一件事有 \(n\) 类不同方案，每类方案中分别有 \(m_1, m_2, \ldots, m_n\) 种方法，则完成这件事共有 \(N = m_1 + m_2 + \cdots + m_n\) 种方法。<br>
+                    <b>分步乘法计数原理</b>：完成一件事需要两个步骤，做第1步有 \(m\) 种不同的方法，做第2步有 \(n\) 种不同的方法，那么完成这件事共有 \(N = m \times n\) 种不同的方法。推广：如果完成一件事需要 \(n\) 个步骤，做每一步分别有 \(m_1, m_2, \ldots, m_n\) 种方法，则完成这件事共有 \(N = m_1 \times m_2 \times \cdots \times m_n\) 种方法。<br>
+                    <b>两个原理的区别</b>：分类加法与分类有关，各类方法相互独立，用任何一类方法都能单独完成；分步乘法与分步有关，各个步骤相互依存，只有各个步骤都完成，这件事才算完成    。
+                </p>
+            </div>
+        </section>
+        
+        <section id="plzh">
+            <div class="knowledge-card">
+                <h2>排列与组合</h2>
+                <p>
+                    <b>排列的定义</b>：从 \(n\) 个不同元素中取出 \(m(m \leq n)\) 个元素，按照一定的顺序排成一列，叫做从 \(n\) 个不同元素中取出 \(m\) 个元素的一个排列。<br>
+                    <b>组合的定义</b>：从 \(n\) 个不同元素中取出 \(m(m \leq n)\) 个元素作为一组，叫做从 \(n\) 个不同元素中取出 \(m\) 个元素的一个组合。<br>
+                    <b>排列与组合的区别</b>：排列与元素的顺序有关，组合与元素的顺序无关  。
+                </p>
+            </div>
+        </section>
+
+        <section id="zldy">
+            <div class="knowledge-card">
+                <h2>排列数与组合数</h2>
+                <p>
+                    <b>排列数公式</b>：\(\mathrm{A}_n^m = n(n-1)(n-2)\cdots(n-m+1) = \dfrac{n!}{(n-m)!}\)，其中 \(n,m \in \mathbb{N}^*\)，且 \(m \leq n\)。规定 \(0! = 1\)。<br>
+                    <b>全排列</b>：\(\mathrm{A}_n^n = n!\)。<br>
+                    <b>组合数公式</b>：\(\mathrm{C}_n^m = \dfrac{\mathrm{A}_n^m}{\mathrm{A}_m^m} = \dfrac{n(n-1)(n-2)\cdots(n-m+1)}{m!} = \dfrac{n!}{m!(n-m)!}\)，其中 \(n,m \in \mathbb{N}^*\)，且 \(m \leq n\)。<br>
+                    <b>组合数的性质</b>：<br>
+                    ① \(\mathrm{C}_n^m = \mathrm{C}_n^{n-m}\)；<br>
+                    ② \(\mathrm{C}_{n+1}^m = \mathrm{C}_n^m + \mathrm{C}_n^{m-1}\)  。
+                </p>
+            </div>
+        </section>
+
+        <section id="exsdl">
+            <div class="knowledge-card">
+                <h2>二项式定理</h2>
+                <p>
+                    <b>二项式定理</b>：\((a + b)^n = \mathrm{C}_n^0 a^n + \mathrm{C}_n^1 a^{n-1}b + \mathrm{C}_n^2 a^{n-2}b^2 + \cdots + \mathrm{C}_n^k a^{n-k}b^k + \cdots + \mathrm{C}_n^n b^n\)，其中 \(n \in \mathbb{N}^*\)。<br>
+                    <b>通项公式</b>：展开式中的第 \(k+1\) 项为 \(T_{k+1} = \mathrm{C}_n^k a^{n-k} b^k\)。<br>
+                    <b>二项式系数</b>：\(\mathrm{C}_n^k\)（\(k = 0,1,2,\ldots,n\)）叫做二项式系数  。
+                </p>
+            </div>
+        </section>
+
+        <section id="exsxs">
+            <div class="knowledge-card">
+                <h2>二项式系数的性质</h2>
+                <p>
+                    <b>对称性</b>：与首末两端“等距离”的两个二项式系数相等，即 \(\mathrm{C}_n^m = \mathrm{C}_n^{n-m}\)。<br>
+                    <b>增减性与最大值</b>：当 \(k < \frac{n+1}{2}\) 时，二项式系数逐渐增大；当 \(k > \frac{n+1}{2}\) 时，二项式系数逐渐减小。当 \(n\) 为偶数时，中间一项（第 \(\frac{n}{2}+1\) 项）的二项式系数 \(\mathrm{C}_n^{\frac{n}{2}}\) 最大；当 \(n\) 为奇数时，中间两项（第 \(\frac{n+1}{2}\) 项和第 \(\frac{n+3}{2}\) 项）的二项式系数 \(\mathrm{C}_n^{\frac{n-1}{2}}\) 和 \(\mathrm{C}_n^{\frac{n+1}{2}}\) 相等且最大。<br>
+                    <b>各二项式系数的和</b>：\(\mathrm{C}_n^0 + \mathrm{C}_n^1 + \mathrm{C}_n^2 + \cdots + \mathrm{C}_n^n = 2^n\)。<br>
+                    <b>奇数项与偶数项的二项式系数和</b>：\(\mathrm{C}_n^0 + \mathrm{C}_n^2 + \mathrm{C}_n^4 + \cdots = \mathrm{C}_n^1 + \mathrm{C}_n^3 + \mathrm{C}_n^5 + \cdots = 2^{n-1}\)  。
+                </p>
+            </div>
+        </section>
+
+        <!-- 随机变量及其分布 章节 -->
+        <h1>随机变量及其分布</h1>
+
+        <section id="tjgl">
+            <div class="knowledge-card">
+                <h2>条件概率与全概率公式</h2>
+                <p>
+                    <b>条件概率</b>：设 \(A, B\) 为两个事件，且 \(P(A) > 0\)，则称 \(P(B|A) = \dfrac{P(AB)}{P(A)}\) 为在事件 \(A\) 发生的条件下事件 \(B\) 发生的条件概率。<br>
+                    <b>乘法公式</b>：\(P(AB) = P(A)P(B|A)\)。<br>
+                    <b>全概率公式</b>：若事件 \(A_1, A_2, \ldots, A_n\) 两两互斥，且 \(A_1 \cup A_2 \cup \cdots \cup A_n = \Omega\)，\(P(A_i) > 0\)，则对任一事件 \(B\)，有 \(P(B) = \sum_{i=1}^n P(A_i)P(B|A_i)\)。<br>
+                    <b>贝叶斯公式</b>：\(P(A_i|B) = \dfrac{P(A_i)P(B|A_i)}{\sum_{j=1}^n P(A_j)P(B|A_j)}\)  。
+                </p>
+            </div>
+        </section>
+
+        <section id="lsjbl">
+            <div class="knowledge-card">
+                <h2>离散型随机变量及其分布列</h2>
+                <p>
+                    <b>随机变量</b>：随着试验结果变化而变化的变量，常用字母 \(X, Y, \xi, \eta\) 等表示。<br>
+                    <b>离散型随机变量</b>：所有取值可以一一列出的随机变量。<br>
+                    <b>分布列</b>：若离散型随机变量 \(X\) 可能取的不同值为 \(x_1, x_2, \ldots, x_i, \ldots, x_n\)，\(X\) 取每一个值 \(x_i\) 的概率 \(P(X = x_i) = p_i\)，则称表
+                    \[
+                    \begin{array}{c|ccccc}
+                    X & x_1 & x_2 & \cdots & x_i & \cdots & x_n \\
+                    \hline
+                    P & p_1 & p_2 & \cdots & p_i & \cdots & p_n
+                    \end{array}
+                    \]
+                    为离散型随机变量 \(X\) 的概率分布列，简称为 \(X\) 的分布列。<br>
+                    <b>性质</b>：\(p_i \geq 0\)；\(\sum_{i=1}^n p_i = 1\)   。
+                </p>
+            </div>
+        </section>
+
+        <section id="sztd">
+            <div class="knowledge-card">
+                <h2>数字特征（期望与方差）</h2>
+                <p>
+                    <b>均值（数学期望）</b>：\(E(X) = x_1 p_1 + x_2 p_2 + \cdots + x_i p_i + \cdots + x_n p_n = \sum_{i=1}^n x_i p_i\)。它反映了离散型随机变量取值的平均水平。<br>
+                    <b>方差</b>：\(D(X) = \sum_{i=1}^n (x_i - E(X))^2 p_i\)。它刻画了随机变量 \(X\) 与其均值 \(E(X)\) 的平均偏离程度，\(D(X)\) 越小，\(X\) 的取值越集中。<br>
+                    <b>标准差</b>：\(\sqrt{D(X)}\)。<br>
+                    <b>性质</b>：\(E(aX + b) = aE(X) + b\)；\(D(aX + b) = a^2 D(X)\)   。
+                </p>
+            </div>
+        </section>
+
+        <section id="ebf">
+            <div class="knowledge-card">
+                <h2>二项分布</h2>
+                <p>
+                    <b>n 重伯努利试验</b>：在相同条件下重复进行的 \(n\) 次相互独立的试验，每次试验只有两种可能结果（成功或失败），且每次试验中成功的概率 \(p\) 保持不变。<br>
+                    <b>二项分布</b>：若随机变量 \(X\) 表示 \(n\) 重伯努利试验中成功的次数，则 \(X\) 的分布列为 \(P(X = k) = \mathrm{C}_n^k p^k (1-p)^{n-k}\)，\(k = 0,1,2,\ldots,n\)。记作 \(X \sim B(n, p)\)。<br>
+                    <b>期望与方差</b>：\(E(X) = np\)，\(D(X) = np(1-p)\)    。
+                </p>
+            </div>
+        </section>
+
+        <section id="cgjfb">
+            <div class="knowledge-card">
+                <h2>超几何分布</h2>
+                <p>
+                    <b>定义</b>：在含有 \(M\) 件次品的 \(N\) 件产品中，任取 \(n\) 件，其中恰有 \(X\) 件次品，则事件 \(\{X = k\}\) 发生的概率为 \(P(X = k) = \dfrac{\mathrm{C}_M^k \mathrm{C}_{N-M}^{n-k}}{\mathrm{C}_N^n}\)，\(k = m, m+1, \ldots, r\)，其中 \(m = \max\{0, n - (N-M)\}\)，\(r = \min\{n, M\}\)。称随机变量 \(X\) 服从超几何分布。<br>
+                    <b>期望</b>：\(E(X) = n \cdot \dfrac{M}{N}\)  。
+                </p>
+            </div>
+        </section>
+
+        <section id="ztfb">
+            <div class="knowledge-card">
+                <h2>正态分布</h2>
+                <p>
+                    <b>正态曲线</b>：函数 \(\varphi_{\mu,\sigma}(x) = \dfrac{1}{\sqrt{2\pi}\sigma} e^{-\frac{(x-\mu)^2}{2\sigma^2}}\)，\(x \in \mathbb{R}\)（其中 \(\mu\) 是均值，\(\sigma\) 是标准差）的图象称为正态分布密度曲线，简称正态曲线。<br>
+                    <b>正态分布</b>：如果随机变量 \(X\) 的概率密度函数为上述函数，则称 \(X\) 服从参数为 \(\mu, \sigma\) 的正态分布，记作 \(X \sim N(\mu, \sigma^2)\)。<br>
+                    <b>正态曲线的特点</b>：曲线位于 \(x\) 轴上方，与 \(x\) 轴不相交；曲线是单峰的，关于直线 \(x = \mu\) 对称；曲线在 \(x = \mu\) 处达到峰值 \(\frac{1}{\sqrt{2\pi}\sigma}\)；曲线与 \(x\) 轴之间的面积为 \(1\)；当 \(\sigma\) 一定时，曲线随 \(\mu\) 的变化沿 \(x\) 轴平移；当 \(\mu\) 一定时，\(\sigma\) 越小，曲线越“瘦高”，表示总体的分布越集中，\(\sigma\) 越大，曲线越“矮胖”，表示总体的分布越分散。<br>
+                    <b>3\(\sigma\) 原则</b>：\(P(\mu - \sigma < X \leq \mu + \sigma) \approx 0.6827\)；\(P(\mu - 2\sigma < X \leq \mu + 2\sigma) \approx 0.9545\)；\(P(\mu - 3\sigma < X \leq \mu + 3\sigma) \approx 0.9973\)    。
+                </p>
+            </div>
+        </section>
+
+        <!-- 成对数据的统计分析 章节 -->
+        <h1>成对数据的统计分析</h1>
+
+        <section id="xghx">
+            <div class="knowledge-card">
+                <h2>变量的相关关系</h2>
+                <p>
+                    <b>相关关系</b>：两个变量之间有一定的关系，但不是确定的函数关系，这种关系称为相关关系。<br>
+                    <b>散点图</b>：将成对数据用直角坐标系中的点表示出来，得到的图形称为散点图。散点图可以直观地判断两个变量是否具有相关关系。<br>
+                    <b>正相关与负相关</b>：如果一个变量的值由小变大时，另一个变量的值也由小变大，这种相关称为正相关；如果一个变量的值由小变大时，另一个变量的值由大变小，这种相关称为负相关    。
+                </p>
+            </div>
+        </section>
+
+        <section id="yxxs">
+            <div class="knowledge-card">
+                <h2>样本相关系数</h2>
+                <p>
+                    <b>相关系数 r</b>：用于度量两个变量之间线性相关程度的量，计算公式为
+                    \[
+                    r = \frac{\sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum_{i=1}^n (x_i - \bar{x})^2 \sum_{i=1}^n (y_i - \bar{y})^2}}
+                    \]
+                    <b>性质</b>：\(r \in [-1, 1]\)。当 \(r > 0\) 时，表明两个变量正相关；当 \(r < 0\) 时，表明两个变量负相关。\(|r|\) 越接近 1，表明两个变量的线性相关性越强；\(|r|\) 越接近 0，表明两个变量的线性相关性越弱。通常当 \(|r| > 0.75\) 时，认为线性相关程度很强    。
+                </p>
+            </div>
+        </section>
+
+        <section id="yxhg">
+            <div class="knowledge-card">
+                <h2>一元线性回归模型</h2>
+                <p>
+                    <b>回归直线方程</b>：\(\hat{y} = \hat{b}x + \hat{a}\)，其中
+                    \[
+                    \hat{b} = \frac{\sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y})}{\sum_{i=1}^n (x_i - \bar{x})^2}, \quad \hat{a} = \bar{y} - \hat{b}\bar{x}
+                    \]
+                    求回归直线方程的方法称为最小二乘法。<br>
+                    <b>线性回归模型</b>：\(y = bx + a + e\)，其中 \(e\) 为随机误差，它反映了除 \(x\) 和 \(y\) 之间的线性关系之外的随机因素对 \(y\) 的影响    。
+                </p>
+            </div>
+        </section>
+
+        <section id="cclf">
+            <div class="knowledge-card">
+                <h2>残差分析</h2>
+                <p>
+                    <b>残差</b>：\(\hat{e}_i = y_i - \hat{y}_i\)，即真实值与估计值的差。<br>
+                    <b>残差图</b>：以残差为纵坐标，以样本编号或自变量为横坐标作的散点图。如果残差点比较均匀地分布在水平带状区域内，说明模型拟合较好。<br>
+                    <b>残差平方和</b>：\(\sum_{i=1}^n (y_i - \hat{y}_i)^2\)，残差平方和越小，模型的拟合效果越好。<br>
+                    <b>决定系数 \(R^2\)</b>：\(R^2 = 1 - \frac{\sum_{i=1}^n (y_i - \hat{y}_i)^2}{\sum_{i=1}^n (y_i - \bar{y})^2}\)。\(R^2\) 越接近 1，表示模型的拟合效果越好    。
+                </p>
+            </div>
+        </section>
+
+        <section id="dulxj">
+            <div class="knowledge-card">
+                <h2>列联表与独立性检验</h2>
+                <p>
+                    <b>2×2 列联表</b>：用于整理两个分类变量数据的表格，形式如下：
+                    \[
+                    \begin{array}{c|cc|c}
+                    & Y = 1 & Y = 0 & \text{合计} \\
+                    \hline
+                    X = 1 & a & b & a+b \\
+                    X = 0 & c & d & c+d \\
+                    \hline
+                    \text{合计} & a+c & b+d & n = a+b+c+d
+                    \end{array}
+                    \]
+                    <b>等高堆积条形图</b>：可以直观地反映两个分类变量之间是否有关联。<br>
+                    <b>独立性检验</b>：利用随机变量 \(\chi^2\) 来推断两个分类变量是否独立。计算公式为
+                    \[
+                    \chi^2 = \frac{n(ad - bc)^2}{(a+b)(c+d)(a+c)(b+d)}
+                    \]
+                    其中 \(n = a+b+c+d\)。<br>
+                    <b>临界值</b>：根据小概率值 \(\alpha\)（如 0.05，0.01，0.001）查表得到临界值 \(x_\alpha\)。如果 \(\chi^2 \geq x_\alpha\)，则拒绝原假设（两变量独立），认为两变量有关联，犯错误的概率不超过 \(\alpha\)      。
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+          // 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

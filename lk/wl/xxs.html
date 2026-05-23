@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>物理选修三</title>
+    
+    <!-- KaTeX 渲染（热学、原子物理公式较多） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        /* 无图片，保留样式以备将来 */
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (物理选修三/选择性必修第三册分类) 根据人教版2019目录整理 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>物理选修三</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-fz')">✚ 分子动理论</div>
+            <div class="category-content" id="cat-fz">
+                <a href="#fzjb">分子动理论的基本内容</a>
+                <a href="#sy-yfm">实验：用油膜法估测分子大小</a>
+                <a href="#fzydsd">分子运动速率分布规律</a>
+                <a href="#fzdn">分子动能和分子势能</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-qtyt')">✚ 气体、固体和液体</div>
+            <div class="category-content" id="cat-qtyt">
+                <a href="#wdwb">温度和温标</a>
+                <a href="#qtbd">气体的等温变化</a>
+                <a href="#qtdy">气体的等压变化和等容变化</a>
+                <a href="#gt">固体</a>
+                <a href="#yt">液体</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-rl')">✚ 热力学定律</div>
+            <div class="category-content" id="cat-rl">
+                <a href="#gnr">功、热和内能的改变</a>
+                <a href="#rldy">热力学第一定律</a>
+                <a href="#nlsh">能量守恒定律</a>
+                <a href="#rlde">热力学第二定律</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-yz')">✚ 原子结构和波粒二象性</div>
+            <div class="category-content" id="cat-yz">
+                <a href="#plk">普朗克黑体辐射理论</a>
+                <a href="#gdd">光电效应</a>
+                <a href="#yzjg">原子的核式结构模型</a>
+                <a href="#qygy">氢原子光谱和玻尔的原子模型</a>
+                <a href="#lzbd">粒子的波动性和量子力学的建立</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-yzh')">✚ 原子核</div>
+            <div class="category-content" id="cat-yzh">
+                <a href="#yzhzc">原子核的组成</a>
+                <a href="#fsxs">放射性元素的衰变</a>
+                <a href="#hlyjh">核力与结合能</a>
+                <a href="#hlyhjb">核裂变与核聚变</a>
+                <a href="#jblz">“基本”粒子</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：物理选修三知识点卡片（纯文字，无图片）根据人教版2019选择性必修第三册整理 -->
+    <main>
+        <!-- 第一章 分子动理论 -->
+        <h1>第一章 分子动理论</h1>
+        
+        <section id="fzjb">
+            <div class="knowledge-card">
+                <h2>分子动理论的基本内容</h2>
+                <p>
+                    <b>物体是由大量分子组成的</b>：分子直径数量级为 \(10^{-10}\text{m}\)。阿伏加德罗常数 \(N_A = 6.02 \times 10^{23} \text{mol}^{-1}\)，是联系宏观与微观的桥梁。<br>
+                    <b>分子永不停息地做无规则运动</b>：扩散现象直接说明分子在运动，温度越高扩散越快。布朗运动间接反映了液体（或气体）分子的无规则运动，是悬浮微粒受到液体分子撞击不平衡引起的，温度越高、微粒越小，布朗运动越明显。  <br>
+                    <b>分子间存在相互作用力</b>：分子间同时存在引力和斥力，它们都随分子间距离的增大而减小，但斥力减小得更快。当 \(r = r_0\)（平衡距离，约 \(10^{-10}\text{m}\)）时，引力等于斥力；当 \(r < r_0\) 时，斥力大于引力，表现为斥力；当 \(r > r_0\) 时，引力大于斥力，表现为引力；当 \(r > 10r_0\) 时，分子力可忽略不计。  
+                </p>
+            </div>
+        </section>
+        
+        <section id="sy-yfm">
+            <div class="knowledge-card">
+                <h2>实验：用油膜法估测油酸分子的大小</h2>
+                <p>
+                    <b>实验原理</b>：将油酸滴在水面上，让油酸尽可能散开，形成单分子油膜层。把分子看成球形，单分子油膜层的厚度就可以认为等于油酸分子的直径。测出一滴油酸溶液中纯油酸的体积 \(V\) 和油膜面积 \(S\)，则分子直径 \(d = \dfrac{V}{S}\)。  <br>
+                    <b>注意事项</b>：油酸酒精溶液浓度要适宜；待油膜形状稳定后再描轮廓；利用坐标纸计算油膜面积时，采用“四舍五入”法数格子。
+                </p>
+            </div>
+        </section>
+
+        <section id="fzydsd">
+            <div class="knowledge-card">
+                <h2>分子运动速率分布规律</h2>
+                <p>
+                    <b>气体分子运动特点</b>：气体分子之间的距离很大（约为分子直径的10倍），分子间的相互作用力十分微弱，可以忽略不计；气体分子除了相互碰撞或与器壁碰撞外，不受力的作用，在空间自由移动；气体分子的速率分布呈“中间多、两头少”的统计规律。  <br>
+                    <b>温度与分子平均动能的关系</b>：温度是分子热运动平均动能的标志。温度越高，分子的平均动能越大，分子热运动越剧烈。
+                </p>
+            </div>
+        </section>
+
+        <section id="fzdn">
+            <div class="knowledge-card">
+                <h2>分子动能和分子势能</h2>
+                <p>
+                    <b>分子动能</b>：分子由于热运动而具有的动能。物体中所有分子热运动动能的平均值称为分子的平均动能。<br>
+                    <b>分子势能</b>：由于分子间存在着相互作用力，由分子间的相对位置决定的势能。分子势能的大小与物体的体积有关。当 \(r > r_0\) 时，分子力表现为引力，随着 \(r\) 增大，引力做负功，分子势能增大；当 \(r < r_0\) 时，分子力表现为斥力，随着 \(r\) 减小，斥力做负功，分子势能增大；当 \(r = r_0\) 时，分子势能最小。  <br>
+                    <b>内能</b>：物体中所有分子的热运动动能与分子势能的总和。内能是状态量，由物体的温度、体积、物质的量共同决定。理想气体忽略分子间作用力，其内能只由温度和分子总数决定。
+                </p>
+            </div>
+        </section>
+
+        <!-- 第二章 气体、固体和液体 -->
+        <h1>第二章 气体、固体和液体</h1>
+
+        <section id="wdwb">
+            <div class="knowledge-card">
+                <h2>温度和温标</h2>
+                <p>
+                    <b>平衡态与状态参量</b>：系统宏观性质不再随时间变化的状态叫平衡态，描述平衡态的物理量如压强、体积、温度等叫状态参量。<br>
+                    <b>热平衡与温度</b>：两个系统相互接触，它们之间没有能量传递，说明它们达到了热平衡。一切达到热平衡的系统都具有相同的温度。温度是决定一个系统与另一个系统是否达到热平衡状态的物理量。<br>
+                    <b>温标</b>：温度的数值表示法。热力学温标用 \(T\) 表示，单位开尔文（K）。热力学温度与摄氏温度的关系：\(T = t + 273.15 \text{K}\)。  
+                </p>
+            </div>
+        </section>
+
+        <section id="qtbd">
+            <div class="knowledge-card">
+                <h2>气体的等温变化</h2>
+                <p>
+                    <b>玻意耳定律</b>：一定质量的某种气体，在温度不变的情况下，压强 \(p\) 与体积 \(V\) 成反比。公式 \(pV = C\)（常数）或 \(p_1V_1 = p_2V_2\)。等温线是双曲线的一支。  <br>
+                    <b>微观解释</b>：温度不变，分子的平均动能不变。体积减小，单位体积内的分子数增加，单位时间内与器壁单位面积碰撞的分子数增加，压强增大。
+                </p>
+            </div>
+        </section>
+
+        <section id="qtdy">
+            <div class="knowledge-card">
+                <h2>气体的等压变化和等容变化</h2>
+                <p>
+                    <b>查理定律（等容变化）</b>：一定质量的某种气体，在体积不变的情况下，压强 \(p\) 与热力学温度 \(T\) 成正比。公式 \(\dfrac{p}{T} = C\) 或 \(\dfrac{p_1}{T_1} = \dfrac{p_2}{T_2}\)。  <br>
+                    <b>盖—吕萨克定律（等压变化）</b>：一定质量的某种气体，在压强不变的情况下，体积 \(V\) 与热力学温度 \(T\) 成正比。公式 \(\dfrac{V}{T} = C\) 或 \(\dfrac{V_1}{T_1} = \dfrac{V_2}{T_2}\)。  <br>
+                    <b>理想气体状态方程</b>：一定质量的理想气体，\(\dfrac{pV}{T} = C\)（恒量），或 \(\dfrac{p_1V_1}{T_1} = \dfrac{p_2V_2}{T_2}\)。理想气体是指严格遵守三个实验定律的气体，实际气体在压强不太大、温度不太低时可近似看作理想气体。<br>
+                    <b>气体压强的微观意义</b>：气体的压强是大量气体分子频繁地碰撞器壁而产生的。压强大小取决于气体分子的平均动能和分子的数密度。
+                </p>
+            </div>
+        </section>
+
+        <section id="gt">
+            <div class="knowledge-card">
+                <h2>固体</h2>
+                <p>
+                    <b>晶体和非晶体</b>：<br>
+                    晶体有规则的几何外形，有确定的熔点，物理性质表现为各向异性（如方解石、云母）。晶体分为单晶体（整个物体就是一个晶体）和多晶体（由许多小晶粒杂乱排列构成），多晶体没有规则的几何外形，物理性质表现为各向同性，但有确定的熔点。    <br>
+                    非晶体没有规则的几何外形，没有确定的熔点，物理性质表现为各向同性（如玻璃、松香）。<br>
+                    <b>晶体的微观结构</b>：组成晶体的物质微粒（分子、原子或离子）依照一定的规律在空间周期性排列，形成空间点阵。非晶体的内部结构是杂乱无章的。
+                </p>
+            </div>
+        </section>
+
+        <section id="yt">
+            <div class="knowledge-card">
+                <h2>液体</h2>
+                <p>
+                    <b>液体的表面张力</b>：液体表面具有收缩的趋势，使液体表面像一张绷紧的弹性薄膜。这是因为液体表面层分子比较稀疏，分子间的作用力表现为引力。表面张力的方向与液面相切，垂直于液面上的分界线。  <br>
+                    <b>浸润和不浸润</b>：液体与固体接触时，如果液体附着层分子间表现为斥力，液体沿固体表面扩展，称为浸润；如果附着层分子间表现为引力，液体收缩，称为不浸润。与材料性质有关。<br>
+                    <b>毛细现象</b>：浸润液体在细管中上升，不浸润液体在细管中下降的现象。毛细管越细，现象越明显。
+                </p>
+            </div>
+        </section>
+
+        <!-- 第三章 热力学定律 -->
+        <h1>第三章 热力学定律</h1>
+
+        <section id="gnr">
+            <div class="knowledge-card">
+                <h2>功、热和内能的改变</h2>
+                <p>
+                    <b>焦耳实验</b>：通过做功和热传递两种方式都可以改变系统的内能。做功是其他形式的能与内能的转化，热传递是内能在不同物体间的转移。<br>
+                    <b>功与内能的变化</b>：在绝热过程中，系统内能的增量等于外界对系统做的功，即 \(\Delta U = W\)。<br>
+                    <b>热与内能的变化</b>：在单纯的热传递过程中，系统内能的增量等于系统从外界吸收的热量，即 \(\Delta U = Q\)。  
+                </p>
+            </div>
+        </section>
+
+        <section id="rldy">
+            <div class="knowledge-card">
+                <h2>热力学第一定律</h2>
+                <p>
+                    <b>内容</b>：一个热力学系统的内能变化量等于外界向它传递的热量与外界对它所做的功之和。公式 \(\Delta U = Q + W\)。   <br>
+                    <b>符号法则</b>：<br>
+                    ① 做功 \(W\)：外界对系统做功，\(W > 0\)；系统对外界做功，\(W < 0\)。<br>
+                    ② 热传递 \(Q\)：系统吸热，\(Q > 0\)；系统放热，\(Q < 0\)。<br>
+                    ③ 内能变化 \(\Delta U\)：内能增加，\(\Delta U > 0\)；内能减少，\(\Delta U < 0\)。
+                </p>
+            </div>
+        </section>
+
+        <section id="nlsh">
+            <div class="knowledge-card">
+                <h2>能量守恒定律</h2>
+                <p>
+                    <b>内容</b>：能量既不会凭空产生，也不会凭空消失，它只能从一种形式转化为其他形式，或者从一个物体转移到别的物体，在转化或转移的过程中，能量的总量保持不变。   <br>
+                    <b>第一类永动机</b>：不消耗任何能量却能持续对外做功的机器。违背了能量守恒定律，是不可能制成的。
+                </p>
+            </div>
+        </section>
+
+        <section id="rlde">
+            <div class="knowledge-card">
+                <h2>热力学第二定律</h2>
+                <p>
+                    <b>两种表述</b>：<br>
+                    ① 克劳修斯表述：热量不能自发地从低温物体传到高温物体（说明热传递的方向性）。   <br>
+                    ② 开尔文表述：不可能从单一热库吸收热量，使之完全变成功，而不产生其他影响（说明功热转化的方向性）。第二类永动机（从单一热源吸热全部用来做功而不引起其他变化）不可能制成。<br>
+                    <b>微观意义</b>：一切自发过程总是沿着分子热运动的无序性增大的方向进行。熵是系统无序程度的量度，孤立系统的熵永不减少。<br>
+                    <b>能量耗散</b>：在能量转化过程中，高品质的能量（如机械能、电能）最终会转化为内能，分散到环境中无法重新收集利用，这反映了能量转化的方向性。
+                </p>
+            </div>
+        </section>
+
+        <!-- 第四章 原子结构和波粒二象性 -->
+        <h1>第四章 原子结构和波粒二象性</h1>
+
+        <section id="plk">
+            <div class="knowledge-card">
+                <h2>普朗克黑体辐射理论</h2>
+                <p>
+                    <b>黑体与黑体辐射</b>：能够完全吸收各种电磁辐射而不发生反射的物体称为黑体。黑体辐射的强度与波长和温度有关，实验曲线与经典理论不符。  <br>
+                    <b>能量子假说</b>：普朗克提出，振动着的带电粒子的能量只能是某一最小能量值 \(\varepsilon\) 的整数倍，即能量是量子化的。这个不可再分的最小能量值 \(\varepsilon\) 叫作能量子，\(\varepsilon = h\nu\)，其中 \(\nu\) 是频率，\(h\) 是普朗克常量 h = 6.63 * 10 ^ -34 Js。这一假说标志着量子力学的诞生。    
+                </p>
+            </div>
+        </section>
+
+        <section id="gdd">
+            <div class="knowledge-card">
+                <h2>光电效应</h2>
+                <p>
+                    <b>光电效应现象</b>：当光照射到金属表面时，金属表面发射电子的现象。发射出的电子叫光电子。  <br>
+                    <b>实验规律</b>：<br>
+                    ① 存在截止频率（极限频率）：只有入射光的频率大于金属的截止频率时，才能发生光电效应；<br>
+                    ② 瞬时性：光电效应几乎是瞬时发生的，不超过 \(10^{-9}\text{s}\)；<br>
+                    ③ 饱和电流：单位时间内发射的光电子数与入射光的强度成正比；<br>
+                    ④ 遏止电压：光电子的最大初动能与入射光强度无关，只随入射光频率的增大而增大。<br>
+                    <b>爱因斯坦光子说</b>：光本身就是由一个个不可分割的能量子组成的，这些能量子叫作光子，每个光子的能量 \(\varepsilon = h\nu\)。根据能量守恒，光电效应方程：\(h\nu = W_0 + E_k\)，即 \(h\nu = W_0 + \dfrac{1}{2}mv^2\)，其中 \(W_0\) 为金属的逸出功。    <br>
+                    <b>光的波粒二象性</b>：光既有波动性，又有粒子性。波动性体现在干涉、衍射等现象；粒子性体现在光电效应等现象。光子的能量 \(\varepsilon = h\nu\) 和动量 \(p = \dfrac{h}{\lambda}\) 将波和粒子联系起来。
+                </p>
+            </div>
+        </section>
+
+        <section id="yzjg">
+            <div class="knowledge-card">
+                <h2>原子的核式结构模型</h2>
+                <p>
+                    <b>电子的发现</b>：汤姆孙通过阴极射线实验发现了电子，说明原子不是不可再分的最小微粒，原子内部存在结构。汤姆孙提出了“枣糕模型”（西瓜模型）。    <br>
+                    <b>α粒子散射实验</b>：卢瑟福用α粒子轰击金箔，观察到绝大多数α粒子穿过金箔后仍沿原来方向前进，少数α粒子发生了较大的偏转，极少数α粒子的偏转超过90°，有的甚至几乎被撞了回来。    <br>
+                    <b>核式结构模型</b>：在原子的中心有一个很小的原子核，原子的全部正电荷和几乎全部质量都集中在原子核里，带负电的电子在核外空间绕核旋转。原子核直径数量级为 \(10^{-15}\text{m}\)，原子直径数量级为 \(10^{-10}\text{m}\)。  
+                </p>
+            </div>
+        </section>
+
+        <section id="qygy">
+            <div class="knowledge-card">
+                <h2>氢原子光谱和玻尔的原子模型</h2>
+                <p>
+                    <b>氢原子光谱</b>：氢原子光谱是线状谱（明线光谱），巴尔末发现氢原子可见光谱线的波长满足 \(\dfrac{1}{\lambda} = R\left(\dfrac{1}{2^2} - \dfrac{1}{n^2}\right)\)，\(n = 3,4,5,\ldots\)。  <br>
+                    <b>玻尔原子模型的三条假设</b>：<br>
+                    ① 定态假设：原子只能处于一系列不连续的能量状态中，在这些状态中电子绕核运动但不辐射电磁波；    <br>
+                    ② 跃迁假设：电子从高能级跃迁到低能级时，辐射一定频率的光子，光子能量 \(h\nu = E_m - E_n\)；电子从低能级跃迁到高能级时，吸收同样能量的光子；    <br>
+                    ③ 轨道量子化假设：电子的轨道半径不是任意的，只有满足 \(mvr = n\dfrac{h}{2\pi}\)（\(n\) 为正整数）的轨道才是可能的。  <br>
+                    <b>氢原子能级公式</b>：\(E_n = \dfrac{E_1}{n^2}\)，\(E_1 = -13.6 \ \text{eV}\)。基态能量 \(-13.6\text{eV}\)，激发态能量为 \(-3.4\text{eV}\)、\(-1.51\text{eV}\)……能级图横线表示能量高低。    
+                </p>
+            </div>
+        </section>
+
+        <section id="lzbd">
+            <div class="knowledge-card">
+                <h2>粒子的波动性和量子力学的建立</h2>
+                <p>
+                    <b>德布罗意波（物质波）</b>：德布罗意提出，每一个运动的粒子都与一个对应的波相联系，这种波叫物质波。粒子的动量 \(p\) 与波长 \(\lambda\) 满足关系 \(\lambda = \dfrac{h}{p}\)。电子衍射实验证实了物质波的存在。    <br>
+                    <b>不确定性关系</b>：\(\Delta x \Delta p \geq \dfrac{h}{4\pi}\)，表明不能同时精确确定粒子的位置和动量。这是微观粒子波粒二象性的必然表现。<br>
+                    <b>量子力学的应用</b>：量子力学解释了原子结构、化学键、固体物理等现象，推动了激光、半导体、核能等技术的发展。
+                </p>
+            </div>
+        </section>
+
+        <!-- 第五章 原子核 -->
+        <h1>第五章 原子核</h1>
+
+        <section id="yzhzc">
+            <div class="knowledge-card">
+                <h2>原子核的组成</h2>
+                <p>
+                    <b>天然放射现象</b>：1896年贝克勒尔发现，铀盐能使照相底片感光，说明铀原子核自发地放出射线。这是人们认识原子核复杂结构的开端。     <br>
+                    <b>三种射线</b>：<br>
+                    ① α射线：是高速氦核流（\(\ce{^4_2He}\)），速度约为光速的1/10，电离作用最强，穿透能力最弱（几厘米空气，一张纸可挡住）。   <br>
+                    ② β射线：是高速电子流（\(\ce{^0_{-1}e}\)），速度接近光速，电离作用较弱，穿透能力较强（几毫米铝板）。   <br>
+                    ③ γ射线：是能量很高的电磁波（光子），波长极短，电离作用最弱，穿透能力最强（几厘米铅板）。   <br>
+                    <b>原子核的组成</b>：原子核由质子和中子组成，它们统称为核子。质子带正电，中子不带电。原子核的电荷数 = 质子数 = 原子序数；原子核的质量数 = 质子数 + 中子数 = 核子数。   <br>
+                    <b>同位素</b>：具有相同质子数而中子数不同的原子核组成的元素互称同位素。如氢的三种同位素：氕（\(\ce{^1_1H}\)）、氘（\(\ce{^2_1H}\)）、氚（\(\ce{^3_1H}\)）。   
+                </p>
+            </div>
+        </section>
+
+        <section id="fsxs">
+            <div class="knowledge-card">
+                <h2>放射性元素的衰变</h2>
+                <p>
+                    <b>原子核的衰变</b>：原子核自发地放出α粒子或β粒子，变成另一种原子核的过程。   <br>
+                    α衰变：\(\ce{^A_Z X -> ^{A-4}_{Z-2} Y + ^4_2 He}\)（质量数减少4，电荷数减少2）。<br>
+                    β衰变：\(\ce{^A_Z X -> ^A_{Z+1} Y + ^0_{-1} e}\)（质量数不变，电荷数增加1）。注意β衰变的实质是核内一个中子转化为质子时放出电子：\(\ce{^1_0 n -> ^1_1 H + ^0_{-1} e + \bar{\nu}_e}\)（反中微子）。<br>
+                    γ射线经常伴随α衰变或β衰变产生，是原子核从激发态跃迁到基态时放出的光子。   <br>
+                    <b>半衰期</b>：放射性元素的原子核有半数发生衰变所需的时间。公式 \(N = N_0\left(\dfrac{1}{2}\right)^{t/T}\)，\(m = m_0\left(\dfrac{1}{2}\right)^{t/T}\)。半衰期是统计规律，适用于大量原子核；由核内部自身因素决定，与原子所处的化学状态和外部条件无关。     
+                </p>
+            </div>
+        </section>
+
+        <section id="hlyjh">
+            <div class="knowledge-card">
+                <h2>核力与结合能</h2>
+                <p>
+                    <b>核力</b>：能够把原子核中的各核子联系在一起的强大的力。核力是强相互作用，是短程力（作用范围约 \(2 \times 10^{-15}\text{m}\)），具有饱和性。   <br>
+                    <b>结合能</b>：将原子核分解成孤立的核子时吸收的能量，或孤立的核子结合成原子核时释放的能量。结合能越大，原子核越稳定。   <br>
+                    <b>比结合能（平均结合能）</b>：结合能与核子数之比。比结合能越大，原子核越难拆开，表示该核越稳定。中等大小的核（铁、镍等）比结合能最大，最稳定。 <br>
+                    <b>质量亏损</b>：原子核的质量小于组成它的核子的质量之和的现象。爱因斯坦质能方程 \(\Delta E = \Delta m c^2\) 表明，一定质量的变化对应着巨大的能量变化。   
+                </p>
+            </div>
+        </section>
+
+        <section id="hlyhjb">
+            <div class="knowledge-card">
+                <h2>核裂变与核聚变</h2>
+                <p>
+                    <b>核裂变</b>：重核分裂成中等质量核的核反应。如铀核裂变：\(\ce{^235_92 U + ^1_0 n -> ^{144}_{56} Ba + ^{89}_{36} Kr + 3 ^1_0 n}\)，同时释放巨大能量。链式反应：裂变产生的中子继续引发其他铀核裂变，使反应持续进行。原子弹、核电站都是利用核裂变。   <br>
+                    <b>核聚变</b>：轻核结合成质量较大的核的核反应。如氢核聚变：\(\ce{^2_1 H + ^3_1 H -> ^4_2 He + ^1_0 n}\)，同时释放比裂变更大的能量。聚变需要极高的温度（几百万度以上），所以也叫热核反应。氢弹、太阳内部的能量来源于核聚变。   <br>
+                    <b>核能的优点</b>：聚变原料（氘、氚）储量丰富，产物无放射性污染（相比裂变），是理想的清洁能源。
+                </p>
+            </div>
+        </section>
+
+        <section id="jblz">
+            <div class="knowledge-card">
+                <h2>“基本”粒子</h2>
+                <p>
+                    <b>粒子家族</b>：20世纪后发现了大量粒子，如正电子、μ子、π介子、K介子等。按照参与相互作用的性质，粒子可分为强子（如质子、中子，参与强相互作用）、轻子（如电子、中微子，不参与强相互作用）、规范玻色子（传递相互作用的粒子，如光子）和希格斯玻色子。    <br>
+                    <b>夸克模型</b>：强子（如质子、中子）不是基本粒子，它们由夸克组成。夸克有上夸克（u）、下夸克（d）、奇异夸克（s）等六种“味”，每种味有三种“色”。夸克所带电荷为分数电荷（\(\pm\frac{1}{3}e\) 或 \(\pm\frac{2}{3}e\)）。  
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ],
+                // 处理化学式中的箭头等特殊符号
+                trust: true,
+                macros: {
+                    "\\ce": "\\mathrm{#1}" // 简单处理化学式，实际KaTeX有mhchem扩展但未加载
+                }
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+          // 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

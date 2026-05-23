@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>地理选修二</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2e6b5e;      /* 深蓝绿，代表区域发展 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e0f0ec;     /* 浅蓝绿背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #2e6b5e;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #2e6b5e;
+        }
+        .category-title:hover { background: rgba(46, 107, 94, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #1d4a40;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮深蓝绿 */
+        .category-content a.active {
+            color: #2e6b5e;
+            font-weight: 600;
+            background-color: rgba(46, 107, 94, 0.12);
+            border-left: 3px solid #2e6b5e;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #1d4a40;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #d0e7e1;
+            border: 2px dashed #79b0a3;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2e6b5e;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #2e6b5e;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #79b0a3;
+            color: #2e6b5e;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #b7d9d2;
+            padding-bottom: 10px;
+            color: #2e6b5e;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 案例强调 */
+        .case {
+            font-weight: 500;
+            color: #1d5b4f;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (蓝绿背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (地理选修二分类) 基于人教版选择性必修2《区域发展》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>地理选修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一章 区域与区域发展 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-region')">✚ 区域与区域发展</div>
+            <div class="category-content" id="cat-region">
+                <a href="#region-concept">区域的含义与类型</a>
+                <a href="#region-features">区域的整体性与关联性</a>
+                <a href="#region-diff">区域发展差异与因地制宜</a>
+            </div>
+        </div>
+        
+        <!-- 第二章 区域生态环境建设 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-eco')">✚ 区域生态环境建设</div>
+            <div class="category-content" id="cat-eco">
+                <a href="#desertification">荒漠化（以西北地区为例）</a>
+                <a href="#soil-erosion">水土流失（以黄土高原为例）</a>
+                <a href="#forest-protect">森林保护（以亚马孙雨林为例）</a>
+            </div>
+        </div>
+        
+        <!-- 第三章 区域自然资源综合开发利用 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-resource')">✚ 区域自然资源综合开发利用</div>
+            <div class="category-content" id="cat-resource">
+                <a href="#energy-resource">能源资源开发（以山西为例）</a>
+                <a href="#river-basin">流域综合开发（以田纳西河为例）</a>
+            </div>
+        </div>
+        
+        <!-- 第四章 区域经济发展 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-economy')">✚ 区域经济发展</div>
+            <div class="category-content" id="cat-economy">
+                <a href="#agri-development">区域农业发展（以东北为例）</a>
+                <a href="#industry-urban">区域工业化与城市化（以珠三角为例）</a>
+            </div>
+        </div>
+        
+        <!-- 第五章 区际联系与区域协调发展 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-linkage')">✚ 区际联系与协调发展</div>
+            <div class="category-content" id="cat-linkage">
+                <a href="#resource-transfer">资源的跨区域调配</a>
+                <a href="#industry-transfer">产业转移</a>
+                <a href="#coordinate-dev">区域协调发展</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">立足区域 · 协调发展</div>
+    </nav>
+    
+    <!-- 主要内容：详细版地理选修二知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一章 区域与区域发展 (详细) -->
+        <h1>第一章 区域与区域发展</h1>
+        <section id="region-concept">
+            <div class="knowledge-card">
+                <h2>区域的含义与类型</h2>
+                <ul>
+                    <li><strong>区域的概念</strong>：区域是人们在地理差异的基础上，按一定指标划分出来的地理空间单元。具有一定的面积、形状、边界。</li>
+                    <li><strong>区域的类型</strong>：
+                        <ul>
+                            <li>按性质分：自然区域（如地形区、气候区）、经济区域（如工业区、农业区）、社会文化区域（如方言区、文化区）。</li>
+                            <li>按划分方式分：<strong>单一特征区域</strong>（根据单一指标划分，如干湿地区）、<strong>综合特征区域</strong>（综合多个指标，如中国主体功能区）。</li>
+                            <li>按功能分：<strong>均质区</strong>（内部特征相对一致，如高原区）、<strong>功能区</strong>（内部联系紧密，如城市经济区）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="region-features">
+            <div class="knowledge-card">
+                <h2>区域的整体性与关联性</h2>
+                <ul>
+                    <li><strong>整体性</strong>：区域内部各要素相互作用、相互影响，构成一个整体。例如，西北地区深居内陆→降水少→地表植被稀疏→风成地貌→荒漠草原景观。</li>
+                    <li><strong>关联性</strong>：区域之间通过物质、能量、信息流动发生联系。如西气东输（能源流动）、产业转移（产业关联）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="region-diff">
+            <div class="knowledge-card">
+                <h2>区域发展差异与因地制宜</h2>
+                <ul>
+                    <li><strong>区域差异的表现</strong>：
+                        <ul>
+                            <li>自然条件：气候、地形、水文、土壤、植被等差异。</li>
+                            <li>社会经济：经济发展水平、产业结构、人口密度、城镇化水平等差异。</li>
+                            <li>文化习俗：语言、宗教、饮食等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>因地制宜</strong>：根据区域特点，合理利用自然资源，确定发展方向。例如：
+                        <ul>
+                            <li>东部沿海：利用区位优势，发展外向型经济，高新技术产业。</li>
+                            <li>中部地区：发挥资源、劳动力优势，承接产业转移。</li>
+                            <li>西部地区：保护生态，发展特色产业（能源、旅游）。</li>
+                            <li>东北地区：振兴老工业基地，调整结构，发展现代农业。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 区域生态环境建设 (详细) -->
+        <h1>第二章 区域生态环境建设</h1>
+        <section id="desertification">
+            <div class="knowledge-card">
+                <h2>荒漠化（以西北地区为例）</h2>
+                <ul>
+                    <li><strong>定义</strong>：发生在干旱、半干旱地区及一些半湿润地区的土地退化，表现为土地沙漠化、石漠化、次生盐渍化等。</li>
+                    <li><strong>西北地区荒漠化成因</strong>：
+                        <ul>
+                            <li>自然原因：气候干旱（降水少，蒸发强），地表多疏松沙质沉积物，大风日数多，植被稀少。</li>
+                            <li>人为原因（主导）：过度樵采、过度放牧、过度开垦、水资源利用不当、工矿交通建设中不注意环保。</li>
+                        </ul>
+                    </li>
+                    <li><strong>防治措施</strong>：
+                        <ul>
+                            <li>生物措施：封沙育草，植树造林（乔灌草结合），建设防护林（如“三北”防护林）。</li>
+                            <li>工程措施：设置沙障（草方格、石方格），阻沙固沙。</li>
+                            <li>管理措施：调整土地利用结构，合理放牧（划区轮牧），退耕还林还草，控制人口增长，生态移民。</li>
+                        </ul>
+                    </li>
+                    <li><strong>案例：宁夏沙坡头草方格沙障</strong> —— 增加地表粗糙度，降低风速，截留水分，利于固沙植物存活。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="soil-erosion">
+            <div class="knowledge-card">
+                <h2>水土流失（以黄土高原为例）</h2>
+                <ul>
+                    <li><strong>定义</strong>：在水力、重力等作用下，土壤表层物质被破坏、剥蚀、搬运的过程。黄土高原是世界上水土流失最严重的地区。</li>
+                    <li><strong>黄土高原水土流失成因</strong>：
+                        <ul>
+                            <li>自然原因：黄土土质疏松，垂直节理发育，多孔隙；降水集中（夏季多暴雨）；地形坡度大；植被覆盖率低。</li>
+                            <li>人为原因：不合理的土地利用（轮荒耕作、开矿、修路），植被破坏（滥砍滥伐、过度放牧）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>危害</strong>：
+                        <ul>
+                            <li>土壤肥力下降，农业减产。</li>
+                            <li>河流含沙量增大，淤积河床、水库，引发洪涝灾害（如黄河下游地上河）。</li>
+                            <li>生态环境恶化。</li>
+                        </ul>
+                    </li>
+                    <li><strong>治理措施</strong>：
+                        <ul>
+                            <li>工程措施：打坝淤地（修建淤地坝），修建梯田，固沟工程。</li>
+                            <li>生物措施：植树种草，退耕还林还草，提高植被覆盖率。</li>
+                            <li>农业技术措施：调整农业结构（如发展林果业），采用保土耕作技术（等高种植、地膜覆盖）。</li>
+                            <li>小流域综合治理：以水土保持为中心，建立“保塬、护坡、固沟”的防护体系。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="forest-protect">
+            <div class="knowledge-card">
+                <h2>森林保护（以亚马孙雨林为例）</h2>
+                <ul>
+                    <li><strong>热带雨林的全球环境效应</strong>：
+                        <ul>
+                            <li>“地球之肺”：吸收CO₂，释放O₂，调节全球碳氧平衡。</li>
+                            <li>“绿色水库”：涵养水源，调节全球水循环。</li>
+                            <li>维护生物多样性：全球物种最丰富的生态系统。</li>
+                        </ul>
+                    </li>
+                    <li><strong>雨林破坏的原因</strong>：
+                        <ul>
+                            <li>直接原因：人类开发（过度的迁移农业、商业性伐木、采矿、修路、大型农牧场）。</li>
+                            <li>根本原因：人口增长和贫困导致的发展需求；发达国家对木材、肉类的需求。</li>
+                        </ul>
+                    </li>
+                    <li><strong>保护措施</strong>：
+                        <ul>
+                            <li>设立自然保护区，划定生态红线。</li>
+                            <li>鼓励保护性开发（生态旅游，雨林观光）。</li>
+                            <li>加强环境教育，提高环保意识。</li>
+                            <li>建立国际基金，全球合作。</li>
+                            <li>减少非法砍伐，实施森林采伐许可证制度。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 区域自然资源综合开发利用 (详细) -->
+        <h1>第三章 区域自然资源综合开发利用</h1>
+        <section id="energy-resource">
+            <div class="knowledge-card">
+                <h2>能源资源开发（以山西为例）</h2>
+                <ul>
+                    <li><strong>山西煤炭资源开发条件</strong>：
+                        <ul>
+                            <li>资源状况：储量丰富（全国1/4），分布广，煤种齐全，煤质优良（低灰、低硫、低磷、发热量高）。</li>
+                            <li>开采条件：多为中厚煤层，埋藏浅，适于露天开采和大规模机械化开采。</li>
+                            <li>市场条件：我国能源消费以煤炭为主，市场广阔。</li>
+                            <li>区位交通：地处我国中部，邻近主要能源消费区，有铁路（大秦线、朔黄线）外运。</li>
+                        </ul>
+                    </li>
+                    <li><strong>山西能源基地建设</strong>：
+                        <ul>
+                            <li>扩大煤炭开采量。</li>
+                            <li>提高煤炭外运能力（加强铁路建设）。</li>
+                            <li>建设坑口电站，变输煤为输电（缓解运输压力，但加重本地环境压力）。</li>
+                            <li>发展煤炭深加工（焦化、液化、气化），延长产业链，提高附加值。</li>
+                        </ul>
+                    </li>
+                    <li><strong>能源开发利用中的问题</strong>：
+                        <ul>
+                            <li>生态环境问题：地表塌陷、水土流失、大气污染、水资源短缺。</li>
+                            <li>资源浪费现象（私挖滥采）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>环境保护与治理</strong>：
+                        <ul>
+                            <li>矿区土地复垦，充填塌陷区。</li>
+                            <li>提高煤矸石等废弃物的综合利用。</li>
+                            <li>加强“三废”治理，推广洁净煤技术。</li>
+                            <li>调整产业结构，发展新兴产业和旅游业。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="river-basin">
+            <div class="knowledge-card">
+                <h2>流域综合开发（以田纳西河为例）</h2>
+                <ul>
+                    <li><strong>田纳西河流域基本概况</strong>：
+                        <ul>
+                            <li>位于美国东南部，是密西西比河支流俄亥俄河的支流。</li>
+                            <li>气候：亚热带季风性湿润气候，降水丰沛，冬春多雨。</li>
+                            <li>地形：上游山地丘陵，中游丘陵，下游平原。</li>
+                            <li>资源：水能、煤炭、石油、金属矿丰富。</li>
+                        </ul>
+                    </li>
+                    <li><strong>流域开发早期问题</strong>：
+                        <ul>
+                            <li>洪水泛滥，水土流失严重，土地贫瘠。</li>
+                            <li>航运受阻，经济落后。</li>
+                        </ul>
+                    </li>
+                    <li><strong>田纳西河流域综合开发（TVA）</strong>：
+                        <ul>
+                            <li>核心：水资源综合开发（梯级开发水能，防洪、航运、灌溉、旅游、养殖等综合效益）。</li>
+                            <li>措施：
+                                <ul>
+                                    <li>修建大坝、水电站（梯级开发），提高防洪标准，改善航运条件。</li>
+                                    <li>发展电力密集型工业（炼铝、化学等）。</li>
+                                    <li>植树造林，保持水土，发展旅游业。</li>
+                                    <li>调整农业结构，发展林果业、畜牧业。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>经验启示</strong>：
+                        <ul>
+                            <li>以水资源综合开发为核心，因地制宜。</li>
+                            <li>成立专门机构（TVA），进行统一开发与管理。</li>
+                            <li>注重生态环境保护和产业发展相结合。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 区域经济发展 (详细) -->
+        <h1>第四章 区域经济发展</h1>
+        <section id="agri-development">
+            <div class="knowledge-card">
+                <h2>区域农业发展（以东北为例）</h2>
+                <ul>
+                    <li><strong>东北地区农业发展的地理条件</strong>：
+                        <ul>
+                            <li>气候：温带季风气候，雨热同期，但易受低温冷害影响。</li>
+                            <li>地形：平原（三江、松嫩、辽河平原）广阔，利于机械化；山地（大小兴安岭、长白山）利于林业。</li>
+                            <li>土壤：黑土、黑钙土肥沃，土层深厚。</li>
+                            <li>水源：河流众多，水源较充足。</li>
+                        </ul>
+                    </li>
+                    <li><strong>农业布局特点</strong>：
+                        <ul>
+                            <li>耕作农业区：平原地区，主要作物玉米、大豆、水稻、春小麦。</li>
+                            <li>林业和特产区：大小兴安岭、长白山，林业（木材）和特产（人参、鹿茸、苹果梨）。</li>
+                            <li>畜牧业区：西部高原，发展草原畜牧业（三河牛、三河马）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>商品粮基地建设</strong>：
+                        <ul>
+                            <li>我国最大的商品粮基地（机械化水平高，商品率高，人均产量多）。</li>
+                            <li>问题：土壤肥力下降，水土流失，黑土退化，湿地破坏。</li>
+                            <li>发展方向：发展绿色农业，保护生态环境，提高深加工能力。</li>
+                        </ul>
+                    </li>
+                    <li><strong>农业发展方向</strong>：
+                        <ul>
+                            <li>平原区：规模化、专业化、机械化，建设绿色食品基地。</li>
+                            <li>西部草原区：生态农业，发展草业和舍饲养畜。</li>
+                            <li>山区：立体开发，林特产品加工，森林保育。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="industry-urban">
+            <div class="knowledge-card">
+                <h2>区域工业化与城市化（以珠三角为例）</h2>
+                <ul>
+                    <li><strong>珠三角工业化与城市化的推进阶段</strong>：
+                        <ul>
+                            <li><strong>第一阶段（1979-1990）</strong>：以劳动密集型加工制造业（如服装、玩具、电子产品组装）为主。得益于对外开放政策、侨乡优势、劳动力丰富。外商投资规模小，附加值低。</li>
+                            <li><strong>第二阶段（1990年以后）</strong>：高新技术产业逐渐成为主导（电子信息、家电等）。得益于全国最大的电子信息产业基地形成，产业升级。</li>
+                        </ul>
+                    </li>
+                    <li><strong>工业化对城市化的推动</strong>：
+                        <ul>
+                            <li>工业化加速了非农产业向城镇集聚，城镇人口增加，城镇数量增多，规模扩大。</li>
+                            <li>形成了以广州、深圳为核心的城市群（珠三角城市群）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>问题与对策</strong>：
+                        <ul>
+                            <li>问题：产业升级面临困难（劳动力成本上升，土地紧张），城市建设相对落后（城中村），生态环境问题加剧（水污染、大气污染）。</li>
+                            <li>对策：
+                                <ul>
+                                    <li>推动产业升级（发展高新技术产业和现代服务业）。</li>
+                                    <li>加强城市规划与管理，完善基础设施。</li>
+                                    <li>治理污染，保护生态环境。</li>
+                                    <li>促进区域协调发展（泛珠三角合作）。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五章 区际联系与区域协调发展 (详细) -->
+        <h1>第五章 区际联系与协调发展</h1>
+        <section id="resource-transfer">
+            <div class="knowledge-card">
+                <h2>资源的跨区域调配</h2>
+                <ul>
+                    <li><strong>背景</strong>：我国资源分布不均（南水北调、西气东输、西电东送、北煤南运）。</li>
+                    <li><strong>南水北调</strong>：
+                        <ul>
+                            <li>东线：利用京杭大运河调水（从长江下游扬州引水），工程量小，但水质较差，需逐级提水（黄河以北可自流）。</li>
+                            <li>中线：从汉江丹江口水库引水，自流到北京、天津，水质好，但工程量大，需移民。</li>
+                            <li>西线：从长江上游调水到黄河上游，方案在论证中，地形复杂。</li>
+                            <li>影响：缓解华北缺水，促进经济发展；但可能对长江流域生态环境造成一定影响（如河口海水倒灌）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>西气东输</strong>：
+                        <ul>
+                            <li>一线：轮南（新疆）→上海，全长4200km。二线：中亚→霍尔果斯→广州。</li>
+                            <li>对输出地（新疆）：将资源优势转化为经济优势，增加就业，带动相关产业，但可能加剧水资源紧张、生态破坏。</li>
+                            <li>对输入地（长三角、珠三角）：缓解能源短缺，优化能源结构（减少煤炭使用），改善大气环境。</li>
+                        </ul>
+                    </li>
+                    <li><strong>西电东送</strong>：
+                        <ul>
+                            <li>北线：山西、内蒙古火电和黄河水电输往京津唐。</li>
+                            <li>中线：三峡、金沙江水电输往华东。</li>
+                            <li>南线：云贵水电、火电输往珠三角。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="industry-transfer">
+            <div class="knowledge-card">
+                <h2>产业转移</h2>
+                <ul>
+                    <li><strong>概念</strong>：企业将产品生产的部分或全部转移到其他地区。</li>
+                    <li><strong>影响因素</strong>：
+                        <ul>
+                            <li>劳动力成本：向廉价劳动力地区转移。</li>
+                            <li>市场：接近市场，降低运费。</li>
+                            <li>政策：优惠的税收、用地政策。</li>
+                            <li>环境：避开环境压力大的地区。</li>
+                            <li>地价、产业集聚等因素。</li>
+                        </ul>
+                    </li>
+                    <li><strong>国际产业转移</strong>：二战后，日本→亚洲四小龙→东盟、中国沿海→中西部及东南亚（劳动力成本驱动）。</li>
+                    <li><strong>国内产业转移</strong>：
+                        <ul>
+                            <li>沿海→中西部（如“腾笼换鸟”）。</li>
+                            <li>北京、上海等大城市→周边（疏解非首都功能）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>影响</strong>：
+                        <ul>
+                            <li>对转出地：促进产业升级，改善环境，但可能失业；对转入地：促进经济发展，增加就业，加速工业化，但可能带来污染。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="coordinate-dev">
+            <div class="knowledge-card">
+                <h2>区域协调发展</h2>
+                <ul>
+                    <li><strong>国家战略</strong>：
+                        <ul>
+                            <li>西部大开发（基础设施建设、生态保护、特色产业）。</li>
+                            <li>东北振兴（体制创新，结构调整，资源枯竭型城市转型）。</li>
+                            <li>中部崛起（承东启西，承接产业转移）。</li>
+                            <li>东部率先发展（创新驱动，现代服务业，高端制造业）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>京津冀协同发展</strong>：
+                        <ul>
+                            <li>北京：疏解非首都功能（部分产业、教育、医疗迁往河北、天津）。</li>
+                            <li>天津：先进制造、航运物流。</li>
+                            <li>河北：产业承接，生态保护（雄安新区）。</li>
+                            <li>交通一体化，生态联防联治。</li>
+                        </ul>
+                    </li>
+                    <li><strong>长江经济带</strong>：
+                        <ul>
+                            <li>“一轴、两翼、三极、多点”格局。</li>
+                            <li>生态优先，绿色发展（共抓大保护，不搞大开发）。</li>
+                            <li>发挥黄金水道作用，促进产业转型升级。</li>
+                        </ul>
+                    </li>
+                    <li><strong>粤港澳大湾区</strong>：
+                        <ul>
+                            <li>建设世界级城市群，创新中心，宜居宜业宜游。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

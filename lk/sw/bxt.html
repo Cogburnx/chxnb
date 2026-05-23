@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>生物必修二</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #7b1fa2;      /* 遗传学紫色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f3e5f5;     /* 浅紫色背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #7b1fa2;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #7b1fa2;
+        }
+        .category-title:hover { background: rgba(123, 31, 162, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #4a235a;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮紫色 */
+        .category-content a.active {
+            color: #7b1fa2;
+            font-weight: 600;
+            background-color: rgba(123, 31, 162, 0.12);
+            border-left: 3px solid #7b1fa2;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #4a235a;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e1bee7;
+            border: 2px dashed #ba68c8;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #7b1fa2;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #7b1fa2;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ce93d8;
+            color: #7b1fa2;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #e1bee7;
+            padding-bottom: 10px;
+            color: #7b1fa2;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 遗传比例等强调 */
+        .genetic-ratio {
+            font-weight: 600;
+            color: #6a1b9a;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (紫色背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (生物必修二分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>生物必修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一章 遗传因子的发现 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-mendel')">✚ 遗传因子的发现</div>
+            <div class="category-content" id="cat-mendel">
+                <a href="#segregation">分离定律</a>
+                <a href="#assortment">自由组合定律</a>
+                <a href="#dominance">显性的相对性</a>
+            </div>
+        </div>
+        
+        <!-- 第二章 基因和染色体的关系 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-chromosome')">✚ 基因和染色体的关系</div>
+            <div class="category-content" id="cat-chromosome">
+                <a href="#meiosis">减数分裂与受精作用</a>
+                <a href="#gene-on-chromosome">基因在染色体上</a>
+                <a href="#sex-linked">伴性遗传</a>
+            </div>
+        </div>
+        
+        <!-- 第三章 基因的本质 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-dna')">✚ 基因的本质</div>
+            <div class="category-content" id="cat-dna">
+                <a href="#dna-evidence">DNA是主要的遗传物质</a>
+                <a href="#dna-structure">DNA分子的结构</a>
+                <a href="#dna-replication">DNA的复制</a>
+                <a href="#gene-fragment">基因是有遗传效应的DNA片段</a>
+            </div>
+        </div>
+        
+        <!-- 第四章 基因的表达 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-expression')">✚ 基因的表达</div>
+            <div class="category-content" id="cat-expression">
+                <a href="#transcription">基因指导蛋白质的合成</a>
+                <a href="#central-dogma">中心法则</a>
+                <a href="#gene-trait">基因表达与性状的关系</a>
+            </div>
+        </div>
+        
+        <!-- 第五章 基因突变及其他变异 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-variation')">✚ 基因突变及其他变异</div>
+            <div class="category-content" id="cat-variation">
+                <a href="#mutation">基因突变和基因重组</a>
+                <a href="#chromosome-aberration">染色体变异</a>
+                <a href="#genetic-disease">人类遗传病</a>
+            </div>
+        </div>
+        
+        <!-- 第六章 生物的进化 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-evolution')">✚ 生物的进化</div>
+            <div class="category-content" id="cat-evolution">
+                <a href="#evidence">生物有共同祖先的证据</a>
+                <a href="#natural-selection">自然选择与适应的形成</a>
+                <a href="#speciation">种群基因组成的变化与物种形成</a>
+                <a href="#coevolution">协同进化与生物多样性</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">探索遗传奥秘 · 追溯进化历程</div>
+    </nav>
+    
+    <!-- 主要内容：详细版生物必修二知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一章 遗传因子的发现 -->
+        <h1>第一章 遗传因子的发现</h1>
+        <section id="segregation">
+            <div class="knowledge-card">
+                <h2>分离定律</h2>
+                <ul>
+                    <li><strong>孟德尔一对相对性状杂交实验</strong>
+                        <ul>
+                            <li>选材：豌豆（严格自花传粉、闭花授粉；具有易于区分的相对性状；生长周期短，子代数量多）。</li>
+                            <li>过程：纯种高茎（DD） × 纯种矮茎（dd） → F₁全为高茎（Dd） → F₁自交 → F₂出现性状分离，高茎:矮茎 ≈ 3:1。</li>
+                            <li>解释：遗传因子成对存在；形成配子时成对因子分离；受精时雌雄配子随机结合。</li>
+                        </ul>
+                    </li>
+                    <li><strong>分离定律实质</strong>：在杂合子细胞中，位于一对同源染色体上的等位基因具有一定的独立性；在减数分裂形成配子时，等位基因随同源染色体的分开而分离，分别进入两个配子中，独立地随配子遗传给后代。</li>
+                    <li><strong>验证方法</strong>：测交（F₁与隐性纯合子交配），后代比例应为1:1，证明F₁产生两种配子。</li>
+                    <li><strong>显性的相对性</strong>：
+                        <ul>
+                            <li>完全显性：F₁表现出与显性亲本完全相同的性状（如豌豆株高）。</li>
+                            <li>不完全显性：F₁表现为双亲中间性状（如紫茉莉花色，红花×白花→粉红花）。</li>
+                            <li>共显性：双亲性状同时在F₁个体上表现出来（如ABO血型中的IAIB）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="assortment">
+            <div class="knowledge-card">
+                <h2>自由组合定律</h2>
+                <ul>
+                    <li><strong>两对相对性状杂交实验</strong>
+                        <ul>
+                            <li>纯种黄色圆粒（YYRR）× 绿色皱粒（yyrr） → F₁全为黄色圆粒（YyRr）。</li>
+                            <li>F₁自交 → F₂出现四种表现型：黄圆:黄皱:绿圆:绿皱 ≈ 9:3:3:1。</li>
+                        </ul>
+                    </li>
+                    <li><strong>解释</strong>：
+                        <ul>
+                            <li>F₁产生配子时，每对等位基因分离，不同对基因自由组合，产生YR、Yr、yR、yr四种比例相等的配子。</li>
+                            <li>受精时，16种雌雄配子随机结合，组合方式共16种，基因型9种，表现型4种。</li>
+                        </ul>
+                    </li>
+                    <li><strong>自由组合定律实质</strong>：控制不同性状的基因（非等位基因）在减数分裂过程中，非同源染色体上的非等位基因自由组合。</li>
+                    <li><strong>验证</strong>：测交（F₁与双隐性个体杂交），后代四种表现型比例应为1:1:1:1。</li>
+                    <li><strong>应用</strong>：指导杂交育种（将不同亲本的优良性状组合到一起）；遗传病预测（两种遗传病同时出现的概率计算）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="dominance">
+            <div class="knowledge-card">
+                <h2>显性的相对性</h2>
+                <ul>
+                    <li><strong>完全显性</strong>：具有相对性状的两个亲本杂交，F₁与显性亲本表现一致。如豌豆的高茎对矮茎。</li>
+                    <li><strong>不完全显性</strong>：F₁表现为双亲的中间类型。如金鱼草花色（红花×白花→粉红花）。此时F₂分离比为1:2:1（表现型与基因型一致）。</li>
+                    <li><strong>共显性</strong>：两个亲本的性状同时在F₁个体上显现。如人类的MN血型（LMLN基因型表现为MN血型，同时有M和N抗原）。</li>
+                    <li><strong>镶嵌显性</strong>：双亲性状在F₁不同部位镶嵌表现（如异色瓢虫鞘翅色斑）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 基因和染色体的关系 -->
+        <h1>第二章 基因和染色体的关系</h1>
+        <section id="meiosis">
+            <div class="knowledge-card">
+                <h2>减数分裂与受精作用</h2>
+                <ul>
+                    <li><strong>减数分裂概念</strong>：进行有性生殖的生物，在产生成熟生殖细胞时，染色体数目减半的分裂。</li>
+                    <li><strong>过程</strong>（以精子形成过程为例）：
+                        <ul>
+                            <li><strong>减数第一次分裂</strong>：
+                                <ul>
+                                    <li>间期：DNA复制，有关蛋白质合成，染色体数目不变（DNA加倍）。</li>
+                                    <li>前期I：联会（同源染色体两两配对），形成四分体（每个四分体含4条染色单体，由一对同源染色体组成），可能发生交叉互换。</li>
+                                    <li>中期I：同源染色体成对排列在赤道板两侧。</li>
+                                    <li>后期I：同源染色体分离，非同源染色体自由组合，分别移向两极。</li>
+                                    <li>末期I：形成两个子细胞，染色体数目减半。</li>
+                                </ul>
+                            </li>
+                            <li><strong>减数第二次分裂</strong>：类似有丝分裂，着丝粒分裂，姐妹染色单体分开，形成四个精细胞，变形后成为精子。</li>
+                        </ul>
+                    </li>
+                    <li><strong>卵细胞形成过程</strong>：与精子形成相似，但细胞质不均等分裂，产生一个卵细胞和三个极体。</li>
+                    <li><strong>受精作用</strong>：精子和卵细胞融合，恢复体细胞染色体数目（2n），同时体现了有性生殖的多样性（配子多样性 + 受精随机性）。</li>
+                    <li><strong>意义</strong>：减数分裂和受精作用保证了生物前后代染色体数目的恒定，为生物变异提供了可能。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="gene-on-chromosome">
+            <div class="knowledge-card">
+                <h2>基因在染色体上</h2>
+                <ul>
+                    <li><strong>萨顿假说</strong>：基因和染色体行为存在明显的平行关系（基因在杂交过程中保持完整和独立性，染色体在配子形成和受精过程中也有相对稳定的形态结构；体细胞中基因成对存在，染色体也成对；配子中基因成单，染色体也成单；等位基因分离，同源染色体也分离）。</li>
+                    <li><strong>摩尔根果蝇实验</strong>：
+                        <ul>
+                            <li>材料：果蝇（染色体数少，繁殖快，相对性状明显）。</li>
+                            <li>实验：红眼雌蝇 × 白眼雄蝇 → F₁全为红眼 → F₁雌雄交配 → F₂红眼:白眼 = 3:1，且白眼全为雄性。</li>
+                            <li>解释：控制白眼的基因（w）位于X染色体上，Y染色体上没有等位基因。</li>
+                            <li>结论：基因在染色体上（摩尔根等证明）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>现代解释</strong>：一条染色体上有许多基因，基因在染色体上呈线性排列。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sex-linked">
+            <div class="knowledge-card">
+                <h2>伴性遗传</h2>
+                <ul>
+                    <li><strong>概念</strong>：位于性染色体上的基因控制的性状，在遗传上总是与性别相关联。</li>
+                    <li><strong>类型</strong>：
+                        <ul>
+                            <li><strong>伴X显性遗传</strong>（如抗维生素D佝偻病）：
+                                <ul>
+                                    <li>特点：女性患者多于男性；男性患者的女儿全患病，母亲患病则儿子可能正常；世代连续遗传。</li>
+                                </ul>
+                            </li>
+                            <li><strong>伴X隐性遗传</strong>（如红绿色盲、血友病）：
+                                <ul>
+                                    <li>特点：男性患者多于女性；交叉遗传（男性患者的致病基因来自母亲，传给女儿）；女性患病则其父亲和儿子一定患病。</li>
+                                </ul>
+                            </li>
+                            <li><strong>伴Y遗传</strong>（外耳道多毛症）：只传男不传女。</li>
+                        </ul>
+                    </li>
+                    <li><strong>应用</strong>：指导优生（如血友病患者生男孩或女孩的建议）；判断基因位置（用正交反交实验）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 基因的本质 -->
+        <h1>第三章 基因的本质</h1>
+        <section id="dna-evidence">
+            <div class="knowledge-card">
+                <h2>DNA是主要的遗传物质</h2>
+                <ul>
+                    <li><strong>肺炎链球菌转化实验</strong>（格里菲斯）：
+                        <ul>
+                            <li>体内转化实验：R型（无毒）→小鼠存活；S型（有毒）→小鼠死亡；加热杀死的S型→小鼠存活；R型+加热杀死的S型→小鼠死亡（从死亡小鼠分离出S型）。</li>
+                            <li>结论：加热杀死的S型含有“转化因子”，使R型转化为S型。</li>
+                        </ul>
+                    </li>
+                    <li><strong>艾弗里体外转化实验</strong>：
+                        <ul>
+                            <li>将S型提取物分别用蛋白酶、RNA酶、酯酶、DNA酶处理，然后与R型混合。</li>
+                            <li>只有DNA酶处理组不能使R型转化，其他组都能。</li>
+                            <li>结论：DNA才是使R型产生稳定遗传变化的物质，即DNA是遗传物质。</li>
+                        </ul>
+                    </li>
+                    <li><strong>噬菌体侵染细菌实验</strong>（赫尔希、蔡斯）：
+                        <ul>
+                            <li>原理：用放射性同位素标记法，分别标记T2噬菌体的蛋白质（³⁵S）和DNA（³²P）。</li>
+                            <li>过程：标记噬菌体→侵染未标记细菌→搅拌离心→检测放射性分布。</li>
+                            <li>结果：³⁵S标记组上清液放射性高，沉淀放射性低；³²P标记组沉淀放射性高，上清液放射性低。</li>
+                            <li>结论：DNA进入细菌细胞，蛋白质外壳未进入，因此DNA是遗传物质。</li>
+                        </ul>
+                    </li>
+                    <li><strong>RNA也是遗传物质</strong>：如烟草花叶病毒（TMV）的RNA侵染实验证明。</li>
+                    <li><strong>结论</strong>：绝大多数生物的遗传物质是DNA，所以说DNA是主要的遗传物质。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="dna-structure">
+            <div class="knowledge-card">
+                <h2>DNA分子的结构</h2>
+                <ul>
+                    <li><strong>DNA双螺旋结构模型</strong>（沃森、克里克）：
+                        <ul>
+                            <li>由两条反向平行的脱氧核苷酸链盘旋而成。</li>
+                            <li>外侧由磷酸和脱氧核糖交替连接构成基本骨架，内侧是碱基对。</li>
+                            <li>碱基互补配对原则：A（腺嘌呤）与T（胸腺嘧啶）配对，G（鸟嘌呤）与C（胞嘧啶）配对。碱基之间通过氢键连接（A=T两个氢键，G≡C三个氢键）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>结构特点</strong>：
+                        <ul>
+                            <li>稳定性：外侧骨架不变，碱基互补配对固定。</li>
+                            <li>多样性：碱基对排列顺序千变万化，构成了DNA的多样性（4ⁿ种可能）。</li>
+                            <li>特异性：每个DNA分子有特定的碱基排列顺序。</li>
+                        </ul>
+                    </li>
+                    <li><strong>DNA中的数量关系</strong>：A=T，G=C；A+G=T+C（嘌呤数=嘧啶数）；一条链中(A+T)/(G+C)的比例与互补链相同。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="dna-replication">
+            <div class="knowledge-card">
+                <h2>DNA的复制</h2>
+                <ul>
+                    <li><strong>概念</strong>：以亲代DNA为模板合成子代DNA的过程。</li>
+                    <li><strong>时间</strong>：有丝分裂间期和减数第一次分裂前的间期。</li>
+                    <li><strong>场所</strong>：细胞核（主要）、线粒体、叶绿体。</li>
+                    <li><strong>条件</strong>：模板（亲代DNA的两条链）、原料（4种游离的脱氧核苷酸）、能量（ATP）、酶（解旋酶、DNA聚合酶等）。</li>
+                    <li><strong>过程</strong>：
+                        <ol>
+                            <li>解旋：利用解旋酶断开氢键，两条链解开。</li>
+                            <li>合成子链：以每条母链为模板，在DNA聚合酶催化下，按照碱基互补配对原则，合成新的子链。</li>
+                            <li>复旋：新合成的子链与母链盘绕成双螺旋，形成两个子代DNA分子。</li>
+                        </ol>
+                    </li>
+                    <li><strong>特点</strong>：边解旋边复制、半保留复制（每个子代DNA分子含一条母链和一条新链）。</li>
+                    <li><strong>意义</strong>：将遗传信息从亲代传给子代，保持了遗传信息的连续性。</li>
+                    <li><strong>相关计算</strong>：一个DNA分子复制n次，得到2ⁿ个DNA，其中含母链的DNA有2个，母链2条，新链2ⁿ⁺¹-2条。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="gene-fragment">
+            <div class="knowledge-card">
+                <h2>基因是有遗传效应的DNA片段</h2>
+                <ul>
+                    <li><strong>基因概念</strong>：通常是有遗传效应的DNA片段，是控制生物性状的基本单位。</li>
+                    <li><strong>染色体、DNA、基因、脱氧核苷酸的关系</strong>：
+                        <ul>
+                            <li>染色体由DNA和蛋白质组成，是基因的主要载体。</li>
+                            <li>每个DNA分子上有许多基因，基因在DNA上呈线性排列。</li>
+                            <li>基因的基本组成单位是脱氧核苷酸，不同的碱基排列顺序代表了遗传信息。</li>
+                        </ul>
+                    </li>
+                    <li><strong>遗传信息</strong>：基因中脱氧核苷酸的排列顺序（碱基序列）。</li>
+                    <li><strong>DNA片段中的非基因区</strong>：有些DNA片段没有遗传效应（如间隔序列、调控序列）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 基因的表达 -->
+        <h1>第四章 基因的表达</h1>
+        <section id="transcription">
+            <div class="knowledge-card">
+                <h2>基因指导蛋白质的合成</h2>
+                <ul>
+                    <li><strong>转录</strong>：
+                        <ul>
+                            <li>场所：细胞核（主要）。</li>
+                            <li>模板：DNA的一条链（模板链）。</li>
+                            <li>原料：4种核糖核苷酸（A、U、C、G）。</li>
+                            <li>酶：RNA聚合酶（解旋DNA并催化合成RNA）。</li>
+                            <li>过程：DNA解旋，RNA聚合酶催化合成RNA，碱基配对（A-U、T-A、C-G、G-C），合成的RNA释放，DNA双链恢复。</li>
+                            <li>产物：mRNA（信使RNA）、tRNA、rRNA等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>翻译</strong>：
+                        <ul>
+                            <li>场所：核糖体（细胞质）。</li>
+                            <li>模板：mRNA。</li>
+                            <li>原料：20种氨基酸。</li>
+                            <li>运载工具：tRNA（三叶草结构，一端携带氨基酸，一端有反密码子）。</li>
+                            <li>过程：
+                                <ol>
+                                    <li>起始：mRNA与核糖体结合，起始tRNA（携带甲硫氨酸）识别起始密码子（AUG）。</li>
+                                    <li>延伸：tRNA携带氨基酸进入核糖体，与mRNA上的密码子互补配对，相邻氨基酸通过肽键连接，核糖体沿mRNA移动。</li>
+                                    <li>终止：读到终止密码子（UAA、UAG、UGA），多肽链释放，核糖体解离。</li>
+                                </ol>
+                            </li>
+                            <li>一个mRNA可结合多个核糖体，同时合成多条肽链，提高翻译效率。</li>
+                        </ul>
+                    </li>
+                    <li><strong>遗传密码</strong>：mRNA上决定一个氨基酸的三个相邻碱基。密码子具有简并性（一种氨基酸可对应多个密码子）、通用性（几乎适用于所有生物）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="central-dogma">
+            <div class="knowledge-card">
+                <h2>中心法则</h2>
+                <ul>
+                    <li><strong>经典中心法则</strong>（克里克提出）：DNA → DNA（复制） → RNA（转录） → 蛋白质（翻译）。</li>
+                    <li><strong>补充后</strong>：
+                        <ul>
+                            <li>RNA → DNA（逆转录，如某些病毒）。</li>
+                            <li>RNA → RNA（RNA复制，如RNA病毒）。</li>
+                            <li>蛋白质 → 蛋白质（朊病毒，不常见）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>图解</strong>：体现了遗传信息的传递方向，是生物界的普遍规律。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="gene-trait">
+            <div class="knowledge-card">
+                <h2>基因表达与性状的关系</h2>
+                <ul>
+                    <li><strong>直接途径</strong>：基因通过控制蛋白质的结构直接控制性状（如血红蛋白基因突变→镰状细胞贫血）。</li>
+                    <li><strong>间接途径</strong>：基因通过控制酶的合成来控制代谢过程，进而控制性状（如白化病基因→酪氨酸酶缺乏→黑色素不能合成）。</li>
+                    <li><strong>细胞分化</strong>：基因选择性表达的结果，不同细胞中表达的基因种类不同，但DNA相同。</li>
+                    <li><strong>表观遗传</strong>：生物体基因的碱基序列保持不变，但基因表达和表型发生可遗传变化（如DNA甲基化、组蛋白修饰）。实例：同卵双胞胎的差异；蜂王和工蜂的差异。</li>
+                    <li><strong>基因与性状的复杂关系</strong>：一个基因可能影响多个性状（基因多效性），多个基因也可能控制一个性状（如身高）。环境因素也会影响性状表现。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五章 基因突变及其他变异 -->
+        <h1>第五章 基因突变及其他变异</h1>
+        <section id="mutation">
+            <div class="knowledge-card">
+                <h2>基因突变和基因重组</h2>
+                <ul>
+                    <li><strong>基因突变</strong>：
+                        <ul>
+                            <li>概念：DNA分子中发生碱基对的替换、增添或缺失，而引起的基因结构的改变。</li>
+                            <li>类型：自发突变（内因）和诱发突变（外因：物理、化学、生物因素）。</li>
+                            <li>特点：普遍性、随机性、不定向性、低频性、多害少利性。</li>
+                            <li>意义：产生新基因的途径，是生物变异的根本来源，为进化提供原材料。</li>
+                            <li>实例：镰状细胞贫血（碱基替换）、癌症（原癌基因和抑癌基因突变）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>基因重组</strong>：
+                        <ul>
+                            <li>概念：生物体进行有性生殖的过程中，控制不同性状的基因重新组合。</li>
+                            <li>类型：自由组合型（减数第一次分裂后期，非同源染色体自由组合）、交叉互换型（减数第一次分裂前期，同源染色体非姐妹染色单体交叉互换）。</li>
+                            <li>意义：产生新的基因型，是生物变异的重要来源，对进化有重要意义。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="chromosome-aberration">
+            <div class="knowledge-card">
+                <h2>染色体变异</h2>
+                <ul>
+                    <li><strong>染色体结构变异</strong>：
+                        <ul>
+                            <li>缺失：染色体片段缺失，导致基因数目减少（如猫叫综合征，5号染色体部分缺失）。</li>
+                            <li>重复：染色体片段重复，导致基因数目增加（如果蝇棒眼）。</li>
+                            <li>倒位：染色体片段颠倒180°，基因顺序改变。</li>
+                            <li>易位：一条染色体的片段移接到另一条非同源染色体上（相互易位），与交叉互换不同（交叉互换发生在同源染色体间）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>染色体数目变异</strong>：
+                        <ul>
+                            <li>类型：个别染色体增减（如21三体综合征）和染色体组倍增增减（如整倍体变异）。</li>
+                            <li><strong>染色体组</strong>：细胞中的一组非同源染色体，在形态和功能上各不相同，携带着控制生物生长发育的全部遗传信息。</li>
+                            <li>二倍体：由受精卵发育而来，体细胞含两个染色体组。</li>
+                            <li>多倍体：由受精卵发育而来，体细胞含三个或以上染色体组（如香蕉三倍体、马铃薯四倍体）。特点：茎秆粗壮，叶片大，营养丰富，但结实率低。</li>
+                            <li>单倍体：由配子发育而来，体细胞含本物种配子染色体数（可含一个或多个染色体组）。特点：植株弱小，高度不育。在育种中可快速获得纯合子（经秋水仙素加倍）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>诱发染色体变异的方法</strong>：秋水仙素处理萌发的种子或幼苗（抑制纺锤体形成），低温诱导等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="genetic-disease">
+            <div class="knowledge-card">
+                <h2>人类遗传病</h2>
+                <ul>
+                    <li><strong>类型</strong>：
+                        <ul>
+                            <li><strong>单基因遗传病</strong>：由一对等位基因控制。常染色体显性（如多指）、常染色体隐性（白化病）、伴X显性（抗维生素D佝偻病）、伴X隐性（红绿色盲）、伴Y遗传。</li>
+                            <li><strong>多基因遗传病</strong>：由多对基因控制，易受环境影响，如唇裂、哮喘、原发性高血压。</li>
+                            <li><strong>染色体异常遗传病</strong>：由染色体结构或数目异常引起，如21三体综合征（智力低下，特殊面容）、Turner综合征（XO）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>调查人群中的遗传病</strong>：最好选择群体中发病率较高的单基因遗传病；调查遗传方式需在患者家系中进行，调查发病率需在人群中随机调查。</li>
+                    <li><strong>监测和预防</strong>：
+                        <ul>
+                            <li>遗传咨询：检查、诊断→分析遗传病传递方式→推算再发风险率→提出建议。</li>
+                            <li>产前诊断：羊水检查、B超、绒毛膜取样、基因检测等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>人类基因组计划</strong>：测定人类基因组的全部DNA序列（24条染色体，包括22条常染色体+X+Y）。意义：认识基因结构、功能，为疾病诊治提供依据。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第六章 生物的进化 -->
+        <h1>第六章 生物的进化</h1>
+        <section id="evidence">
+            <div class="knowledge-card">
+                <h2>生物有共同祖先的证据</h2>
+                <ul>
+                    <li><strong>化石证据</strong>：化石是保存在地层中的古代生物的遗体、遗物或遗迹。不同地层中的化石分布，揭示了生物从简单到复杂、从低等到高等的进化顺序。</li>
+                    <li><strong>比较解剖学证据</strong>：同源器官（如鸟的翅膀、鲸的鳍、人的上肢，来源相同，功能不同）说明有共同祖先；痕迹器官（如人的阑尾）也提供线索。</li>
+                    <li><strong>胚胎学证据</strong>：脊椎动物早期胚胎发育高度相似（如都有咽裂、尾），说明起源于共同祖先。</li>
+                    <li><strong>细胞和分子水平证据</strong>：所有生物共用一套遗传密码（DNA、RNA）；细胞色素c等蛋白质的氨基酸序列差异可以推断亲缘关系；DNA杂交技术比较基因相似度。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="natural-selection">
+            <div class="knowledge-card">
+                <h2>自然选择与适应的形成</h2>
+                <ul>
+                    <li><strong>拉马克学说</strong>：用进废退、获得性遗传（如长颈鹿的长颈是努力吃高处树叶导致）。</li>
+                    <li><strong>达尔文自然选择学说</strong>：
+                        <ul>
+                            <li>主要内容：过度繁殖、生存斗争、遗传变异、适者生存。</li>
+                            <li>解释：生物普遍存在变异（可遗传）；个体间生存能力不同；适应环境的个体生存并繁殖后代，不适应的淘汰；经过长期自然选择，有利变异积累，形成新类型。</li>
+                            <li>局限性：不能解释遗传变异的本质；对进化的解释局限于个体水平。</li>
+                        </ul>
+                    </li>
+                    <li><strong>适应的形成</strong>：适应是自然选择的结果，包括生物对环境的形态、结构、生理、行为等的适应（如保护色、警戒色、拟态）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="speciation">
+            <div class="knowledge-card">
+                <h2>种群基因组成的变化与物种形成</h2>
+                <ul>
+                    <li><strong>种群是生物进化的基本单位</strong>：种群是指生活在一定区域的同种生物全部个体的集合。种群基因库是一个种群中全部个体所含有的全部基因。</li>
+                    <li><strong>基因频率和基因型频率</strong>：
+                        <ul>
+                            <li>基因频率 = 某个基因数 / 该基因及其等位基因总数。</li>
+                            <li>基因型频率 = 特定基因型个体数 / 总个体数。</li>
+                            <li>遗传平衡定律（哈代-温伯格定律）：理想种群（无突变、无选择、无迁入迁出、无限大、随机交配）基因频率和基因型频率保持不变。公式：p² + 2pq + q² = 1（p为A基因频率，q为a基因频率）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>种群基因频率的变化</strong>：突变和基因重组提供原材料，自然选择导致基因频率定向改变。</li>
+                    <li><strong>物种形成</strong>：
+                        <ul>
+                            <li><strong>隔离</strong>：地理隔离（同种生物由于地理障碍不能相遇）和生殖隔离（不同物种之间不能交配或交配后不能产生可育后代）。</li>
+                            <li><strong>物种形成方式</strong>：
+                                <ul>
+                                    <li>渐变式：经过长期地理隔离，种群基因库差异积累，形成生殖隔离（如加拉帕戈斯群岛地雀）。</li>
+                                    <li>骤变式：通过染色体变异（如多倍体）在短时间内形成新物种，多见于植物。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="coevolution">
+            <div class="knowledge-card">
+                <h2>协同进化与生物多样性</h2>
+                <ul>
+                    <li><strong>协同进化</strong>：不同物种之间、生物与无机环境之间在相互影响中不断进化和发展。例如捕食者与被捕食者、寄生者与宿主、竞争物种间的相互适应；植物与传粉昆虫的相互适应。</li>
+                    <li><strong>生物多样性</strong>：
+                        <ul>
+                            <li>三个层次：遗传多样性、物种多样性、生态系统多样性。</li>
+                            <li>形成原因：协同进化导致物种多样化和生态系统的复杂化。</li>
+                            <li>保护意义：维持生态平衡，为人类提供资源。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 3. 粒子效果 (紫色调)
+        // 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

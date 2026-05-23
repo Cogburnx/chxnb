@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>物理选修二</title>
+    
+    <!-- KaTeX 渲染（物理公式密集） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        /* 无图片，保留样式以备将来 */
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (物理选修二/选择性必修第二册分类) 根据人教版2019目录整理 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>物理选修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-alf')">✚ 安培力与洛伦兹力</div>
+            <div class="category-content" id="cat-alf">
+                <a href="#apldl">磁场对通电导线的作用力</a>
+                <a href="#lzldl">磁场对运动电荷的作用力</a>
+                <a href="#ddlz">带电粒子在匀强磁场中的运动</a>
+                <a href="#zpyhjsq">质谱仪与回旋加速器</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-dcgy')">✚ 电磁感应</div>
+            <div class="category-content" id="cat-dcgy">
+                <a href="#lzdl">楞次定律</a>
+                <a href="#fldcgydl">法拉第电磁感应定律</a>
+                <a href="#wl">涡流、电磁阻尼和电磁驱动</a>
+                <a href="#hzzg">互感和自感</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-jbdl')">✚ 交变电流</div>
+            <div class="category-content" id="cat-jbdl">
+                <a href="#jbdl">交变电流</a>
+                <a href="#jbdlms">交变电流的描述</a>
+                <a href="#byq">变压器</a>
+                <a href="#dns">电能的输送</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-dczdcb')">✚ 电磁振荡与电磁波</div>
+            <div class="category-content" id="cat-dczdcb">
+                <a href="#dczd">电磁振荡</a>
+                <a href="#dccdcb">电磁场与电磁波</a>
+                <a href="#wxdfsjs">无线电波的发射和接收</a>
+                <a href="#dcbp">电磁波谱</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-cgq')">✚ 传感器</div>
+            <div class="category-content" id="cat-cgq">
+                <a href="#rscgq">认识传感器</a>
+                <a href="#cjcgq">常见传感器的工作原理及应用</a>
+                <a href="#zdkz">利用传感器制作简单的自动控制装置</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：物理选修二知识点卡片（纯文字，无图片）根据人教版2019教材内容整理 -->
+    <main>
+        <!-- 第一章 安培力与洛伦兹力 -->
+        <h1>第一章 安培力与洛伦兹力</h1>
+        
+        <section id="apldl">
+            <div class="knowledge-card">
+                <h2>磁场对通电导线的作用力</h2>
+                <p>
+                    <b>安培力的方向</b>：通电导线在磁场中受到的力称为安培力。安培力的方向与磁场方向、电流方向有关，遵循左手定则——伸开左手，使拇指与其余四个手指垂直，并且都与手掌在同一平面内；让磁感线从掌心进入，并使四指指向电流的方向，这时拇指所指的方向就是通电导线在磁场中所受安培力的方向。<br>
+                    <b>安培力的大小</b>：<br>
+                    ① 当通电导线与磁场方向垂直时，\(F = BIL\)；<br>
+                    ② 当通电导线与磁场方向平行时，\(F = 0\)；<br>
+                    ③ 当通电导线与磁场方向夹角为 \(\theta\) 时，\(F = BIL\sin\theta\)（\(\theta\) 为 \(B\) 与 \(I\) 的夹角）。<br>
+                    <b>磁电式电流表原理</b>：通电线圈在磁场中受到安培力作用而发生偏转，偏转角度与电流大小成正比，从而测量电流。
+                </p>
+            </div>
+        </section>
+        
+        <section id="lzldl">
+            <div class="knowledge-card">
+                <h2>磁场对运动电荷的作用力</h2>
+                <p>
+                    <b>洛伦兹力的方向</b>：运动电荷在磁场中受到的力称为洛伦兹力。洛伦兹力的方向也遵循左手定则——伸开左手，使拇指与其余四个手指垂直，并且都与手掌在同一平面内；让磁感线从掌心进入，并使四指指向正电荷运动的方向（负电荷运动的反方向），这时拇指所指的方向就是运动电荷所受洛伦兹力的方向。<br>
+                    <b>洛伦兹力的大小</b>：<br>
+                    ① 当电荷运动方向与磁场方向垂直时，\(F = qvB\)；<br>
+                    ② 当电荷运动方向与磁场方向平行时，\(F = 0\)；<br>
+                    ③ 当电荷运动方向与磁场方向夹角为 \(\theta\) 时，\(F = qvB\sin\theta\)（\(\theta\) 为 \(v\) 与 \(B\) 的夹角）。<br>
+                    <b>洛伦兹力的特点</b>：洛伦兹力的方向始终与电荷运动方向垂直，因此洛伦兹力对运动电荷不做功，只改变电荷的运动方向，不改变速度的大小。
+                </p>
+            </div>
+        </section>
+
+        <section id="ddlz">
+            <div class="knowledge-card">
+                <h2>带电粒子在匀强磁场中的运动</h2>
+                <p>
+                    <b>运动规律</b>：当带电粒子以垂直于磁场方向的速度进入匀强磁场时，粒子在洛伦兹力作用下做匀速圆周运动。<br>
+                    <b>轨道半径</b>：由洛伦兹力提供向心力 \(qvB = m\dfrac{v^2}{r}\)，可得轨道半径 \(r = \dfrac{mv}{qB}\)。半径与粒子的速度成正比，与磁感应强度成反比。<br>
+                    <b>运动周期</b>：\(T = \dfrac{2\pi r}{v} = \dfrac{2\pi m}{qB}\)。周期与轨道半径和速度无关，只与粒子的比荷 \(\dfrac{q}{m}\) 和磁感应强度 \(B\) 有关。<br>
+                    <b>运动特点</b>：<br>
+                    ① 平行进入：做匀速直线运动；<br>
+                    ② 垂直进入：做匀速圆周运动；<br>
+                    ③ 斜向进入：做等距螺旋运动。
+                </p>
+            </div>
+        </section>
+
+        <section id="zpyhjsq">
+            <div class="knowledge-card">
+                <h2>质谱仪与回旋加速器</h2>
+                <p>
+                    <b>质谱仪</b>：<br>
+                    ① 作用：测量带电粒子的质量和分析同位素。<br>
+                    ② 原理：粒子经电场加速后进入速度选择器（\(Eq = qvB_1\) 得 \(v = \dfrac{E}{B_1}\)），然后垂直进入匀强磁场做圆周运动，\(r = \dfrac{mv}{qB_2}\)，测得 \(r\) 即可计算比荷或质量。<br>
+                    <b>回旋加速器</b>：<br>
+                    ① 结构：两个 D 形盒，置于垂直于盒面的匀强磁场中，盒间缝隙加交变电场。<br>
+                    ② 原理：磁场使粒子做圆周运动，电场使粒子加速。粒子每经过缝隙一次，被电场加速一次，轨道半径逐渐增大，但周期 \(T = \dfrac{2\pi m}{qB}\) 不变，因此交变电场的频率必须与粒子运动的频率相等。<br>
+                    ③ 最大动能：\(E_{km} = \dfrac{q^2 B^2 R^2}{2m}\)，与加速电压无关，由 D 形盒的最大半径 \(R\)、磁感应强度 \(B\) 和粒子的比荷决定。
+                </p>
+            </div>
+        </section>
+
+        <!-- 第二章 电磁感应 -->
+        <h1>第二章 电磁感应</h1>
+
+        <section id="lzdl">
+            <div class="knowledge-card">
+                <h2>楞次定律</h2>
+                <p>
+                    <b>楞次定律的内容</b>：感应电流具有这样的方向，即感应电流的磁场总要阻碍引起感应电流的磁通量的变化。<br>
+                    <b>对"阻碍"的理解</b>：<br>
+                    ① 当磁通量增加时，感应电流的磁场与原磁场方向相反（阻碍增加）；<br>
+                    ② 当磁通量减少时，感应电流的磁场与原磁场方向相同（阻碍减少）；<br>
+                    ③ "阻碍"不是"阻止"，只是延缓磁通量的变化。<br>
+                    <b>楞次定律的实质</b>：能量守恒定律在电磁感应中的体现——感应电流的磁场阻碍相对运动，克服这种阻碍做功，将其他形式的能转化为电能。<br>
+                    <b>右手定则</b>：伸开右手，使拇指与其余四个手指垂直，并且都与手掌在同一平面内；让磁感线从掌心进入，并使拇指指向导体运动的方向，这时四指所指的方向就是感应电流的方向。右手定则是楞次定律的特殊情况，适用于导体切割磁感线的情形。
+                </p>
+            </div>
+        </section>
+
+        <section id="fldcgydl">
+            <div class="knowledge-card">
+                <h2>法拉第电磁感应定律</h2>
+                <p>
+                    <b>感应电动势</b>：在电磁感应现象中产生的电动势叫感应电动势。产生感应电动势的那部分导体相当于电源。<br>
+                    <b>法拉第电磁感应定律</b>：闭合电路中感应电动势的大小，跟穿过这一电路的磁通量的变化率成正比。公式 \(E = n\dfrac{\Delta \Phi}{\Delta t}\)，其中 \(n\) 为线圈匝数。<br>
+                    <b>导体切割磁感线产生的感应电动势</b>：<br>
+                    ① 当 \(B\)、\(L\)、\(v\) 三者两两垂直时，\(E = BLv\)；<br>
+                    ② 当速度方向与磁场方向夹角为 \(\theta\) 时，\(E = BLv\sin\theta\)；<br>
+                    ③ 当导体棒在磁场中绕一端转动时，\(E = \dfrac{1}{2}BL^2\omega\)。<br>
+                    <b>感生电动势与动生电动势</b>：<br>
+                    ① 感生电动势：磁场变化产生的感生电场使自由电荷定向移动形成的电动势；<br>
+                    ② 动生电动势：导体切割磁感线，洛伦兹力使自由电荷定向移动形成的电动势。
+                </p>
+            </div>
+        </section>
+
+        <section id="wl">
+            <div class="knowledge-card">
+                <h2>涡流、电磁阻尼和电磁驱动</h2>
+                <p>
+                    <b>涡流</b>：当线圈中的电流变化时，在附近的导体中产生的感应电流，这种电流在导体内形成旋涡状，称为涡流。<br>
+                    ① 应用：涡流加热（电磁炉）、涡流制动、涡流探测；<br>
+                    ② 防止：变压器铁芯用硅钢片叠成，增大电阻，减小涡流。<br>
+                    <b>电磁阻尼</b>：当导体在磁场中运动时，感应电流使导体受到安培力，安培力的方向总是阻碍导体的运动，这种现象称为电磁阻尼。应用：磁电式仪表的指针阻尼、电气机车的电磁制动。<br>
+                    <b>电磁驱动</b>：当磁场相对导体运动时，导体中产生的感应电流使导体受到安培力，安培力的方向与磁场运动方向相同，驱使导体运动，这种现象称为电磁驱动。应用：感应电动机。
+                </p>
+            </div>
+        </section>
+
+        <section id="hzzg">
+            <div class="knowledge-card">
+                <h2>互感和自感</h2>
+                <p>
+                    <b>互感现象</b>：两个线圈之间，当一个线圈中的电流变化时，在另一个线圈中产生感应电动势的现象，称为互感。产生的电动势称为互感电动势。变压器就是利用互感原理工作的。<br>
+                    <b>自感现象</b>：由于导体本身的电流发生变化而产生的电磁感应现象，称为自感。产生的电动势称为自感电动势。<br>
+                    <b>自感电动势的大小</b>：\(E = L\dfrac{\Delta I}{\Delta t}\)，其中 \(L\) 为自感系数（电感），单位亨利（H）。<br>
+                    <b>自感系数</b>：由线圈本身的特性决定，与线圈的形状、长度、匝数以及有无铁芯有关。线圈越大、匝数越多、有铁芯，自感系数越大。<br>
+                    <b>自感现象的应用与防止</b>：<br>
+                    ① 应用：日光灯镇流器、LC振荡电路；<br>
+                    ② 防止：电路断开时产生的高压自感电动势可能损坏元器件，需加保护电路。
+                </p>
+            </div>
+        </section>
+
+        <!-- 第三章 交变电流 -->
+        <h1>第三章 交变电流</h1>
+
+        <section id="jbdl">
+            <div class="knowledge-card">
+                <h2>交变电流</h2>
+                <p>
+                    <b>交变电流的定义</b>：大小和方向都随时间做周期性变化的电流，简称交流（AC）。<br>
+                    <b>正弦式交变电流的产生</b>：矩形线圈在匀强磁场中绕垂直于磁场的轴匀速转动时，线圈中产生的感应电动势按正弦规律变化。<br>
+                    <b>中性面</b>：线圈平面与磁场垂直的位置。<br>
+                    ① 线圈经过中性面时，磁通量最大，但磁通量的变化率为零，感应电动势为零；<br>
+                    ② 线圈每经过中性面一次，电流方向改变一次；线圈转动一周，电流方向改变两次。<br>
+                    <b>瞬时值表达式</b>（从中性面开始计时）：<br>
+                    电动势：\(e = E_m\sin\omega t\)；<br>
+                    电压：\(u = U_m\sin\omega t\)；<br>
+                    电流：\(i = I_m\sin\omega t\)。<br>
+                    <b>峰值</b>：\(E_m = nBS\omega\)，与线圈的形状、转动轴的位置无关。
+                </p>
+            </div>
+        </section>
+
+        <section id="jbdlms">
+            <div class="knowledge-card">
+                <h2>交变电流的描述</h2>
+                <p>
+                    <b>周期和频率</b>：<br>
+                    ① 周期 \(T\)：交变电流完成一次周期性变化所需的时间，单位秒（s）；<br>
+                    ② 频率 \(f\)：交变电流在1秒内完成周期性变化的次数，单位赫兹（Hz）；<br>
+                    ③ 关系：\(T = \dfrac{1}{f}\)，\(\omega = \dfrac{2\pi}{T} = 2\pi f\)。<br>
+                    <b>有效值</b>：让交变电流和恒定电流分别通过相同阻值的电阻，如果在相同时间内产生的热量相等，那么这个恒定电流的数值就叫作该交变电流的有效值。<br>
+                    ① 正弦式交变电流的有效值与峰值的关系：\(E = \dfrac{E_m}{\sqrt{2}}\)，\(U = \dfrac{U_m}{\sqrt{2}}\)，\(I = \dfrac{I_m}{\sqrt{2}}\)；<br>
+                    ② 电气设备标注的额定电压、额定电流都是有效值；交流电表测量的数值是有效值。<br>
+                    <b>平均值</b>：\(\bar{E} = n\dfrac{\Delta \Phi}{\Delta t}\)，常用于计算一段时间内通过的电量。<br>
+                    <b>相位</b>：表示交变电流变化步调的物理量。\(e = E_m\sin(\omega t + \varphi)\) 中的 \(\omega t + \varphi\) 叫相位，\(\varphi\) 叫初相。
+                </p>
+            </div>
+        </section>
+
+        <section id="byq">
+            <div class="knowledge-card">
+                <h2>变压器</h2>
+                <p>
+                    <b>变压器的结构</b>：由闭合铁芯和绕在铁芯上的两个线圈组成。与电源相连的线圈叫原线圈（初级线圈），与负载相连的线圈叫副线圈（次级线圈）。<br>
+                    <b>变压器的原理</b>：互感现象。原线圈中通入交变电流时，铁芯中产生交变磁通量，从而在副线圈中产生感应电动势。<br>
+                    <b>理想变压器</b>：忽略漏磁、忽略线圈电阻、忽略铁芯损耗的变压器。<br>
+                    ① 电压关系：\(\dfrac{U_1}{U_2} = \dfrac{n_1}{n_2}\)（原副线圈电压之比等于匝数之比）；<br>
+                    ② 电流关系：\(\dfrac{I_1}{I_2} = \dfrac{n_2}{n_1}\)（原副线圈电流之比与匝数成反比）；<br>
+                    ③ 功率关系：\(P_1 = P_2\)（输入功率等于输出功率）。<br>
+                    <b>变压器的种类</b>：<br>
+                    ① 升压变压器：\(n_2 > n_1\)，\(U_2 > U_1\)；<br>
+                    ② 降压变压器：\(n_2 < n_1\)，\(U_2 < U_1\)。<br>
+                    <b>几种常用的变压器</b>：自耦变压器（只有一个线圈）、互感器（电压互感器和电流互感器）。
+                </p>
+            </div>
+        </section>
+
+        <section id="dns">
+            <div class="knowledge-card">
+                <h2>电能的输送</h2>
+                <p>
+                    <b>输电损耗</b>：输电线上损失的功率 \(P_{\text{损}} = I^2R\)，损失电压 \(U_{\text{损}} = IR\)。<br>
+                    <b>减少损耗的方法</b>：<br>
+                    ① 减小输电线的电阻（采用电阻率小的材料、增大横截面积）；<br>
+                    ② 减小输电电流（在输送功率一定时，\(P = UI\)，提高输电电压可减小电流）。<br>
+                    <b>高压输电的原理</b>：发电站输出功率一定时，提高输电电压，可以减小输电电流，从而减少输电线路上的电能损失。<br>
+                    <b>远距离输电过程</b>：<br>
+                    发电站 → 升压变压器 → 高压输电线路 → 降压变压器 → 用户。<br>
+                    <b>输电电压的选择</b>：综合考虑输电距离、输送功率、技术经济指标等因素，并非越高越好。
+                </p>
+            </div>
+        </section>
+
+        <!-- 第四章 电磁振荡与电磁波 -->
+        <h1>第四章 电磁振荡与电磁波</h1>
+
+        <section id="dczd">
+            <div class="knowledge-card">
+                <h2>电磁振荡</h2>
+                <p>
+                    <b>LC振荡电路</b>：由电感线圈L和电容器C组成的电路。<br>
+                    <b>电磁振荡的产生</b>：电容器放电和充电的循环过程，电路中产生大小和方向周期性变化的电流，同时电容器极板上的电荷、电场能、磁场能也周期性变化。<br>
+                    <b>振荡过程分析</b>：<br>
+                    ① 放电过程：电容器放电，电流增大，电场能转化为磁场能；<br>
+                    ② 充电过程：电容器充电，电流减小，磁场能转化为电场能。<br>
+                    <b>无阻尼振荡与阻尼振荡</b>：<br>
+                    ① 无阻尼振荡（等幅振荡）：振荡过程中能量没有损失，振幅保持不变；<br>
+                    ② 阻尼振荡（减幅振荡）：振荡过程中能量逐渐损失，振幅逐渐减小。<br>
+                    <b>LC振荡电路的周期和频率</b>：<br>
+                    周期公式：\(T = 2\pi\sqrt{LC}\)；<br>
+                    频率公式：\(f = \dfrac{1}{2\pi\sqrt{LC}}\)。<br>
+                    其中 \(L\) 的单位是亨利（H），\(C\) 的单位是法拉（F）。
+                </p>
+            </div>
+        </section>
+
+        <section id="dccdcb">
+            <div class="knowledge-card">
+                <h2>电磁场与电磁波</h2>
+                <p>
+                    <b>麦克斯韦电磁场理论</b>：<br>
+                    ① 变化的磁场产生电场（即使没有闭合电路，变化的磁场也会在空间产生电场）；<br>
+                    ② 变化的电场产生磁场（即使没有导线，变化的电场也会在空间产生磁场）；<br>
+                    ③ 均匀变化的磁场产生稳定的电场，均匀变化的电场产生稳定的磁场；<br>
+                    ④ 振荡的磁场产生同频率振荡的电场，振荡的电场产生同频率振荡的磁场。<br>
+                    <b>电磁波的形成</b>：变化的电场和变化的磁场交替产生，由近及远地向周围空间传播，形成电磁波。<br>
+                    <b>电磁波的特点</b>：<br>
+                    ① 电磁波是横波，电场强度 \(E\)、磁感应强度 \(B\) 与传播方向三者两两垂直；<br>
+                    ② 电磁波在真空中的传播速度等于光速 \(c = 3.0 \times 10^8 \ \text{m/s}\)；<br>
+                    ③ 电磁波传播不需要介质；<br>
+                    ④ 电磁波具有波的共性，能发生反射、折射、干涉、衍射等现象。<br>
+                    <b>赫兹实验</b>：赫兹通过实验证实了电磁波的存在，证明了麦克斯韦理论的正确性。
+                </p>
+            </div>
+        </section>
+
+        <section id="wxdfsjs">
+            <div class="knowledge-card">
+                <h2>无线电波的发射和接收</h2>
+                <p>
+                    <b>无线电波的发射</b>：<br>
+                    ① 振荡器产生高频振荡电流；<br>
+                    ② 调制：将要传送的信号（声音、图像等）加载到高频振荡电流上的过程。调制方式包括调幅（AM）和调频（FM）；<br>
+                    ③ 天线发射：开放电路（天线和地线）将电磁波发射出去。<br>
+                    <b>无线电波的接收</b>：<br>
+                    ① 天线接收：接收空间中的电磁波；<br>
+                    ② 调谐：使接收电路发生电谐振，选出所需频率的信号。调谐电路通常由可变电容器和电感线圈组成；<br>
+                    ③ 解调（检波）：从高频振荡电流中取出所传送的信号；<br>
+                    ④ 放大：将信号放大后通过扬声器等还原成声音或图像。<br>
+                    <b>电谐振</b>：当接收电路的固有频率等于电磁波的频率时，接收电路中产生的振荡电流最强的现象，称为电谐振。
+                </p>
+            </div>
+        </section>
+
+        <section id="dcbp">
+            <div class="knowledge-card">
+                <h2>电磁波谱</h2>
+                <p>
+                    <b>电磁波谱</b>：按电磁波的波长或频率顺序排列，形成电磁波谱。波长从长到短（频率从低到高）依次为：无线电波、红外线、可见光、紫外线、X射线、γ射线。<br>
+                    <b>各波段的特点与应用</b>：<br>
+                    ① 无线电波：波长最长，用于通信、广播、电视等；<br>
+                    ② 红外线：热效应显著，用于遥控、热成像、加热、夜视仪等；<br>
+                    ③ 可见光：能引起视觉，用于照明、摄影等；<br>
+                    ④ 紫外线：荧光效应、杀菌消毒，用于验钞、杀菌灯等；<br>
+                    ⑤ X射线：穿透能力强，用于医疗透视、工业探伤、安检；<br>
+                    ⑥ γ射线：穿透能力最强，用于医疗治疗（放疗）、金属探伤、食品杀菌。<br>
+                    <b>各种电磁波的产生机理</b>：<br>
+                    ① 无线电波：由振荡电路产生；<br>
+                    ② 红外线、可见光、紫外线：由原子的外层电子受激发后产生；<br>
+                    ③ X射线：由原子的内层电子受激发后产生；<br>
+                    ④ γ射线：由原子核受激发后产生。<br>
+                    <b>电磁波的能量</b>：电磁波是一种物质，具有能量，电磁波的频率越高，能量越大。
+                </p>
+            </div>
+        </section>
+
+        <!-- 第五章 传感器 -->
+        <h1>第五章 传感器</h1>
+
+        <section id="rscgq">
+            <div class="knowledge-card">
+                <h2>认识传感器</h2>
+                <p>
+                    <b>传感器的定义</b>：能够感受外界信息（力、热、光、声、化学、生物等），并按照一定规律将这些信息转换成可用输出信号（通常是电信号）的器件或装置。<br>
+                    <b>传感器的基本组成部分</b>：<br>
+                    ① 敏感元件：直接感受被测量，并输出与被测量有确定关系的其他量；<br>
+                    ② 转换元件：将敏感元件输出的非电物理量转换成电信号；<br>
+                    ③ 转换电路：将转换元件输出的电信号进行放大、调制等处理。<br>
+                    <b>传感器的分类</b>：按被测量分类（温度传感器、压力传感器、光传感器等）；按工作原理分类（电阻式、电容式、电感式、霍尔式等）。<br>
+                    <b>传感器的应用</b>：广泛应用于自动控制、航空航天、医疗诊断、家用电器等领域。
+                </p>
+            </div>
+        </section>
+
+        <section id="cjcgq">
+            <div class="knowledge-card">
+                <h2>常见传感器的工作原理及应用</h2>
+                <p>
+                    <b>光敏电阻</b>：<br>
+                    ① 原理：半导体材料，无光照时电阻很大，有光照时电阻变小。光照越强，电阻越小；<br>
+                    ② 应用：光控开关、照相机自动曝光、光电计数器等。<br>
+                    <b>热敏电阻</b>：<br>
+                    ① 原理：半导体材料，电阻值随温度变化。负温度系数（NTC）热敏电阻：温度升高，电阻减小；正温度系数（PTC）热敏电阻：温度升高，电阻增大；<br>
+                    ② 应用：温度传感器、温度补偿、过热保护等。<br>
+                    <b>金属热电阻</b>：<br>
+                    ① 原理：金属的电阻率随温度升高而增大（正温度系数）；<br>
+                    ② 应用：测温元件，如铂电阻温度计。<br>
+                    <b>电容式传感器</b>：<br>
+                    ① 原理：通过改变极板正对面积、极板间距或介电常数来改变电容；<br>
+                    ② 应用：位移传感器、压力传感器、液位传感器等。<br>
+                    <b>霍尔元件</b>：<br>
+                    ① 霍尔效应：在匀强磁场中放置一块导体或半导体薄片，当电流通过时，在垂直于电流和磁场的方向上会产生霍尔电压；<br>
+                    ② 霍尔电压公式：\(U_H = k\dfrac{IB}{d}\)，其中 \(k\) 为霍尔系数，\(d\) 为薄片厚度；<br>
+                    ③ 应用：磁感应强度测量、位移测量、转速测量、无刷电机等。
+                </p>
+            </div>
+        </section>
+
+        <section id="zdkz">
+            <div class="knowledge-card">
+                <h2>利用传感器制作简单的自动控制装置</h2>
+                <p>
+                    <b>光控开关电路</b>：利用光敏电阻和晶体三极管组成。有光照时光敏电阻阻值小，三极管截止，继电器不工作；无光照时光敏电阻阻值大，三极管导通，继电器工作，接通电路。<br>
+                    <b>温度报警器</b>：利用热敏电阻和比较器（或施密特触发器）组成。当温度升高到设定值时，热敏电阻阻值变化，比较器输出翻转，触发报警。<br>
+                    <b>湿度传感器</b>：利用湿敏电阻，电阻值随环境湿度变化，可用于自动灌溉、干燥机控制等。<br>
+                    <b>红外传感器</b>：利用热释电红外元件，能检测人体发出的红外线，用于自动门、安防报警等。<br>
+                    <b>设计自动控制装置的步骤</b>：<br>
+                    ① 明确控制目标和要求；<br>
+                    ② 选择合适的传感器和执行元件；<br>
+                    ③ 设计信号处理电路；<br>
+                    ④ 搭建电路并进行调试；<br>
+                    ⑤ 整体测试与优化。
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+          // 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

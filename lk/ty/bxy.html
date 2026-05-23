@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>通用必修一</title>
+    
+    <!-- KaTeX 渲染（通用技术可能用不到，但保留无妨） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .content-image {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            padding: 5px; /* 保留原效果 */
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;  /* 移动端固定左侧宽度 */
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (保持不变) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (通用必修一分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>通用必修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-js')">✚ 技术</div>
+            <div class="category-content" id="cat-js">
+                <a href="#jsfz">发展</a>
+                <a href="#jsjz">价值</a>
+                <a href="#jsxz">性质</a>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-jszdsj')">✚ 技术中的设计</div>
+            <div class="category-content" id="cat-jszdsj">
+                <a href="#sjgx">技术与设计的关系</a>
+                <a href="#ybyz">设计的一般原则</a>
+                <a href="#ybgc">设计的一般过程</a>
+                <a href="#syff">技术试验及方法</a>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-fxymqwt')">✚ 发现与明确问题</div>
+            <div class="category-content" id="cat-fxymqwt">
+                <a href="#fx">发现问题</a>
+                <a href="#mq">明确问题</a>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-fadgsyff')">✚ 方案的构思与方法</div>
+            <div class="category-content" id="cat-fadgsyff">
+                <a href="#rjgx">人机关系</a>
+                <a href="#gsgc">方案构思过程</a>
+                <a href="#gsff">构思方法</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-sjtydhz')">✚ 设计图样的绘制</div>
+            <div class="category-content" id="cat-sjtydhz">
+                <a href="#bxt">实际表现图</a>
+                <a href="#jsty">技术图样</a>
+                <a href="#jsjfz">计算机辅助设计</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-mxhyxdzz')">✚ 模型或原型的制作</div>
+            <div class="category-content" id="cat-mxhyxdzz">
+                <a href="#txyzy">特性与作用</a>
+                <a href="#xnygh">材料性能与规划</a>
+                <a href="#lbyxz">工艺类别与选择</a>
+                <a href="#mxhyx">制作模型或原型</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-jsjlypj')">✚ 技术交流与评价</div>
+            <div class="category-content" id="cat-jsjlypj">
+                <a href="#pjyyh">设计评价与优化设计方案</a>
+                <a href="#smsbx">技术作品说明书及编写</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：完整通用必修一知识点卡片 (与原始代码完全一致，仅将每个section放入knowledge-card) -->
+    <main>
+        <h1>技术</h1>
+        <section id="jsfz">
+            <div class="knowledge-card">
+                <h2>发展</h2>
+                <p>
+                    人的需求推动了技术的产生与发展<br>
+                    历史：石器时代、青铜时代、铁器时代、蒸汽时代、电气时代、信息时代<br>
+                    未来：充满希望、隐含危险、理性看待
+                </p>
+            </div>
+        </section>
+
+        <section id="jsjz">
+            <div class="knowledge-card">
+                <h2>价值</h2>
+                <p>
+                    <b>人</b> 保护人（不受生理或心理上的伤害）、
+                    解放人（解放或延伸了人的器官功能，拓展了活动空间，提高了劳动效率）、
+                    发展人（人类在探究、使用、发展技术的过程中，改变了主观世界，
+                    拓宽了认知范围，更新了应对问题的方法，极大地激发了创新精神和实践能力）<br>
+                    <b>社会</b> 促进了社会生产的发展，改变了社会生活的方式，丰富了社会文化的内容<br>
+                    <b>自然</b> 利用自然，改造自然，保护自然。遵循可持续发展的理念，合理开发和利用自然，
+                    与自然和谐共生
+                </p>
+            </div>
+        </section>
+
+        <section id="jsxz">
+            <div class="knowledge-card">
+                <h2>性质</h2>
+                <p>
+                    <b>目的性</b> 从一定的具体目的出发，针对具体的问题，
+                    形成解决的办法，满足人们某方面的具体需求<br>
+                    <b>实践性</b> 根据人的需要把自然物加工成具有使用价值的人造物的活动,
+                    技术产生于实践之中,技术只有在人的实践活动之中才能变为现实<br>
+                    <b>综合性</b> 具有跨学科的性质:
+                    每一项技术(产品)都需要综合运用多个学科、多方面的知识<br>
+                    科学与技术的关系:注意区分科学活动与技术活动,
+                    科学促进技术发展，技术推动科学进步<br>
+                    <b>创新性</b> 技术革新(在原有技术基础上的变革或改进),
+                    技术发明(以原创技术为核心)<br>
+                    <b>复杂性</b> 技术的内容和体系越来越复杂,
+                    技术使用和应用的环境越来越复杂<br>
+                    由于技术的复杂性，以及一定时期人类思维的局限性和有限性，技术客观上具有两面性<br>
+                    <b>专利性</b> 专利权不能自动取得，遵循先申请原则<br>
+                    专利的分类:发明专利/实用新型专利/外观设计专利<br>
+                    专利权的特性:独占性/时效性/地域性
+                </p>
+            </div>
+        </section>
+
+        <h1>技术中的设计</h1>
+
+        <section id="sjgx">
+            <div class="knowledge-card">
+                <h2>技术与设计的关系</h2>
+                <p>
+                    <b>设计的丰富内涵</b> 设计是基于一定设想的、有目的的规划及创造活动,
+                    技术产品的设计通常以技术设计为核心，艺术设计融入其中<br>
+                    <b>设计是技术发展的重要驱动力</b> 设计是技术成果与人的需求之间联系的纽带,
+                    设计是技术成果转化为技术产品的桥梁,设计促进技术的革新<br>
+                    <b>技术发展对设计产生重要影响</b> 设计依赖技术得以实现,
+                    技术进步促进人们设计思维和手段的发展<br>
+                </p>
+            </div>
+        </section>
+
+        <section id="ybyz">
+            <div class="knowledge-card">
+                <h2>设计的一般原则</h2>
+                <p>
+                    <b>实用原则</b> 设计的产品具有为实现其目的的基本功能
+                    (物理功能/生理功能/心理功能/社会功能)<br>
+                    <b>创新原则</b> 引入新概念、新思想、新方法、新技术等，或对已有产品的革新<br>
+                    <b>经济原则</b> 以最低的费用取得最大的效益<br>
+                    <b>道德原则</b> 坚持为人服务的宗旨，不能出于某种不道德的目的<br>
+                    <b>美观原则</b> 形态美、技术美、材质美、色彩美等<br>
+                    <b>技术规范原则</b> 遵循一定的准则和标准<br>
+                    <b>可持续发展原则</b> 既满足当代发展的需求，又考虑未来发展的需要，
+                    不以牺牲后人的利益和长远的利益为代价来满足当代人的需求<br>
+                    设计原则之间相互联系，相互制约，相互影响
+                </p>
+            </div>
+        </section>
+
+        <section id="ybgc">
+            <div class="knowledge-card">
+                <h2>设计的一般过程</h2>
+                <p>
+                    动态发展循环往复<br>
+                    <b>发现与明确问题</b> 提出设计项目、列出设计要求<br>
+                    <b>制订设计方案</b>
+                    收集信息/设计分析/方案构思/方案呈现/方案筛选/绘制图样<br>
+                    <b>制作模型或原型</b><br>
+                    <b>优化设计方案</b>测试/评价/优化<br>
+                    <b>编写产品说明书</b><br>
+                </p>
+            </div>
+        </section>
+
+        <section id="syff">
+            <div class="knowledge-card">
+                <h2>技术试验及方法</h2>
+                <p>
+                    <h3>技术试验</h3>
+                    <b>定义</b> 技术活动中为了某种目的所进行的尝试、检验等探索性实践活动<br>
+                    <b>作用</b> 发现问题、探究规律、优化技术;改进和完善设计，降低设计风险<br>
+                    <b>类型</b> 按目的分:性能试验、优化试验、预测试验<br>
+                    按领域分:农业试验、工业试验、国防试验<br>
+                    <h3>技术试验的方法</h3>
+                    <b>强化试验法</b> 通过扩大和强化试验对象的作用，以提高试验效率<br>
+                    测极限，常用于检测技术产品在工作状态下保证某些功能正常使用的极限条件<br>
+                    <b>优选试验法</b> 运用数理统计的方法，选定若干次具有典型意义的试验，
+                    按一定的逻辑推出全部试验所达到的最佳效果<br>
+                    <b>模拟试验法</b> 通过再现的形式来模拟现实发生情况,
+                    还可以通过缩小(放大)比例来模拟所设计的现场效果<br>
+                    <b>虚拟试验法</b> 利用计算机技术来模拟现实中的技术设计原型并进行试验,
+                    常用于在现实生活中无法进行或不允许进行的试验，虚拟试验法可以节约大量资金<br>
+                    <b>移植试验法</b> 在具有差异的事物之间，将某些共同或相关的因素从一物移植到另一物上进行试验<br>
+                    <h3>撰写技术试验报告</h3>
+                    内容包括试验目的、试验准备、试验过程、试验记录、试验结论等,
+                    试验记录完整和真实,当试验现象反常时，应做出明显标记，并详细记录,
+                    文字力求简明扼要
+                </p>
+            </div>
+        </section>
+
+        <h1>发现与明确问题</h1>
+
+        <section id="fx">
+            <div class="knowledge-card">
+                <h2>发现问题</h2>
+                <p>
+                    <h3>问题的种类</h3>
+                    社会问题/科学问题/技术问题
+                    <h3>问题的来源</h3>
+                    人类生存必然会遇到的问题/由别人给出问题，设计者必须针对问题寻求解决方案/
+                    基于一定的目的，由设计者自己主动地发现问题并试图解决
+                    <h3>发现问题的途径</h3>
+                    <b>观察日常生活</b> 无意观察/有目的、有计划的观察<br>
+                    <b>收集和分析信息</b><br>
+                    文献法:对已有文献信息进行收集、分析<br>
+                    问卷调查法:用问卷的方式进行实际调查，获取信息发现问题<br>
+                    询问法:以询问的方式收集和获取信息、发现问题<br>
+                    <b>技术研究与技术试验</b> 从对已有技术问题的研究中发现与之相联系的问题，
+                    从已有的研究结论中发现新的问题<br>
+                    在技术研究、技术试验过程中获得灵感、体悟，进而发现新的问题
+                </p>
+            </div>
+        </section>
+
+        <section id="mq">
+            <div class="knowledge-card">
+                <h2>明确问题</h2>
+                <p>
+                    
+                    <h3>明确问题的要素</h3>
+                    问题的目的是否明确<br>
+                    问题表述本身是否明确<br>
+                    问题产生的原因是否明确<br>
+                    问题的应用环境是否明确
+                    <h3>明确问题的价值</h3>
+                    <b>科学性</b> 所提出的问题是否遵循了基本的科学原理<br>
+                    <b>新颖性</b> 迄今为止，该问题是否已得到充分解决<br>
+                    <b>普遍性</b> 在你调查的范围里，该问题是否具有普遍意义。在更广的范围内这个问题是否有意义<br>
+                    <b>主要性</b> 在多个问题同时发生时，该问题是不是主要问题<br>
+                    <b>可行性</b> 现有的技术条件能否解决这个问题。技术发展以后呢<br>
+                    <b>经济性</b> 解决该问题所需的投入是多少，投入与产出之比是否理想<br>
+                    <h3>发解决问题受到的限制</h3>
+                    <b>设计对象的特点和问题解决的标准</b> 不同设计对象的设计标准不同/
+                    设计对象还可能会受到诸如成本环境等的限制<br>
+                    <b>设计者的技术能力与条件</b><br>
+                    主观条件:设计者是否具有解决问题所需要的知识和技能<br>
+                    客观条件:问题解决或设计的过程往往要消耗一定的人力、物力、财力以及时间
+                    <h3>明确设计要求及编写设计计划</h3>
+                    提出具体的设计要求/制订可行的设计计划
+                </p>
+            </div>
+        </section>
+
+        <h1>方案的构思与方法</h1>
+
+        <section id="rjgx">
+            <div class="knowledge-card">
+                <h2>人机关系</h2>
+                <p>
+                    <h3>含义</h3>
+                    人在使用物品时，物品与人产生的一种相互关系
+                    <h3>人机关系要实现的目标</h3>
+                    <b>高效</b> 在设计中，应把人和机作为一个整体来考虑，
+                    合理或最优地分配人和机的功能，以促进二者的协调，提高人的工作效率<br>
+                    <b>安全</b> 人们在操作和使用产品的过程中，产品对人的身体不构成生理上的伤害<br>
+                    <b>健康</b> 人在长期操作或使用产品过程中，产品不会对人的健康造成不良影响<br>
+                    <b>舒适</b> 人在使用产品的过程中，人体能处于自然的状态，操作或使用的姿势能够在人们自然、
+                    正常的肢体活动范围之内，从而使人不会过早地产生疲劳
+                    (心理上的舒适感受也属于舒适目标)<br>
+                    <h3>实现合理人机关系需要处理的关系</h3>
+                    <b>普通人群与特殊人群</b><br>
+                    <b>静态的人与动态的人</b><br>
+                    静态尺寸是指人的构造尺寸<br>
+                    动态尺寸是指人的功能尺寸，包括人的动作范围、体形变化等<br>
+                    <b>人的生理需求与心理需求</b><br>
+                    生理需求体现在产品对人的身体的适应和保护<br>
+                    心理需求体现在产品对人的精神的满足和丰富<br>
+                    <b>信息的交互</b> 人与产品的互动过程就是人与产品之间信息传递的过程<br>
+                </p>
+            </div>
+        </section>
+
+        <section id="gsgc">
+            <div class="knowledge-card">
+                <h2>方案构思过程</h2>
+                <p>
+                    
+                    <h3>进行设计分析</h3>
+                    <b>明确设计要求</b><br>
+                    <b>设计分析三要素</b><br>
+                    物:产品本身的特点，包括功能、造型、材料等<br>
+                    人:产品是为人服务的，人的需求在很大程度上决定着产品的设计<br>
+                    环境:产品是在一定的环境中使用的，必然受到环境的制约，对环境产生影响<br>
+                    <h3>构思设计方案</h3>
+                    梳静态的人/呈现设计方案
+                    <h3>比较、权衡并呈现方案</h3>
+                    <b>方案的比较</b><br>
+                    从设计的目的和原则出发，针对一些相互制约的问题进行分析，选出较为满意的方案或集中各方案的优点进行改进<br>
+                    <b>方案的权衡</b><br>
+                    通过比较，明确各个方案对设计指标的符合程度。根据设计要求与设计原则对各个方案进行权衡，制订出最佳方案<br>
+                    <b>方案的细化</b><br>
+                    综合考虑产品、制造、使用、维护等各个环节，以完善方案的构思<br>
+                    <b>方案的星现</b><br>
+                    不同的产品设计一般有不同的呈现方式。设计方案时，可以运用草图法进行构思
+                    <h3>标准件</h3>
+                    按照标准的技术要求批量生产，具有通用性，如螺纹连接件、键、销、滚动轴承等<br>
+                    使用标准件可以简化制作过程，实现通用通换，降低生产、维护的成本
+                </p>
+            </div>
+        </section>
+
+        <section id="gsff">
+            <div class="knowledge-card">
+                <h2>构思方法</h2>
+                <p>
+                    <h3>形态分析法</h3>
+                    从整体的思想出发来看待事物，把事物看成是几个功能部分的集合，然后把整体拆成几个功能部分，分别找出能够实现每一部分功能的所有方法，最后再将这些方法进行重新组合，根据分析评价结果最终形成多种设计方案
+                    <h3>联想法</h3>
+                    由甲事物想到乙事物的思维过程。借助想象，把形似的、相连的、相对的、相关的或某样，是完成机一点上有相通之处的事物加以联结
+                    <h3>设问法</h3>
+                    通过多角度提出问题，从问题中寻找思路，进而做出选择并深入开展创造性设想<br>
+                    检核表法/5W2H法/和田12动词法
+                    <h3>仿生法</h3>
+                    模拟自然生物形态进行设计<br>
+                    功能仿生设计/形态仿生设计/结构仿生设计/肌理与质颃障仿生设计
+                    
+                </p>
+            </div>
+        </section>
+
+        <h1>设计图样的绘制</h1>
+
+        <section id="bxt">
+            <div class="knowledge-card">
+                <h2>实际表现图</h2>
+                <p>
+                    <h3>技术语言</h3>
+                    <b>含义</b> 在技术活动中进行信息交流的特有的语言形式<br>
+                    <b>特征</b> 言简意赅、通俗直观<br>
+                    <b>应用</b><br>
+                    口头语言:交换设计想法、对设计方案进行评价<br>
+                    技术图样:采取某种规范形式将设计方案用图样的形式表达出来<br>
+                    (草图/效果图/三视图/正等轴测图/机械加工图/剖视图/装配图/电子电路图等)<br>
+                    表格、文字和模型:通过表格的形式对各种设计方案进行比较/
+                    通过文字、模型等呈现设计的构思方案并激发灵感
+                    <h3>设计草图</h3>
+                    设计表现的基础/草图的分类(构思草图/设计草图)/绘制设计草图的步骤
+                </p>
+            </div>
+        </section>
+
+        <section id="jsty">
+            <div class="knowledge-card">
+                <h2>技术图样</h2>
+                <p>
+                    <h3>三视图</h3>
+                    <b>投影方法</b>
+                    采用三个互相垂直相交的投影面建立一个三投影面体系，
+                    再采用正投影法将物体同时向三个投影面投影,得到三个投影图<br>
+                    <b>投影规律</b> 长对正，高平齐，宽相等
+                    <img src="tybxy/tygl.jpg" alt="投影规律" class="content-image">
+                    <h3>形体的尺寸标注</h3>
+                    <b>基本要求</b> 正确、完整、清晰、合理<br>
+                    <b>尺寸要素</b><br>
+                    尺寸界线:用细实线绘制,可以是图形的轮廓线、轴线、对称中心线或三者的延长线,
+                    一般与尺寸线垂直，并超过箭头2mm<br><br>
+                    尺寸线:用细实线绘制,必须单独画出，不能与其他图线(包括轮廓线)重合或在其延长线上,
+                    一般采用箭头作为尺寸线终端<br><br>
+                    尺寸数字:表示形体的真实大小,以毫米为单位时，不注写单位，否则必须注明,
+                    线性尺寸的尺寸数字一般注写在尺寸线上方或其中断处(水平方向字头向上/
+                    垂直方向尺寸数字写在尺寸线的左侧且字头向左),
+                    不可被任何图线所重叠穿过，否则应将图线断开
+                    <img src="tybxy/ccys.jpg" alt="尺寸要素" class="content-image">
+                    <b>标注举例</b><br>
+                    整圆或大于半圆的圆弧标注直径
+                    <img src="tybxy/zj.jpg" alt="直径" class="content-image">
+                    半圆或不足半圆的圆弧标注半径(R)
+                    <img src="tybxy/bj.jpg" alt="半径" class="content-image">
+                    <h3>识读其他技术图样</h3>
+                    <b>正等轴测图</b><br>
+                    表现物体的三维结构特征，长、宽、高三条坐标轴之间的夹角为120°<br>
+                    <b>剖视图</b><br>
+                    主要用来表达物体的不可见结构<br>
+                    剖切平面的特征:<br>
+                    包含内部结构，如孔、槽的轴线，或物体的对称面,平行干相应的投影面<br>
+                    <b>机械加工图</b><br>
+                    根据产品的零件图，按照加工工艺步骤绘制的技术图样，是完成机械加工的主要依据,
+                    由视图及其尺寸、标题栏和技术要求等几部分组成<br>
+                    <b>装配图</b><br>
+                    表示机器或部件的工作原理、基本结构、装配关系和技术要求，是产品生产的装配要求<br>
+                    <b>零件图</b><br>
+                    表示零件的结构形状、尺寸大小和技术要求，并根据它加工制造零件<br>
+                    <b>电子电路图</b>
+                </p>
+            </div>
+        </section>
+
+        <section id="jsjfz">
+            <div class="knowledge-card">
+                <h2>计算机辅助设计</h2>
+                <p>
+                    <h3>优点</h3>
+                    提高工作的效率，降低劳动强度，有利于设计灵感的激发
+                    <h3>应用范围</h3>
+                    建筑设计、产品设计、服装设计、广告设计等
+                </p>
+            </div>
+        </section>
+
+        <h1>模型或原型的制作</h1>
+
+        <section id="txyzy">
+            <div class="knowledge-card">
+                <h2>特性与作用</h2>
+                <p>
+                    <b>模型的功能</b><br>
+                    使设计对象具体化/帮助分析设计的可能性<br>
+                    <b>不同阶段的模型</b><br>
+                    草模/概念模型/结构模型/功能模型/展示模型
+                </p>
+            </div>
+        </section>
+
+        <section id="xnygh">
+            <div class="knowledge-card">
+                <h2>材料性能与规划</h2>
+                <p>
+                    <b>材料的性能与应用</b><br>
+                    木材:实木板材具有各向异性,
+                    人造板材在幅面方向上的尺寸稳定性好，较实木而言适用范围更广<br>
+                    有较好的强度性能(抗变形、抗断裂)、良好的加工性能<br>
+                    金属材料:有良好的导热和导电性能，以及优良的力学性能和可加工性能<br>
+                    塑料:热塑性塑料/热固性塑料(常用于隔热、耐磨、绝缘、高电压等恶劣环境)<br>
+                    原料来源广，性能优良(质轻、具有绝缘性、耐腐蚀性等)，加工成型方便，价格低廉<br>
+                    新材料<br>
+                    <b>选择和规划材料</b><br>
+                    材料选择:<br>
+                    材料的性能（符合产品的使用功能、使用环境、结构要求等）<br>
+                    各向异性:物体全部或部分性能随方向的不同而各自表现出一定的差异的特性<br>
+                    强度:材料抵抗变形和断裂的能力<br>
+                    刚度:材料抵抗弹性受形的能力<br>
+                    硬度:影响材料的耐磨性和切削加工性，与耐磨性和耐久性联系在一起<br>
+                    材料的工艺/材料的成本<br><br>
+                    材料规划:<br>
+                    料尽其用，优材不劣用，大材不小用，长材不短用<br>
+                    充分考虑材料的颜色、花纹和光泽，外用料要选择材质好、纹理美观、涂饰性能好的材料<br>
+                    考虑材料的加工余量和损耗等因素，保证各部件的顺利装配和作品的尺寸精度<br>
+                </p>
+            </div>
+        </section>
+
+        <section id="lbyxz">
+            <div class="knowledge-card">
+                <h2>工艺类别与选择</h2>
+                <p>
+                    <h3>木工工艺</h3>
+                    <h4>画线</h4>
+                    <b>常用工具</b>:钢卷尺、钢直尺、角尺、木工铅笔、墨斗、画线规<br>
+                    <b>操作要领</b><br>
+                    高线时，要注意应将没有疵点的木料面作为正面(看面)，把有缺陷的木料面放到背面<br>
+                    画线工具宜细不宜粗(保证精度)，线的宽度一般不超过0.3mm，并且要均匀、清晰<br>
+                    画线时，必须留出一定的余量(考虑锯缝的消耗)
+                    <h4>锯割</h4>
+                    <b>常用工具</b>:框锯、板锯、钢丝锯、单刃刀锯、双刃刀锯、激光切割机<br>
+                    <b>操作要领</b>:根据雷要选择合适的锯子，根据锯缝的消耗量留出余量
+                    <h4>刨削</h4>
+                    <b>常用工具</b> 平创<br>
+                    <b>操作要领</b><br>
+                    两手提创把，拇指和食指压创身，用匀力向前平推创子<br>
+                    创削时要顺应木材纹理，不能逆茬或呛茬刨
+                    <h4>凿削</h4>
+                    <b>常用工具</b>:木工凿、木锤<br>
+                    <b>操作要领</b><br>
+                    凿削时，左手紧握凿柄，木工凿的刃口斜面朝向废料一侧，不要让凿子左右摆动。右手拿锤子，击打凿子尾端
+                    <h4>钻孔</h4>
+                    <b>常用工具</b>:手摇钻、手电钻等<br>
+                    <b>操作要领</b><br>
+                    手摇钻钻孔时，钻头要固定垂直加工面，顺时针转手柄为下钻<br>
+                    …手电钻钻孔时，单手持钻，对准孔中心，扣紧开关，均匀用力加压。待孔快钻透时，减小压力
+                    <h4>连接方式</h4>
+                    螺栓连接、钉接、榫接、合页连接、角码连接、胶连接
+                    <h4>表面处理</h4>
+                    <b>表面打磨/抛光</b><br>
+                    木工刨削(加工面较大)、木工锉锉削(加工面较小)、抛光机和细砂纸打磨(精细化加工)<br>
+                    <b>表面涂层/防腐</b><br>
+                    涂刷油漆或清漆
+                    <h3>金工工艺</h3>
+                    <h4>划线</h4>
+                    划线需要先划出基准线和中心线<br>
+                    划线时，划针紧贴导向工具，尽量一次划成<br>
+                    样冲斜着靠近冲眼部位，冲眼时冲尖对准划线的交点，敲击前要扶直样冲，敲击时锤面与样冲垂直<br>
+                    <b>工具</b>:钢直尺、角尺、划针、划规、样冲
+                    <h4>锯割</h4>
+                    <b>起锯</b><br>
+                    装夹锯条:锯齿尖朝前，材料越硬或越薄，选用的锯齿越细<br>
+                    左手大拇指挡住锯条，起锯角约为15°<br>
+                    起锯行程要短，压力要小，速度要慢<br>
+                    当锯条陷人工件2~3 mm时，开始正常锯割<br>
+                    <b>正常锯割</b><br>
+                    站位和握锯姿势要正确<br>
+                    推锯加压，回拉不加压<br>
+                    锯程要长，推拉要有节奏<br>
+                    锯割快结束时，减小推锯时的压力<br>
+                    <b>工具</b> 钢锯、台虎钳<br>
+                    <h4>锉削</h4>
+                    右手紧握锉柄，左手握住或扶住锉刀的前端<br>
+                    在推锉过程中，左手的施压由大变小，右手的施压由小变大，使刀平稳而不上下摆动<br>
+                    工件上的切屑应用毛刷刷去，锉刀中的切屑应用钢丝刷刷去(不能用吹或用手去清除切屑)<br>
+                    <b>工具</b> 平锉、圆锉、半圆锉、三角锉、方锉、钢丝刷、毛刷、台虎钳<br>
+                    <h4>钻孔</h4>
+                    <b>步骤</b> 冲眼定位一装夹钻头一装夹工件→钻孔<br>
+                    <b>二要</b> 要集中注意力;要戴防护眼镜<br>
+                    <b>二不</b> 不准戴手套操作;不能用手直接扶持工件<br>
+                    <b>工具</b> 台钻、平口钳或手钳
+                    <h4>连接方式</h4>
+                    <h5>螺纹连接</h5>
+                    <b>加工内螺纹(攻丝)</b><br>
+                    起攻时，可用一只手的掌心按住扳手中部沿丝锥轴线下压，另一只手配合做顺向旋进<br>
+                    两手握住绞杠两端，均匀施加压力，并将丝锥顺时针方向旋进，确保丝锥中心与孔中心线重合，
+                    不使其歪斜，并经常倒转1/4-1/2圈，避免铁屑阻塞而卡住丝锥<br>
+                    当丝锥的切削部分全部进入工件时，就不再施加压力<br>
+                    <b>工具</b> 丝锥和丝锥扳手<br>
+                    <b>加工外螺纹(套丝)</b><br>
+                    起套时，可用一只手的掌心按住扳手中部沿工件轴线下压，另一只手配合做顺向旋进<br>
+                    两手握住扳手两端，均匀施加压力，并将板牙顺时针方向旋进一段后，再按逆时针族出1/4~1/2圈，
+                    避免铁眉阻塞而卡住板牙，并确保板牙中心与工件中心线重合，不使其歪斜<br>
+                    <b>工具</b> 圆板牙和板牙扳手<br>
+                    <h5>非螺纹连接</h5>
+                    铆接、黏结、焊接等
+                    <img src="tybxy/gycz.jpg" alt="工艺操作" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="mxhyx">
+            <div class="knowledge-card">
+                <h2>制作模型或原型</h2>
+                <p>
+                    根据设计方案选择恰当的加工工艺来制作模型<br>
+                    电子电工常用的工具:<br>
+                    剥线钳/电烙铁
+                    (焊接前，同时加热焊盘和焊件，先故电烙铁，后放锡线,
+                    焊接时，先拿开锡线，后拿开电烙铁，完成焊接)/多用电表
+                </p>
+            </div>
+        </section>
+
+        <h1>技术交流与评价</h1>
+
+        <section id="pjyyh">
+            <div class="knowledge-card">
+                <h2>设计评价与优化设计方案</h2>
+                <p>
+                    <h3>设计的评价</h3>
+                    <b>定义</b> 依据设计的一般原则和要求，采取一定的方法和手段对设计所涉及的过程及结果进行事实判断和价值认定的活动<br>
+                    <b>评价的分类</b><br>
+                    评价对象:对设计过程的评价/对设计成果的评价
+                    (参照设计的一般原则进行评价/依据事先制订的设计要求进行评价)<br>
+                    评价者:自我评价/他人评价<br>
+                    <b>评价的方法</b><br>
+                    图表法/雷达图法(雷达图中各项指标的数值越大，产品对使用者/设计制作者越有利
+                    /同一类产品，需在相同的评价角度和评价指标下进行比较)/
+                    评价报告(包括作品概况、评价依据、评价方法、评价内容、评价结论等要素)
+                    <h3>优化设计方案</h3>
+                    <b>功能优化</b> 强化主要功能、增加功能、去除不必要的附加功能<br>
+                    <b>结构优化</b> 对结构进行巧妙、合理的优化<br>
+                    <b>材料优化</b> 降低生产成本，减少资源浪费<br>
+                    <b>外观优化</b> 对形状、色彩、质感进行优化<br>
+                </p>
+            </div>
+        </section>
+
+        <section id="smsbx">
+            <div class="knowledge-card">
+                <h2>技术作品说明书及编写</h2>
+                <p>
+                    <h3>说明书的一般结构</h3>
+                    标题/正文/产品标记
+                    <h3>说明书的形式</h3>
+                    条款直述式/自问自答式
+                    <h3>说明书编写的注意事项</h3>
+                    充分考虑用户的阅读需要<br>
+                    符合国家相关法律、行政法规的要求<br>
+                    体现产品的设计特点<br>
+                    有所侧重<br>
+                    准确、通俗、简洁
+                    <h3>说明书的作用</h3>
+                    帮助用户了解产品特性，确保用户正确、安全地使用产品
+                    <h3>技术产品的使用、维护和保养</h3>
+                    <b>对设计者的要求</b><br>
+                    使用通用的标准部件/配备必要的一般维修工具/提供易识读的符号标志/便于拆装，确保安全
+                    <b>对使用者的要求</b><br>
+                    认真阅读产品说明书/熟悉产品使用与维护的途径和基本方法
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染（若有公式）
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            // 切换收缩状态
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120; // 阈值
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    // 降级：取视口内最靠顶部的
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    // 自动展开父级分类
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav(); // 初始调用
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

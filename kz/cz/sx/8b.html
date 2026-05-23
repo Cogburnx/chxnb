@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>初中数学·八年级下册（详细版）</title>
+    
+    <!-- KaTeX 渲染 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2e6b5e;      /* 深蓝绿，象征数学严谨 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e0f0ec;     /* 浅蓝绿背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #2e6b5e;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #2e6b5e;
+        }
+        .category-title:hover { background: rgba(46, 107, 94, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #1d4a40;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+        .category-content a.active {
+            color: #2e6b5e;
+            font-weight: 600;
+            background-color: rgba(46, 107, 94, 0.12);
+            border-left: 3px solid #2e6b5e;
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #1d4a40;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #d0e7e1;
+            border: 2px dashed #79b0a3;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2e6b5e;
+        }
+
+        body.collapsed nav { padding: 20px 5px; }
+        body.collapsed .sidebar-header h2 { opacity: 0; width: 0; margin: 0; pointer-events: none; }
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home { display: none !important; }
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #2e6b5e;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #79b0a3;
+            color: #2e6b5e;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #b7d9d2;
+            padding-bottom: 10px;
+            color: #2e6b5e;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 170px 1fr; }
+            body.collapsed { grid-template-columns: 55px 1fr; }
+            nav { padding: 15px 8px; }
+            .sidebar-header h2 { font-size: 16px; }
+            #toggleSidebar { font-size: 22px; width: 28px; height: 28px; }
+            .category-title { font-size: 14px; padding: 6px 4px; }
+            .category-content a { font-size: 12px; padding: 4px 0; }
+            main { padding: 15px 15px; }
+            h1 { font-size: 22px; margin: 20px 0; }
+            body.collapsed .category-title::before { font-size: 18px; }
+        }
+        @media (max-width: 480px) {
+            body { grid-template-columns: 140px 1fr; }
+            body.collapsed { grid-template-columns: 48px 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>数学·八年级下册</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch16')">✚ 第十六章 二次根式</div>
+            <div class="category-content" id="cat-ch16">
+                <a href="#sec16-1">16.1 二次根式</a>
+                <a href="#sec16-2">16.2 二次根式的乘除</a>
+                <a href="#sec16-3">16.3 二次根式的加减</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch17')">✚ 第十七章 勾股定理</div>
+            <div class="category-content" id="cat-ch17">
+                <a href="#sec17-1">17.1 勾股定理</a>
+                <a href="#sec17-2">17.2 勾股定理的逆定理</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch18')">✚ 第十八章 平行四边形</div>
+            <div class="category-content" id="cat-ch18">
+                <a href="#sec18-1">18.1 平行四边形</a>
+                <a href="#sec18-2">18.2 特殊的平行四边形</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch19')">✚ 第十九章 一次函数</div>
+            <div class="category-content" id="cat-ch19">
+                <a href="#sec19-1">19.1 函数</a>
+                <a href="#sec19-2">19.2 一次函数</a>
+                <a href="#sec19-3">19.3 课题学习 选择方案</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch20')">✚ 第二十章 数据的分析</div>
+            <div class="category-content" id="cat-ch20">
+                <a href="#sec20-1">20.1 数据的集中趋势</a>
+                <a href="#sec20-2">20.2 数据的波动程度</a>
+                <a href="#sec20-3">20.3 课题学习 体质健康测试中的数据分析</a>
+            </div>
+        </div>
+        
+        <a href="/kz/cz/cz.html" class="back-home">返回首页</a>
+        <div class="ad-space">数学 · 严谨之美</div>
+    </nav>
+    
+    <main>
+        <!-- 第十六章 二次根式 -->
+        <h1>第十六章 二次根式</h1>
+        <section id="sec16-1">
+            <div class="knowledge-card">
+                <h2>16.1 二次根式</h2>
+                <ul>
+                    <li><strong>二次根式的定义</strong>：一般地，我们把形如 \(\sqrt{a}\)（\(a \ge 0\)）的式子叫做二次根式，“\(\sqrt{}\)”称为二次根号。\(a\)叫做被开方数。</li>
+                    <li><strong>二次根式有意义的条件</strong>：被开方数必须是非负数，即 \(a \ge 0\)。</li>
+                    <li><strong>二次根式的性质</strong>：
+                        <ul>
+                            <li>\((\sqrt{a})^2 = a\)（\(a \ge 0\)）</li>
+                            <li>\(\sqrt{a^2} = |a| = \begin{cases} a & (a \ge 0) \\ -a & (a < 0) \end{cases}\)</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec16-2">
+            <div class="knowledge-card">
+                <h2>16.2 二次根式的乘除</h2>
+                <ul>
+                    <li><strong>二次根式的乘法法则</strong>：\(\sqrt{a} \cdot \sqrt{b} = \sqrt{ab}\)（\(a \ge 0, b \ge 0\)）</li>
+                    <li><strong>积的算术平方根</strong>：\(\sqrt{ab} = \sqrt{a} \cdot \sqrt{b}\)（\(a \ge 0, b \ge 0\)）</li>
+                    <li><strong>二次根式的除法法则</strong>：\(\frac{\sqrt{a}}{\sqrt{b}} = \sqrt{\frac{a}{b}}\)（\(a \ge 0, b > 0\)）</li>
+                    <li><strong>商的算术平方根</strong>：\(\sqrt{\frac{a}{b}} = \frac{\sqrt{a}}{\sqrt{b}}\)（\(a \ge 0, b > 0\)）</li>
+                    <li><strong>最简二次根式</strong>：满足以下两个条件的二次根式叫做最简二次根式：
+                        <ul>
+                            <li>被开方数不含分母；</li>
+                            <li>被开方数中不含能开得尽方的因数或因式。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec16-3">
+            <div class="knowledge-card">
+                <h2>16.3 二次根式的加减</h2>
+                <ul>
+                    <li><strong>同类二次根式</strong>：几个二次根式化成最简二次根式后，如果被开方数相同，那么这几个二次根式叫做同类二次根式。</li>
+                    <li><strong>二次根式的加减法则</strong>：二次根式加减时，可以先将二次根式化成最简二次根式，再将被开方数相同的二次根式进行合并（系数相加减，根指数和被开方数不变）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第十七章 勾股定理 -->
+        <h1>第十七章 勾股定理</h1>
+        <section id="sec17-1">
+            <div class="knowledge-card">
+                <h2>17.1 勾股定理</h2>
+                <ul>
+                    <li><strong>勾股定理</strong>：如果直角三角形的两条直角边长分别为\(a\)、\(b\)，斜边长为\(c\)，那么 \(a^2 + b^2 = c^2\)。即直角三角形两直角边的平方和等于斜边的平方。</li>
+                    <li><strong>勾股定理的证明</strong>：通过拼图法（如赵爽弦图）等多种方法可以证明。</li>
+                    <li><strong>勾股定理的应用</strong>：已知直角三角形两边，求第三边；解决实际生活中的距离问题。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec17-2">
+            <div class="knowledge-card">
+                <h2>17.2 勾股定理的逆定理</h2>
+                <ul>
+                    <li><strong>逆定理</strong>：如果三角形的三边长\(a\)、\(b\)、\(c\)满足\(a^2 + b^2 = c^2\)，那么这个三角形是直角三角形。其中\(c\)为最长边。</li>
+                    <li><strong>勾股数</strong>：能够成为直角三角形三条边长的三个正整数，称为勾股数。例如(3,4,5)、(5,12,13)等。</li>
+                    <li><strong>互逆命题</strong>：如果两个命题的题设和结论正好相反，那么这样的两个命题叫做互逆命题。如果把其中一个叫做原命题，那么另一个叫做它的逆命题。勾股定理和它的逆定理是互逆定理。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第十八章 平行四边形 -->
+        <h1>第十八章 平行四边形</h1>
+        <section id="sec18-1">
+            <div class="knowledge-card">
+                <h2>18.1 平行四边形</h2>
+                <ul>
+                    <li><strong>平行四边形的定义</strong>：两组对边分别平行的四边形叫做平行四边形。记作▱ABCD。</li>
+                    <li><strong>平行四边形的性质</strong>：
+                        <ul>
+                            <li>对边相等：AB=CD，AD=BC。</li>
+                            <li>对角相等：∠A=∠C，∠B=∠D。</li>
+                            <li>对角线互相平分：OA=OC，OB=OD。</li>
+                        </ul>
+                    </li>
+                    <li><strong>平行四边形的判定</strong>：
+                        <ul>
+                            <li>两组对边分别平行的四边形是平行四边形（定义）。</li>
+                            <li>两组对边分别相等的四边形是平行四边形。</li>
+                            <li>一组对边平行且相等的四边形是平行四边形。</li>
+                            <li>对角线互相平分的四边形是平行四边形。</li>
+                            <li>两组对角分别相等的四边形是平行四边形。</li>
+                        </ul>
+                    </li>
+                    <li><strong>三角形中位线定理</strong>：三角形的中位线平行于三角形的第三边，并且等于第三边的一半。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec18-2">
+            <div class="knowledge-card">
+                <h2>18.2 特殊的平行四边形</h2>
+                <ul>
+                    <li><strong>矩形</strong>：
+                        <ul>
+                            <li>定义：有一个角是直角的平行四边形叫做矩形。</li>
+                            <li>性质：矩形的四个角都是直角；矩形的对角线相等。</li>
+                            <li>判定：有一个角是直角的平行四边形是矩形；对角线相等的平行四边形是矩形；有三个角是直角的四边形是矩形。</li>
+                        </ul>
+                    </li>
+                    <li><strong>菱形</strong>：
+                        <ul>
+                            <li>定义：有一组邻边相等的平行四边形叫做菱形。</li>
+                            <li>性质：菱形的四条边都相等；菱形的对角线互相垂直，并且每一条对角线平分一组对角。</li>
+                            <li>判定：一组邻边相等的平行四边形是菱形；对角线互相垂直的平行四边形是菱形；四边相等的四边形是菱形。</li>
+                        </ul>
+                    </li>
+                    <li><strong>正方形</strong>：
+                        <ul>
+                            <li>定义：有一组邻边相等且有一个角是直角的平行四边形叫做正方形。</li>
+                            <li>性质：正方形既是矩形又是菱形，具有矩形和菱形的一切性质（四个角都是直角，四条边相等，对角线相等且互相垂直平分）。</li>
+                            <li>判定：一组邻边相等的矩形是正方形；有一个角是直角的菱形是正方形；对角线互相垂直平分且相等的四边形是正方形。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第十九章 一次函数 -->
+        <h1>第十九章 一次函数</h1>
+        <section id="sec19-1">
+            <div class="knowledge-card">
+                <h2>19.1 函数</h2>
+                <ul>
+                    <li><strong>变量与常量</strong>：在一个变化过程中，数值发生变化的量叫做变量；数值始终不变的量叫做常量。</li>
+                    <li><strong>函数</strong>：一般地，在一个变化过程中，如果有两个变量\(x\)与\(y\)，并且对于\(x\)的每一个确定的值，\(y\)都有唯一确定的值与其对应，那么我们就说\(x\)是自变量，\(y\)是\(x\)的函数。如果当\(x=a\)时\(y=b\)，那么\(b\)叫做当自变量的值为\(a\)时的函数值。</li>
+                    <li><strong>函数的表示方法</strong>：解析式法、列表法、图象法。</li>
+                    <li><strong>自变量的取值范围</strong>：使函数有意义的自变量的取值全体。分母不为0、被开方数非负等。</li>
+                    <li><strong>函数的图象</strong>：一般地，对于一个函数，如果把自变量与函数的每对对应值分别作为点的横、纵坐标，那么坐标平面内由这些点组成的图形，就是这个函数的图象。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec19-2">
+            <div class="knowledge-card">
+                <h2>19.2 一次函数</h2>
+                <ul>
+                    <li><strong>正比例函数</strong>：一般地，形如\(y=kx\)（\(k\)是常数，\(k\neq0\)）的函数，叫做正比例函数，其中\(k\)叫做比例系数。正比例函数的图象是一条经过原点的直线。当\(k>0\)时，直线经过第一、三象限，从左向右上升；当\(k<0\)时，直线经过第二、四象限，从左向右下降。</li>
+                    <li><strong>一次函数</strong>：一般地，形如\(y=kx+b\)（\(k\)、\(b\)是常数，\(k\neq0\)）的函数，叫做一次函数。当\(b=0\)时，\(y=kx\)是正比例函数，所以正比例函数是一种特殊的一次函数。一次函数的图象是一条直线，可由\(y=kx\)向上（下）平移得到。\(k>0\)时，y随x的增大而增大；\(k<0\)时，y随x的增大而减小。\(b\)是直线与y轴交点的纵坐标。</li>
+                    <li><strong>待定系数法</strong>：先设出函数解析式，再根据条件确定解析式中未知的系数，从而得出函数解析式的方法。</li>
+                    <li><strong>一次函数与方程、不等式</strong>：
+                        <ul>
+                            <li>一元一次方程\(kx+b=0\)的解就是一次函数\(y=kx+b\)的图象与x轴交点的横坐标。</li>
+                            <li>一元一次不等式\(kx+b>0\)的解集就是一次函数\(y=kx+b\)的图象在x轴上方的部分对应的x的取值范围。</li>
+                            <li>二元一次方程组的解就是两个一次函数图象交点的坐标。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec19-3">
+            <div class="knowledge-card">
+                <h2>19.3 课题学习 选择方案</h2>
+                <ul>
+                    <li><strong>解决问题的一般步骤</strong>：
+                        <ol>
+                            <li>建立数学模型（函数关系式）。</li>
+                            <li>列出不等式或方程，确定自变量范围。</li>
+                            <li>通过比较函数值的大小选择最优方案。</li>
+                        </ol>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二十章 数据的分析 -->
+        <h1>第二十章 数据的分析</h1>
+        <section id="sec20-1">
+            <div class="knowledge-card">
+                <h2>20.1 数据的集中趋势</h2>
+                <ul>
+                    <li><strong>平均数</strong>：
+                        <ul>
+                            <li>算术平均数：一般地，对于\(n\)个数\(x_1, x_2, \ldots, x_n\)，把\(\frac{1}{n}(x_1+x_2+\cdots+x_n)\)叫做这\(n\)个数的算术平均数，简称平均数，记为\(\bar{x}\)。</li>
+                            <li>加权平均数：如果在\(n\)个数中，\(x_1\)出现\(f_1\)次，\(x_2\)出现\(f_2\)次，…，\(x_k\)出现\(f_k\)次（\(f_1+f_2+\cdots+f_k=n\)），那么\(\frac{x_1f_1+x_2f_2+\cdots+x_kf_k}{n}\)叫做这\(n\)个数的加权平均数，其中\(f_1, f_2, \ldots, f_k\)叫做权。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中位数</strong>：将一组数据按照由小到大（或由大到小）的顺序排列，如果数据的个数是奇数，则处于中间位置的数就是这组数据的中位数；如果数据的个数是偶数，则中间两个数据的平均数就是这组数据的中位数。</li>
+                    <li><strong>众数</strong>：一组数据中出现次数最多的数据叫做这组数据的众数。众数可能不止一个，也可能没有。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec20-2">
+            <div class="knowledge-card">
+                <h2>20.2 数据的波动程度</h2>
+                <ul>
+                    <li><strong>极差</strong>：一组数据中最大值与最小值的差，反映数据的变化范围。</li>
+                    <li><strong>方差</strong>：
+                        <ul>
+                            <li>定义：设有\(n\)个数据\(x_1, x_2, \ldots, x_n\)，各数据与它们的平均数\(\bar{x}\)的差的平方分别是\((x_1-\bar{x})^2, (x_2-\bar{x})^2, \ldots, (x_n-\bar{x})^2\)，我们用这些值的平均数来衡量这组数据波动的大小，把它叫做这组数据的方差，记作\(s^2\)。</li>
+                            <li>公式：\(s^2 = \frac{1}{n}\left[(x_1-\bar{x})^2+(x_2-\bar{x})^2+\cdots+(x_n-\bar{x})^2\right]\)。</li>
+                            <li>意义：方差越大，数据的波动越大；方差越小，数据的波动越小。</li>
+                        </ul>
+                    </li>
+                    <li><strong>标准差</strong>：方差的算术平方根，记作\(s\)，也用于衡量波动大小。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec20-3">
+            <div class="knowledge-card">
+                <h2>20.3 课题学习 体质健康测试中的数据分析</h2>
+                <ul>
+                    <li><strong>活动步骤</strong>：
+                        <ol>
+                            <li>收集数据：设计调查问卷，收集本班或全校学生的体质健康测试数据。</li>
+                            <li>整理数据：用频数分布表、条形图、扇形图等方式整理数据。</li>
+                            <li>描述数据：计算平均数、中位数、众数、方差等统计量。</li>
+                            <li>分析数据：根据统计结果分析体质健康状况，提出改进建议。</li>
+                            <li>撰写调查报告。</li>
+                        </ol>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particle-container');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.2 + 0.6;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = '#2e6b5e';
+                }
+                update(mouse) {
+                    if (mouse.x !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < mouse.radius) {
+                            const force = (mouse.radius - distance) / mouse.radius;
+                            const angle = Math.atan2(dy, dx);
+                            this.speedX += Math.cos(angle) * force * 0.03;
+                            this.speedY += Math.sin(angle) * force * 0.03;
+                        }
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            const mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            
+            const particlesArray = Array.from({ length: 40 }, () => new Particle());
+
+            function connect() {
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a+1; b < particlesArray.length; b++) {
+                        const dx = particlesArray[a].x - particlesArray[b].x;
+                        const dy = particlesArray[a].y - particlesArray[b].y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < 100) {
+                            ctx.strokeStyle = `rgba(46, 107, 94, ${1 - distance/100})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+                connect();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => { requestAnimationFrame(updateActiveNav); });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

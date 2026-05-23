@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>化学实验室</title>
+    
+    <!-- Font Awesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- KaTeX 核心库（用于公式） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #0d9488;      /* 化学主题色：teal */
+            --accent-light: #14b8a6;
+            --accent-soft: #99f6e4;
+            --sidebar-bg: rgba(255, 255, 255, 0.95);
+            --card-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #134e4a, #042f2e);
+            z-index: -2;
+        }
+        #particle-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+            color: #1e293b;
+        }
+
+        body.collapsed {
+            grid-template-columns: 70px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃效果 */
+        nav {
+            border-right: 1px solid rgba(255,255,255,0.2);
+            padding: 20px 12px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-soft) transparent;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+        }
+
+        nav::-webkit-scrollbar {
+            width: 5px;
+        }
+        nav::-webkit-scrollbar-thumb {
+            background: var(--accent-soft);
+            border-radius: 10px;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 0 8px;
+        }
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+            margin: 0;
+            font-weight: 600;
+            background: linear-gradient(135deg, #0d9488, #2b6c5c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            white-space: nowrap;
+        }
+        #toggleSidebar {
+            background: white;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #4b5563;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        #toggleSidebar:hover {
+            background: #f1f5f9;
+            color: var(--accent-color);
+        }
+
+        /* 返回主页按钮 (嵌入在侧边栏header中) */
+        .home-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            color: #4b5563;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-left: 4px;
+            margin-right: auto;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            background: transparent;
+        }
+        .home-link:hover {
+            background: #f1f5f9;
+            color: var(--accent-color);
+        }
+
+        /* 折叠时垂直排列 (桌面) */
+        body.collapsed .sidebar-header {
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 0;
+        }
+        body.collapsed .home-link {
+            display: flex;
+            width: auto;
+            height: auto;
+            font-size: 1.3rem;
+            padding: 8px 0;
+            border-radius: 8px;
+            background: transparent;
+            margin: 0;
+            color: #4b5563;
+        }
+        body.collapsed .home-link:hover {
+            background: rgba(255,255,255,0.9);
+            color: var(--accent-color);
+        }
+        body.collapsed #toggleSidebar {
+            margin-top: auto;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            box-shadow: none;
+        }
+        body.collapsed nav {
+            display: flex;
+            flex-direction: column;
+        }
+        body.collapsed .sidebar-header {
+            flex-shrink: 0;
+        }
+        body.collapsed .category-title span,
+        body.collapsed .category-content {
+            display: none !important;
+        }
+        body.collapsed .category-title i {
+            margin-right: 0;
+            font-size: 1.3rem;
+        }
+        body.collapsed .category-title::after {
+            display: none;
+        }
+
+        /* 分类折叠样式 */
+        .category {
+            margin-bottom: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .category-title {
+            cursor: pointer;
+            font-weight: 600;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+            color: #1e293b;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .category-title i {
+            margin-right: 10px;
+            color: var(--accent-color);
+            font-size: 1rem;
+            width: 20px;
+        }
+        .category-title:hover {
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 4px 10px rgba(13,148,136,0.15);
+        }
+        .category-title::after {
+            content: '▼';
+            margin-left: auto;
+            font-size: 12px;
+            color: #94a3b8;
+            transition: transform 0.2s;
+        }
+        .category-title.collapsed::after {
+            transform: rotate(-90deg);
+        }
+        .category-content {
+            padding-left: 15px;
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            margin-top: 5px;
+        }
+        .category-content.collapsed {
+            max-height: 0;
+        }
+        .category-content a {
+            text-decoration: none;
+            color: #475569;
+            display: block;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            border-radius: 0 8px 8px 0;
+            margin: 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .category-content a:hover {
+            color: var(--accent-color);
+            background: rgba(13,148,136,0.05);
+            border-left-color: var(--accent-color);
+        }
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 500;
+            background: rgba(13,148,136,0.1);
+            border-left-color: var(--accent-color);
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 25px 35px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 来源声明卡片 */
+        .attribution-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 40px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+        .attribution-icon {
+            background: rgba(13,148,136,0.1);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-color);
+            font-size: 1.8rem;
+        }
+        .attribution-text {
+            flex: 1;
+        }
+        .attribution-text h3 {
+            margin: 0 0 5px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .attribution-text p {
+            margin: 0 0 5px 0;
+            color: #475569;
+            font-size: 0.9rem;
+        }
+        .attribution-link {
+            background: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .attribution-link:hover {
+            background: var(--accent-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(13,148,136,0.2);
+        }
+
+        .experiment-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 6px 12px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.7);
+            margin-bottom: 30px;
+        }
+
+        .exp-header {
+            border-bottom: 2px solid rgba(13,148,136,0.2);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .exp-header h2 {
+            color: var(--accent-color);
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .exp-header h2 i {
+            font-size: 1.8rem;
+        }
+        .exp-meta {
+            display: flex;
+            gap: 15px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        .exp-meta span {
+            background: rgba(255,255,255,0.7);
+            padding: 5px 12px;
+            border-radius: 30px;
+            backdrop-filter: blur(4px);
+        }
+
+        .simulation-area {
+            background: rgba(255,255,255,0.5);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .iframe-container {
+            text-align: center;
+            margin: 15px 0;
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);
+            position: relative;
+        }
+        iframe {
+            width: 100%;
+            height: 550px;
+            border: none;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .fallback-link {
+            display: none;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        .fallback-link a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .formula-box {
+            background: rgba(13,148,136,0.05);
+            border-left: 4px solid var(--accent-color);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+
+        /* ========= 移动端专用样式 (抽屉菜单) ========= */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            box-shadow: 0 8px 20px rgba(13,148,136,0.6);
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 1100;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, background 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .mobile-menu-btn:active {
+            transform: scale(0.95);
+            background: #0f766e;
+        }
+        .drawer-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(2px);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s, visibility 0.25s;
+        }
+        .drawer-overlay.visible {
+            display: block;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        @media (max-width: 768px) {
+            body, body.collapsed {
+                grid-template-columns: 1fr !important;
+            }
+            /* 隐藏桌面折叠按钮 */
+            #toggleSidebar {
+                display: none !important;
+            }
+            /* 侧边栏作为抽屉 */
+            nav {
+                position: fixed !important;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 85% !important;
+                max-width: 320px;
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+                z-index: 1000;
+                box-shadow: 2px 0 25px rgba(0,0,0,0.3);
+                display: block !important;
+                height: 100vh;
+                overflow-y: auto;
+                backdrop-filter: blur(16px);
+                border-right: none;
+                padding: 20px 12px;
+            }
+            nav.visible {
+                transform: translateX(0);
+            }
+            /* 显示移动按钮 */
+            .mobile-menu-btn {
+                display: flex;
+            }
+            /* 主内容区调整 */
+            main {
+                padding: 15px;
+            }
+            .iframe-container {
+                padding: 8px;
+            }
+            iframe {
+                height: 400px;
+            }
+            .attribution-card {
+                flex-direction: column;
+                text-align: center;
+                padding: 15px;
+            }
+            .category-content a {
+                padding: 12px 15px;
+                font-size: 1rem;
+            }
+            /* 折叠时侧边栏内部保留正常显示（移动端不折叠） */
+            body.collapsed .sidebar-header h2,
+            body.collapsed .category-title span,
+            body.collapsed .category-content {
+                display: block !important;
+            }
+            body.collapsed .category-title i {
+                margin-right: 10px;
+                font-size: 1rem;
+            }
+            body.collapsed .category-title::after {
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="particle-container"><canvas id="particle-canvas"></canvas></div>
+    
+    <!-- 侧边栏导航 (已按需求删除指定实验，保留原始序号) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-flask"></i> 化学实验室</h2>
+            <!-- 返回主页按钮将通过JS插入到此处，保留移动优化版的逻辑 -->
+            <button id="toggleSidebar">◀</button>
+        </div>
+        
+        <!-- 模块1：必修1 · 化学计量与基础 (删除第4项) 剩余8个 -->
+        <div class="category">
+            <div class="category-title"><i class="fas fa-weight"></i> <span>🧪 必修1 · 化学计量与基础</span></div>
+            <div class="category-content">
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/molarity/latest/molarity_all.html?locale=zh" data-name="物质的量浓度 (Molarity)" data-meta="溶液配制" data-principle="物质的量浓度 \\( c = \\frac{n}{V} \\)。通过改变溶质摩尔数、溶液体积，观察浓度变化。">1. 物质的量浓度</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/concentration/latest/concentration_all.html?locale=zh" data-name="浓度 (Concentration)" data-meta="饱和与不饱和" data-principle="溶质溶解度与浓度关系，饱和时 \\( c = c_{\\text{sat}} \\)。">2. 浓度 · 饱和溶液</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/beers-law-lab/latest/beers-law-lab_all.html?locale=zh" data-name="比尔定律实验室" data-meta="比色分析" data-principle="比尔-朗伯定律 \\( A = \\varepsilon l c \\)，吸光度与浓度成正比。">3. 比色法测浓度</a>
+                <!-- 已删除第4项：电解质与非电解质 -->
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/ph-scale/latest/ph-scale_all.html?locale=zh" data-name="pH标度 (pH Scale)" data-meta="酸碱指示剂" data-principle="\\( \\text{pH} = -\\log[H^+] \\)，可测常见液体的pH。">5. pH测定与指示剂</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/ph-scale-basics/latest/ph-scale-basics_all.html?locale=zh" data-name="pH标度·基础" data-meta="酸碱概念" data-principle="宏观认识酸碱性，区分pH大小。">6. pH基础入门</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/acid-base-solutions/latest/acid-base-solutions_all.html?locale=zh" data-name="酸碱溶液" data-meta="强弱电解质" data-principle="强酸/弱酸、强碱/弱碱的电离平衡：\\( K_a = \\frac{[H^+][A^-]}{[HA]} \\)。">7. 强弱酸碱电离</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/balancing-chemical-equations/latest/balancing-chemical-equations_all.html?locale=zh" data-name="化学方程式配平" data-meta="质量守恒" data-principle="原子种类和数目在反应前后不变。">8. 配平方程式</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/reactants-products-and-leftovers/latest/reactants-products-and-leftovers_all.html?locale=zh" data-name="反应物、产物与剩余物" data-meta="限量试剂" data-principle="根据化学计量确定过量反应物和产物产量。">9. 限量试剂与产率</a>
+            </div>
+        </div>
+
+        <!-- 模块2：必修2 · 物质结构与周期律 (删除第17项) 剩余8个 -->
+        <div class="category">
+            <div class="category-title"><i class="fas fa-atom"></i> <span>⚛️ 必修2 · 物质结构与周期律</span></div>
+            <div class="category-content">
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/build-an-atom/latest/build-an-atom_all.html?locale=zh" data-name="搭建原子" data-meta="原子结构" data-principle="原子由质子、中子、电子构成；质子数决定元素。">10. 搭建原子</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/isotopes-and-atomic-mass/latest/isotopes-and-atomic-mass_all.html?locale=zh" data-name="同位素与原子质量" data-meta="同位素" data-principle="同位素具有相同质子数、不同中子数；原子质量 = 丰度加权平均。">11. 同位素与相对原子质量</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/models-of-the-hydrogen-atom/latest/models-of-the-hydrogen-atom_all.html?locale=zh" data-name="氢原子模型" data-meta="原子模型演变" data-principle="玻尔模型、量子力学模型，能级跃迁 \\( \\Delta E = h\\nu \\)。">12. 氢原子模型</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/atomic-interactions/latest/atomic-interactions_all.html?locale=zh" data-name="原子间相互作用" data-meta="势能曲线" data-principle="两原子间势能与距离的关系，吸引与排斥。">13. 原子间相互作用</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/molecule-shapes/latest/molecule-shapes_all.html?locale=zh" data-name="分子形状" data-meta="VSEPR理论" data-principle="价层电子对互斥理论预测分子几何构型。">14. 分子形状 (VSEPR)</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/molecule-polarity/latest/molecule-polarity_all.html?locale=zh" data-name="分子极性" data-meta="极性/非极性" data-principle="电负性差异和分子对称性决定分子极性。">15. 分子极性</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/molecules-and-light/latest/molecules-and-light_all.html?locale=zh" data-name="分子与光" data-meta="红外吸收" data-principle="分子吸收特定频率红外光，发生振动能级跃迁。">16. 分子与光 (红外)</a>
+                <!-- 已删除第17项：葡萄糖 (生物/化学) -->
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/build-a-molecule/latest/build-a-molecule_all.html?locale=zh" data-name="搭建分子" data-meta="分子式" data-principle="通过原子组合形成分子，学习分子式与结构。">18. 搭建分子</a>
+            </div>
+        </div>
+
+        <!-- 模块3：选修1 · 化学反应原理 (删除第19、20项) 剩余8个 -->
+        <div class="category">
+            <div class="category-title"><i class="fas fa-chart-line"></i> <span>🔥 选修1 · 反应原理(速率/平衡/热)</span></div>
+            <div class="category-content">
+                <!-- 已删除19. 化学反应速率 -->
+                <!-- 已删除20. 可逆反应与平衡移动 -->
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/gas-properties/latest/gas-properties_all.html?locale=zh" data-name="气体性质" data-meta="理想气体" data-principle="理想气体状态方程 \\( pV = nRT \\)，分压定律。">21. 气体性质与分压</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/states-of-matter/latest/states-of-matter_all.html?locale=zh" data-name="物质状态" data-meta="相变" data-principle="分子间作用力与热运动决定固态、液态、气态。">22. 物质三态与相变</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/states-of-matter-basics/latest/states-of-matter-basics_all.html?locale=zh" data-name="物质状态·基础" data-meta="分子运动" data-principle="加热/冷却使分子动能改变，引起相变。">23. 物质状态基础</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/energy-forms-and-changes/latest/energy-forms-and-changes_all.html?locale=zh" data-name="能量形式与转化" data-meta="热/化学能" data-principle="能量守恒，化学能可转化为热、光、电等。">24. 能量形式与转化</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/diffusion/latest/diffusion_all.html?locale=zh" data-name="扩散" data-meta="分子运动" data-principle="浓度梯度驱动的扩散，菲克定律。">25. 气体/液体扩散</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/balloons-and-static-electricity/latest/balloons-and-static-electricity_all.html?locale=zh" data-name="气球与静电" data-meta="静电作用" data-principle="摩擦起电，同种电荷相斥，异种电荷相吸（拓展分子间作用力）。">26. 静电作用类比</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/under-pressure/latest/under-pressure_all.html?locale=zh" data-name="压力之下" data-meta="流体压强" data-principle="液体压强与深度、密度有关，可用于气体收集实验。">27. 流体压强与深度</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/buoyancy/latest/buoyancy_all.html?locale=zh" data-name="浮力" data-meta="阿基米德原理" data-principle="浮力 \\( F = \\rho g V_{\\text{排}} \\)，可联系密度测量。">28. 浮力与密度</a>
+            </div>
+        </div>
+
+        <!-- 模块4：选修2 · 电解质溶液与电离平衡 (删除31、35、38) 剩余7个 -->
+        <div class="category">
+            <div class="category-title"><i class="fas fa-water"></i> <span>💧 选修2 · 电解质溶液与平衡</span></div>
+            <div class="category-content">
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/acid-base-solutions/latest/acid-base-solutions_all.html?locale=zh" data-name="酸碱溶液(进阶)" data-meta="电离常数" data-principle="不同电离常数的酸/碱，计算 \\( K_a, K_b, pK \\)。">29. 酸碱电离常数</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/ph-scale/latest/ph-scale_all.html?locale=zh" data-name="pH标度(微调)" data-meta="pH计算" data-principle="通过调节浓度计算pH，模拟滴定曲线。">30. 酸碱滴定模拟</a>
+                <!-- 已删除31. 盐与溶解度 -->
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/concentration/latest/concentration_all.html?locale=zh" data-name="浓度(饱和)" data-meta="溶解度" data-principle="温度不变时，饱和浓度恒定，过量溶质不溶解。">32. 溶解度与饱和</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/molarity/latest/molarity_all.html?locale=zh" data-name="物质的量浓度(稀释)" data-meta="稀释定律" data-principle="稀释前后溶质物质的量不变：\\( c_1V_1 = c_2V_2 \\)。">33. 稀释计算</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/beers-law-lab/latest/beers-law-lab_all.html?locale=zh" data-name="比尔定律(未知浓度)" data-meta="分光光度法" data-principle="利用标准曲线测定未知溶液浓度。">34. 未知液浓度测定</a>
+                <!-- 已删除35. 离子浓度与导电性 -->
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/acid-base-solutions/latest/acid-base-solutions_all.html?locale=zh" data-name="水解平衡" data-meta="盐类水解" data-principle="弱酸弱碱盐的水解使溶液呈酸性或碱性。">36. 盐类水解</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/ph-scale-basics/latest/ph-scale-basics_all.html?locale=zh" data-name="pH基础(缓冲)" data-meta="缓冲溶液" data-principle="缓冲溶液抵抗pH变化，弱酸及其共轭碱体系。">37. 缓冲溶液概念</a>
+                <!-- 已删除38. 平衡常数实验 -->
+            </div>
+        </div>
+
+        <!-- 模块5：选修3 · 电化学与氧化还原 (删除39、40、41) 剩余3个 -->
+        <div class="category">
+            <div class="category-title"><i class="fas fa-battery-full"></i> <span>⚡ 选修3 · 电化学与氧化还原</span></div>
+            <div class="category-content">
+                <!-- 已删除39. 原电池电压 -->
+                <!-- 已删除40. 电池内阻与电流 -->
+                <!-- 已删除41. 电解质导电/电解 -->
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/faradays-law/latest/faradays-law_all.html?locale=zh" data-name="法拉第定律(物理)" data-meta="电磁感应" data-principle="法拉第电解定律 \\( m = \\frac{QM}{Fz} \\)，关联电量与析出质量。">42. 法拉第电解定律</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/ohms-law/latest/ohms-law_all.html?locale=zh" data-name="欧姆定律" data-meta="电阻导电" data-principle="通过欧姆定律计算电解池电阻。">43. 欧姆定律应用</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/balloons-and-static-electricity/latest/balloons-and-static-electricity_all.html?locale=zh" data-name="静电与氧化" data-meta="电荷转移" data-principle="摩擦起电涉及电子转移，可类比氧化还原。">44. 电子转移初步</a>
+            </div>
+        </div>
+
+        <!-- 模块6：选修4 · 有机化学基础 (删除47) 剩余5个 -->
+        <div class="category">
+            <div class="category-title"><i class="fas fa-cube"></i> <span>🧬 选修4 · 有机化学基础</span></div>
+            <div class="category-content">
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/molecule-shapes/latest/molecule-shapes_all.html?locale=zh" data-name="有机分子构型" data-meta="甲烷/乙烯" data-principle="甲烷正四面体，乙烯平面型，乙炔直线型。">45. 有机分子几何构型</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/molecule-polarity/latest/molecule-polarity_all.html?locale=zh" data-name="有机分子极性" data-meta="官能团极性" data-principle="醇、羧酸等官能团使分子具有极性。">46. 官能团与极性</a>
+                <!-- 已删除47. 葡萄糖分子结构 -->
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/build-a-molecule/latest/build-a-molecule_all.html?locale=zh" data-name="搭建有机分子" data-meta="同分异构" data-principle="用原子搭建简单烷烃、烯烃，体验同分异构。">48. 同分异构现象</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/molecules-and-light/latest/molecules-and-light_all.html?locale=zh" data-name="红外光谱(有机)" data-meta="官能团检测" data-principle="不同官能团吸收特定频率红外光。">49. 有机官能团红外检测</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/atomic-interactions/latest/atomic-interactions_all.html?locale=zh" data-name="分子间作用力" data-meta="范德华力" data-principle="范德华力、氢键对有机分子物理性质的影响。">50. 分子间作用力</a>
+            </div>
+        </div>
+
+        <!-- 模块7：选修5 · 核化学与拓展实验 (删除51,52,53,54,56,57) 剩余4个 -->
+        <div class="category">
+            <div class="category-title"><i class="fas fa-radiation"></i> <span>☢️ 选修5 · 核化学与拓展实验</span></div>
+            <div class="category-content">
+                <!-- 已删除51. α衰变实验 -->
+                <!-- 已删除52. β衰变实验 -->
+                <!-- 已删除53. 核裂变链式反应 -->
+                <!-- 已删除54. 放射性定年游戏 -->
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/greenhouse-effect/latest/greenhouse-effect_all.html?locale=zh" data-name="温室效应" data-meta="温室气体" data-principle="CO₂、CH₄等气体吸收红外线，导致全球变暖。">55. 温室效应模拟</a>
+                <!-- 已删除56. 微波与分子运动 -->
+                <!-- 已删除57. 冰川融化 -->
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/energy-skate-park/latest/energy-skate-park_all.html?locale=zh" data-name="能量滑板(能量守恒)" data-meta="势能动能" data-principle="机械能守恒，可类比化学能转化。">58. 能量守恒类比</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/fourier-making-waves/latest/fourier-making-waves_all.html?locale=zh" data-name="傅里叶合成(波)" data-meta="波谱分析" data-principle="复杂波形由正弦波叠加，类比IR、NMR谱。">59. 傅里叶波谱原理</a>
+                <a href="#exp" data-src="https://phet.colorado.edu/sims/html/curve-fitting/latest/curve-fitting_all.html?locale=zh" data-name="曲线拟合" data-meta="数据处理" data-principle="通过实验数据拟合标准曲线，用于浓度测定等。">60. 实验数据拟合</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 移动端菜单按钮 + 遮罩 -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="打开菜单"><i class="fas fa-flask"></i></button>
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+
+    <main>
+        <!-- 当前实验显示区域 -->
+        <div class="experiment-card" id="exp">
+            <div class="exp-header">
+                <h2 id="exp-title"><i class="fas fa-play"></i> 实验1：物质的量浓度 (Molarity)</h2>
+                <div class="exp-meta">
+                    <span id="exp-meta"><i class="far fa-calendar"></i> 溶液配制</span>
+                </div>
+            </div>
+            
+            <div class="simulation-area">
+                <div class="iframe-container">
+                    <iframe id="sim-frame" src="https://phet.colorado.edu/sims/html/molarity/latest/molarity_all.html?locale=zh" allow="fullscreen" allowfullscreen></iframe>
+                    <div id="fallback" class="fallback-link">
+                        <p>⚠️ 实验加载失败。请尝试直接访问：</p>
+                        <a id="fallback-link" href="#" target="_blank">点击这里打开实验</a>
+                    </div>
+                </div>
+                
+                <div class="formula-box" id="formula-box">
+                    <strong>📐 实验原理</strong><br>
+                    物质的量浓度 \( c = \frac{n}{V} \)。通过改变溶质摩尔数、溶液体积，观察浓度变化。练习配制一定体积的指定浓度溶液。
+                </div>
+            </div>
+        </div>
+
+        <!-- 来源声明卡片（完全保留） -->
+        <div class="attribution-card">
+            <div class="attribution-icon">
+                <i class="fas fa-flask"></i>
+            </div>
+            <div class="attribution-text">
+                <h3>PhET Interactive Simulations</h3>
+                <p>本网站部分交互式实验来源于 <a href="https://phet.colorado.edu" target="_blank" style="color: var(--accent-color);">PhET Interactive Simulations</a>，由 University of Colorado Boulder 开发与维护。</p>
+                <p>PhET 实验内容依据 Creative Commons Attribution 4.0 International (CC BY 4.0) 许可发布。本站仅用于学习与非商业性分享目的，未对原始实验内容进行修改或重新分发。所有相关版权与知识产权归原作者及其所属机构所有。</p>
+            </div>
+            <a href="https://phet.colorado.edu" target="_blank" class="attribution-link">
+                <i class="fas fa-external-link-alt"></i> 访问官网
+            </a>
+        </div>
+    </main>
+
+    <script>
+        (function initParticles() {
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            const particles = [];
+            for (let i = 0; i < 35; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 1,
+                    speedX: Math.random() * 0.2 - 0.1,
+                    speedY: Math.random() * 0.2 - 0.1
+                });
+            }
+            
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.x > canvas.width) p.x = 0;
+                    if (p.y < 0) p.y = canvas.height;
+                    if (p.y > canvas.height) p.y = 0;
+                    
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, 2 * Math.PI);
+                    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                    ctx.fill();
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        })();
+
+        // 侧边栏折叠功能
+        document.querySelectorAll('.category-title').forEach(title => {
+            title.addEventListener('click', function() {
+                this.classList.toggle('collapsed');
+                this.nextElementSibling.classList.toggle('collapsed');
+            });
+        });
+
+        // 桌面折叠按钮
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
+            document.body.classList.toggle('collapsed');
+            this.textContent = document.body.classList.contains('collapsed') ? '▶' : '◀';
+        });
+
+        // 插入返回主页按钮 (保持移动优化版特性)
+        (function addHomeButton() {
+            if (document.querySelector('.home-link')) return;
+            const header = document.querySelector('.sidebar-header');
+            if (header) {
+                const h2 = header.querySelector('h2');
+                const toggleBtn = document.getElementById('toggleSidebar');
+                if (h2 && toggleBtn) {
+                    const homeLink = document.createElement('a');
+                    homeLink.className = 'home-link';
+                    homeLink.href = '/index.html';
+                    homeLink.title = '返回主页';
+                    homeLink.innerHTML = '<i class="fas fa-home"></i>';
+                    header.insertBefore(homeLink, toggleBtn);
+                }
+            }
+        })();
+
+        // 移动端抽屉控制
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('drawerOverlay');
+        const menuBtn = document.getElementById('mobileMenuBtn');
+
+        function openDrawer() {
+            sidebar.classList.add('visible');
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeDrawer() {
+            sidebar.classList.remove('visible');
+            overlay.classList.remove('visible');
+            document.body.style.overflow = '';
+        }
+
+        if (menuBtn) {
+            menuBtn.addEventListener('click', openDrawer);
+        }
+        if (overlay) {
+            overlay.addEventListener('click', closeDrawer);
+        }
+        sidebar.addEventListener('click', (e) => e.stopPropagation());
+
+        // 实验切换功能 (整合移动端关闭抽屉)
+        const navLinks = document.querySelectorAll('.category-content a');
+        const simFrame = document.getElementById('sim-frame');
+        const expTitle = document.getElementById('exp-title');
+        const expMeta = document.getElementById('exp-meta');
+        const formulaBox = document.getElementById('formula-box');
+        const fallbackDiv = document.getElementById('fallback');
+        const fallbackLink = document.getElementById('fallback-link');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                
+                const src = this.getAttribute('data-src');
+                const name = this.getAttribute('data-name');
+                const meta = this.getAttribute('data-meta');
+                const principle = this.getAttribute('data-principle');
+                
+                simFrame.src = src + '&t=' + new Date().getTime();
+                simFrame.style.display = 'block';
+                fallbackDiv.style.display = 'none';
+                
+                expTitle.innerHTML = `<i class="fas fa-play"></i> ${name}`;
+                expMeta.innerHTML = `<i class="far fa-calendar"></i> ${meta}`;
+                
+                formulaBox.innerHTML = `<strong>📐 实验原理</strong><br>${principle}`;
+                
+                fallbackLink.href = src;
+                
+                if (window.renderMathInElement) {
+                    renderMathInElement(formulaBox, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '\\[', right: '\\]', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false}
+                        ]
+                    });
+                }
+                
+                // 移动端点击实验后关闭抽屉
+                if (window.innerWidth <= 768) {
+                    closeDrawer();
+                }
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        simFrame.addEventListener('error', function() {
+            simFrame.style.display = 'none';
+            fallbackDiv.style.display = 'block';
+        });
+
+        // 初始激活第一个链接
+        if (navLinks.length > 0) {
+            navLinks[0].click();
+        }
+
+        // 全局 KaTeX 渲染
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '\\[', right: '\\]', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false}
+            ]
+        });
+
+        // 窗口resize时关闭移动抽屉
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeDrawer();
+                document.body.style.overflow = '';
+            }
+        });
+    </script>
+</body>
+</html>

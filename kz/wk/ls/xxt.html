@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>历史选修二 · 经济与社会生活（详细版）</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #b8860b;      /* 历史暗金色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fcf8e8;     /* 浅黄底色 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #b8860b;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #b8860b;
+        }
+        .category-title:hover { background: rgba(184, 134, 11, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #5a3e2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮暗金色 */
+        .category-content a.active {
+            color: #b8860b;
+            font-weight: 600;
+            background-color: rgba(184, 134, 11, 0.12);
+            border-left: 3px solid #b8860b;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #5a3e2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f7f0d6;
+            border: 2px dashed #e5b73b;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #b8860b;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #b8860b;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5b73b;
+            color: #b8860b;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #f0d9b5;
+            padding-bottom: 10px;
+            color: #b8860b;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 年代强调 */
+        .year {
+            font-weight: 600;
+            color: #a0522d;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (浅黄背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (历史选修二分类) 依据统编版选修2《经济与社会生活》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>历史选修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一单元 食物生产与社会生活 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit1')">✚ 第一单元 食物生产与社会生活</div>
+            <div class="category-content" id="cat-unit1">
+                <a href="#lesson1">第1课 从食物采集到食物生产</a>
+                <a href="#lesson2">第2课 新航路开辟后的食物物种交流</a>
+                <a href="#lesson3">第3课 现代食物的生产、储备与食品安全</a>
+            </div>
+        </div>
+        
+        <!-- 第二单元 生产工具与劳作方式 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit2')">✚ 第二单元 生产工具与劳作方式</div>
+            <div class="category-content" id="cat-unit2">
+                <a href="#lesson4">第4课 古代的生产工具与劳作</a>
+                <a href="#lesson5">第5课 工业革命与工厂制度</a>
+                <a href="#lesson6">第6课 现代科技进步与人类社会发展</a>
+            </div>
+        </div>
+        
+        <!-- 第三单元 商业贸易与日常生活 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit3')">✚ 第三单元 商业贸易与日常生活</div>
+            <div class="category-content" id="cat-unit3">
+                <a href="#lesson7">第7课 古代的商业贸易</a>
+                <a href="#lesson8">第8课 世界市场与商业贸易</a>
+                <a href="#lesson9">第9课 20世纪以来人类的经济与生活</a>
+            </div>
+        </div>
+        
+        <!-- 第四单元 村落、城镇与居住环境 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit4')">✚ 第四单元 村落、城镇与居住环境</div>
+            <div class="category-content" id="cat-unit4">
+                <a href="#lesson10">第10课 古代的村落、集镇和城市</a>
+                <a href="#lesson11">第11课 近代以来的城市化进程</a>
+            </div>
+        </div>
+        
+        <!-- 第五单元 交通与社会变迁 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit5')">✚ 第五单元 交通与社会变迁</div>
+            <div class="category-content" id="cat-unit5">
+                <a href="#lesson12">第12课 水陆交通的变迁</a>
+                <a href="#lesson13">第13课 现代交通运输的新变化</a>
+            </div>
+        </div>
+        
+        <!-- 第六单元 医疗与公共卫生 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit6')">✚ 第六单元 医疗与公共卫生</div>
+            <div class="category-content" id="cat-unit6">
+                <a href="#lesson14">第14课 历史上的疫病与医学成就</a>
+                <a href="#lesson15">第15课 现代医疗卫生体系与社会生活</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">经济基础 · 社会生活</div>
+    </nav>
+    
+    <!-- 主要内容：详细版历史选修二知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一单元 食物生产与社会生活 -->
+        <h1>第一单元 食物生产与社会生活</h1>
+        <section id="lesson1">
+            <div class="knowledge-card">
+                <h2>第1课 从食物采集到食物生产</h2>
+                <ul>
+                    <li><strong>人类早期的生产与生活</strong>：
+                        <ul>
+                            <li>远古时期，人类使用木、骨和石等材料制作工具，过着采集和渔猎的生活，在一定的地域范围内迁徙。</li>
+                            <li>大约1万年前，原始的农耕和畜牧出现，人类逐渐从食物采集者转变为食物生产者，生活方式发生了巨大变化。</li>
+                        </ul>
+                    </li>
+                    <li><strong>不同地区的食物生产与社会生活</strong>：
+                        <ul>
+                            <li>西亚的小亚细亚半岛南部等地是小麦、大麦的原产地；东亚黄河中上游是粟的发源地，长江中下游的居民在世界上最早种植水稻；中美洲是玉米、甘薯等作物的原产地。</li>
+                            <li>农业产生后，人们修建水利工程，统治者将灌溉系统的开凿、疏浚、维护作为主要工作之一。</li>
+                            <li>古代不同地区的居民都培育或引进了适合本地区种植的农作物和饲养的家畜。如两河流域和尼罗河流域种植大麦和小麦，饲养山羊、绵羊、牛等家畜；中国形成北方粟麦农业区和南方稻作农业区；古希腊种植大麦和小麦、葡萄和橄榄；美洲主要粮食作物是玉米、甘薯、马铃薯。</li>
+                        </ul>
+                    </li>
+                    <li><strong>生产关系的变化</strong>：
+                        <ul>
+                            <li>农业的产生使人类社会的生产关系发生了巨大变化。农业产生以后，男子开始在生产中占据主导地位，女子在农业生产中逐渐退居从属地位。</li>
+                            <li>生产力的发展，使人类生产的产品有了剩余，出现了私有财产，氏族内部出现了贫富分化。</li>
+                            <li>随着剩余产品的增加和私有制的出现，阶级产生了，国家应运而生。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2">
+            <div class="knowledge-card">
+                <h2>第2课 新航路开辟后的食物物种交流</h2>
+                <ul>
+                    <li><strong>美洲物种的外传</strong>：
+                        <ul>
+                            <li>新航路开辟后，美洲的玉米、马铃薯、甘薯、番茄、辣椒和南瓜等物种陆续传播到欧洲、亚洲、非洲等地。</li>
+                            <li>玉米：16世纪中叶在南欧地区广泛种植，17世纪传遍欧洲；明朝时传入中国，清朝前期在全国多有种植，到鸦片战争前夕遍布全国。</li>
+                            <li>马铃薯：16世纪末在欧洲推广，在中国的传播历程与玉米相似。</li>
+                            <li>番茄：18世纪中叶在欧洲栽培，明朝万历年间引入中国，长期被当作观赏和药用植物，清朝光绪年间开始作为食用蔬菜。</li>
+                            <li>辣椒：15世纪末传入西班牙，16世纪传到欧洲其他国家，明朝时传入中国。</li>
+                        </ul>
+                    </li>
+                    <li><strong>其他地区物种在美洲的推广</strong>：
+                        <ul>
+                            <li>新航路开辟后，小麦、水稻等农作物和鸡、牛、羊等禽畜传入美洲。</li>
+                            <li>小麦由欧洲移民带到美洲，后来成为美洲的主要粮食作物；水稻由西班牙人带到美洲，18世纪中期成为北美第二大农作物。</li>
+                        </ul>
+                    </li>
+                    <li><strong>食物物种交流带来的影响</strong>：
+                        <ul>
+                            <li>提高了全球粮食产量，使世界人口激增。</li>
+                            <li>改变了人们的饮食习惯，丰富了食物种类。</li>
+                            <li>推动了当地经济和贸易的发展。</li>
+                            <li>新物种的引进对当地生态环境产生了一定影响。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson3">
+            <div class="knowledge-card">
+                <h2>第3课 现代食物的生产、储备与食品安全</h2>
+                <ul>
+                    <li><strong>食物生产的现代化</strong>：
+                        <ul>
+                            <li>农业机械化：20世纪中叶，欧美各国完成了农业机械化，建立起高度集约的现代农业。美国农业机械以大型为主，法国以中型为主，日本以小型为主，中国则是大、中、小型相结合。</li>
+                            <li>杂交育种技术：美国1930年利用杂交技术培育出玉米新品种；墨西哥1941年培育出小麦新品种；中国杂交水稻制种技术不断取得突破，2014年“中国超级杂交水稻”创世界纪录。</li>
+                            <li>畜牧业和渔业现代化：养殖场和牧场实现机械化和自动控制，水产养殖向工厂化、机械化、集约化经营发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>食物储备技术的进步</strong>：
+                        <ul>
+                            <li>粮食储备技术：20世纪50年代美国使用机械通风储粮技术，70年代中国开始采用机械制冷低温储粮技术，21世纪以来粮食储备自动化和智能化水平不断提高。</li>
+                            <li>食品储存技术：20世纪20年代起速冻加工、冷冻食品工业发展，家用冰箱和冰柜普及，冷链物流产业发展起来。</li>
+                        </ul>
+                    </li>
+                    <li><strong>消除饥饿与食品安全</strong>：
+                        <ul>
+                            <li>联合国粮农组织多次召开世界粮食安全会议，制定粮食安全行动计划。</li>
+                            <li>1996年，中国发布《中国的粮食问题》白皮书，提出立足国内资源、实现粮食基本自给的方针。</li>
+                            <li>2009年，中国通过《中华人民共和国食品安全法》，用法律手段确保食品安全。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二单元 生产工具与劳作方式 -->
+        <h1>第二单元 生产工具与劳作方式</h1>
+        <section id="lesson4">
+            <div class="knowledge-card">
+                <h2>第4课 古代的生产工具与劳作</h2>
+                <ul>
+                    <li><strong>农业工具的变化</strong>：
+                        <ul>
+                            <li>农业生产工具中，耕作工具和灌溉工具格外重要。不同文明地区的农业生产工具有一定的相似性。</li>
+                            <li>铁犁牛耕的应用，极大地提高了农业生产效率。</li>
+                        </ul>
+                    </li>
+                    <li><strong>手工业工具的进步</strong>：
+                        <ul>
+                            <li>古代手工业生产工具不断改进，推动了手工业的发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>劳作方式的发展</strong>：
+                        <ul>
+                            <li>农业家庭式劳作、农业庄园式劳作、手工业家庭式劳作与作坊式劳作是古代重要的劳作方式。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson5">
+            <div class="knowledge-card">
+                <h2>第5课 工业革命与工厂制度</h2>
+                <ul>
+                    <li><strong>机器大生产与工厂制度</strong>：
+                        <ul>
+                            <li>工业革命实现了机器大生产，以工厂代替工场，大大提高了劳动生产率。</li>
+                            <li>工厂制度的特点：规模较大，工人实行倒班制；有严格的规章制度；各生产环节协同劳作；原料统一供应，合理调配。</li>
+                            <li>工厂制度带来生产组织和管理形式的巨变，有利于科学管理、提高生产效率。</li>
+                            <li>19世纪中后期，洋务派创办江南制造总局、福州船政局等近代企业，引进工厂制度；民族资本家张謇、范旭东等开办工厂，中国民族工业初步发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>工业革命后生活方式的变化</strong>：
+                        <ul>
+                            <li>促进了城市化发展，改变了人们的生活空间。</li>
+                            <li>交通运输业进步，便利了人们的出行，增加了社会流动性。</li>
+                            <li>促进了乡村的改变，农业机械普及，农业现代化水平提高。</li>
+                            <li>生活节奏加快，人们的时间观念更为增强，准时准点成为生活准则。</li>
+                            <li>初等教育推广，人们的文化素质逐渐提升。</li>
+                            <li>工业革命也给民众生活带来消极影响，如劳动时间过长、工作环境恶劣、传染病与职业病等。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson6">
+            <div class="knowledge-card">
+                <h2>第6课 现代科技进步与人类社会发展</h2>
+                <ul>
+                    <li><strong>现代科学技术的发展</strong>：
+                        <ul>
+                            <li>计算机技术：1946年第一台电子计算机“埃尼阿克”在美国诞生，20世纪90年代网络实现商业化。</li>
+                            <li>人工智能技术：通过计算机模拟人的思维解决实际问题，应用到机器人制造、语言及图像识别等领域。</li>
+                            <li>航天技术：1957年苏联发射第一颗人造卫星，美国实现登月创举。</li>
+                            <li>海洋技术：美国最先研究深海，2012年中国“蛟龙号”下潜深度达7000米，达到世界先进水平。</li>
+                            <li>生物技术：DNA技术、微生物学、分子遗传学等突飞猛进。</li>
+                            <li>新材料技术：高分子材料、纳米材料等被广泛运用到生产生活中。</li>
+                        </ul>
+                    </li>
+                    <li><strong>现代科技进步的革命性意义</strong>：
+                        <ul>
+                            <li>带来了生产力的巨大飞跃，促使劳作方式从粗放型转化为集约型。</li>
+                            <li>人类文化生活出现新的模式，电子商务发展。</li>
+                            <li>人类视野产生新变化，网络普及促进了信息交流，推动了社会进步。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三单元 商业贸易与日常生活 -->
+        <h1>第三单元 商业贸易与日常生活</h1>
+        <section id="lesson7">
+            <div class="knowledge-card">
+                <h2>第7课 古代的商业贸易</h2>
+                <ul>
+                    <li><strong>商业贸易的起源与发展</strong>：
+                        <ul>
+                            <li>由于交换的需要，部落之间、地区之间、国家之间的商业贸易逐渐发展起来。</li>
+                            <li>丝绸之路开辟，中国古代对外商业贸易发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>货币、信贷、商业契约</strong>：
+                        <ul>
+                            <li>货币、信贷、商业契约便利了交换，扩展了商业的领域，改变了人们的生活方式和观念。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson8">
+            <div class="knowledge-card">
+                <h2>第8课 世界市场与商业贸易</h2>
+                <ul>
+                    <li><strong>世界市场的形成</strong>：
+                        <ul>
+                            <li>工业革命后资本主义向全球扩张，以欧美资本主义国家为主导的世界市场逐步形成。</li>
+                        </ul>
+                    </li>
+                    <li><strong>近代商业贸易的变化</strong>：
+                        <ul>
+                            <li>新航路开辟后，贸易中心转移，商业经营方式和国际贸易格局发生了相应变化。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson9">
+            <div class="knowledge-card">
+                <h2>第9课 20世纪以来人类的经济与生活</h2>
+                <ul>
+                    <li><strong>世界经济的发展</strong>：
+                        <ul>
+                            <li>20世纪以来，世界经济在曲折中发展。政府宏观调控与市场调节相结合，成为实现经济快速增长的主要手段之一。</li>
+                        </ul>
+                    </li>
+                    <li><strong>国际贸易与人类生活</strong>：
+                        <ul>
+                            <li>第二次世界大战后，《关税与贸易总协定》促进了国际贸易发展。世界贸易组织成立后，服务贸易增长迅速，电子商务兴起，改变了人们的生活。</li>
+                        </ul>
+                    </li>
+                    <li><strong>国际金融与人类生活</strong>：
+                        <ul>
+                            <li>第二次世界大战后建立的国际金融组织，对促进各国经济发展发挥了积极作用。金融全球化、电子化，便利了人们的消费，也具有相当的风险。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四单元 村落、城镇与居住环境 -->
+        <h1>第四单元 村落、城镇与居住环境</h1>
+        <section id="lesson10">
+            <div class="knowledge-card">
+                <h2>第10课 古代的村落、集镇和城市</h2>
+                <ul>
+                    <li><strong>村落的产生</strong>：
+                        <ul>
+                            <li>村落是具有相当数量和规模的聚居点，为人类提供了比较稳定、安全的生活环境。</li>
+                        </ul>
+                    </li>
+                    <li><strong>集镇的出现</strong>：
+                        <ul>
+                            <li>随着商品交换的发展，集镇逐渐形成，促进了市场的繁荣。</li>
+                        </ul>
+                    </li>
+                    <li><strong>城市的产生</strong>：
+                        <ul>
+                            <li>城市具有政治、经济、军事和文化等多种功能。</li>
+                        </ul>
+                    </li>
+                    <li><strong>世界各地的民居</strong>：
+                        <ul>
+                            <li>世界各地民居的特点是由当地自然环境、经济发展水平、文化习俗等多方面因素决定的。两河流域的苏美尔人住宅为联排式房屋，以黏土和芦苇混合制成的土坯作为建筑材料；古埃及在房屋内壁涂泥，用椰子叶铺成屋顶；古罗马住宅以木、石、砖为建筑材料；中国南方干栏式楼居、北方四合院为主，还有窑洞、徽派民居、福建土楼等多样式的居住环境。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson11">
+            <div class="knowledge-card">
+                <h2>第11课 近代以来的城市化进程</h2>
+                <ul>
+                    <li><strong>城市化的演进</strong>：
+                        <ul>
+                            <li>工业化推动了人类社会城市化进程。工业革命后，城市化进程加快，以工厂为中心的城市聚集发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>居住条件的改善</strong>：
+                        <ul>
+                            <li>在城市化进程中，人们的居住条件不断改善。第二次世界大战后，随着世界经济的高速发展和高层住宅的大量出现，人类的居住环境得到改善。</li>
+                        </ul>
+                    </li>
+                    <li><strong>基础设施的发展</strong>：
+                        <ul>
+                            <li>伴随着城市化进程，城市的基础设施不断发展、完善。城市出现自来水及排水系统、近代化交通、通信和照明等基础设施。</li>
+                        </ul>
+                    </li>
+                    <li><strong>城市化进程中的问题</strong>：
+                        <ul>
+                            <li>在城市化进程中，出现了环境污染、交通拥堵、生活压力增大、贫富分化加剧等问题。进入21世纪，建立生态、智慧城市人居环境成为发展趋势。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五单元 交通与社会变迁 -->
+        <h1>第五单元 交通与社会变迁</h1>
+        <section id="lesson12">
+            <div class="knowledge-card">
+                <h2>第12课 水陆交通的变迁</h2>
+                <ul>
+                    <li><strong>古代的陆路交通与水路交通</strong>：
+                        <ul>
+                            <li>古代的道路铺设和运河开凿，是经济发展到一定阶段的产物。</li>
+                        </ul>
+                    </li>
+                    <li><strong>对海洋的探索与全球航路的建立</strong>：
+                        <ul>
+                            <li>航海经验的积累和技术的改进，让人们对海洋的探索从区域扩展到全球，全球航路得以建立。</li>
+                        </ul>
+                    </li>
+                    <li><strong>工业革命与交通的发展</strong>：
+                        <ul>
+                            <li>两次工业革命催生了轮船、火车、汽车等现代交通工具。</li>
+                        </ul>
+                    </li>
+                    <li><strong>交通与社会变迁</strong>：
+                        <ul>
+                            <li>交通的改进促进了政治、经济和文化发展，带动了城市格局和社会生活的变化。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson13">
+            <div class="knowledge-card">
+                <h2>第13课 现代交通运输的新变化</h2>
+                <ul>
+                    <li><strong>现代交通运输的新变化</strong>：
+                        <ul>
+                            <li>汽车、高速公路、高铁、航运等技术的发展，把陆海交通提升到一个新高度。</li>
+                        </ul>
+                    </li>
+                    <li><strong>航空的发展</strong>：
+                        <ul>
+                            <li>飞机的发明和民航的发展，开辟了交通运输的空中通道。</li>
+                        </ul>
+                    </li>
+                    <li><strong>现代交通与社会生活</strong>：
+                        <ul>
+                            <li>交通的发展缩短了通行的时间，改变了人们的生活观念。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第六单元 医疗与公共卫生 -->
+        <h1>第六单元 医疗与公共卫生</h1>
+        <section id="lesson14">
+            <div class="knowledge-card">
+                <h2>第14课 历史上的疫病与医学成就</h2>
+                <ul>
+                    <li><strong>历史上的疫病</strong>：
+                        <ul>
+                            <li>疫病给人类带来了巨大灾难，如天花、鼠疫等。但人们在疫病的防治上也积累了大量经验。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中医药的成就</strong>：
+                        <ul>
+                            <li>中医在实践中建立了独特的理论体系，积累了大量的诊断防治经验，形成了博大精深的中医药学。</li>
+                            <li>扁鹊与四诊法（望、闻、问、切）；《黄帝内经》；华佗与“麻沸散”“五禽戏”；张仲景与《伤寒杂病论》；孙思邈与《千金方》；《唐本草》；李时珍与《本草纲目》；针灸疗法；屠呦呦与青蒿素等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>西医在中国的传播</strong>：
+                        <ul>
+                            <li>西医传入中国，客观上促进了中国社会的进步。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson15">
+            <div class="knowledge-card">
+                <h2>第15课 现代医疗卫生体系与社会生活</h2>
+                <ul>
+                    <li><strong>现代医疗卫生体系的建立</strong>：
+                        <ul>
+                            <li>建立现代医疗卫生体系，对保障人类的健康起到关键作用。西方现代医疗卫生体系逐步建立与完善，中国也建立起现代医疗卫生体系。</li>
+                        </ul>
+                    </li>
+                    <li><strong>医疗卫生事业的发展与社会生活</strong>：
+                        <ul>
+                            <li>第二次世界大战后，医疗卫生事业取得巨大发展，人民健康状况明显改善。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

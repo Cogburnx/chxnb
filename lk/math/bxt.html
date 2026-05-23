@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>数学必修二</title>
+    
+    <!-- KaTeX 渲染 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 (保留原样式，但整合到收缩隐藏) */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .content-image {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧，不浮动到顶部 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;  /* 移动端固定左侧宽度 */
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (必修二分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>数学必修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('xl')">✚ 平面向量</div>
+            <div class="category-content" id="xl">
+                <a href="#xlgn">概念</a><a href="#xlys">运算</a><a href="#xljbdl">基本定理</a><a href="#dhx">等和线</a>
+                <a href="#xlbs">坐标表示</a><a href="#dbfd">定比分点</a><a href="#slj">数量积</a><a href="#bcdlysx">奔驰定理与四心</a>
+                <a href="#yxdlyzxdl">正/余弦定理</a><a href="#sydl">射影定理</a><a href="#sjxj">三角形解</a><a href="#sjxmj">三角形面积</a>
+                <a href="#jhhds">极化恒等式</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('fs')">✚ 复数</div>
+            <div class="category-content" id="fs">
+                <a href="#fsgn">概念</a><a href="#fsys">运算</a><a href="#fssjbs">三角表示</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('jh')">✚ 立体几何初步</div>
+            <div class="category-content" id="jh">
+                <a href="#jblttx">基本立体图形</a><a href="#zgt">直观图</a><a href="#bmjytj">表面积与体积</a>
+                <a href="#pm">平面</a><a href="#wzgx">位置关系</a><a href="#ltpx">平行</a><a href="#ltcz">垂直</a>
+                <a href="#kjjlykjj">空间距离与角</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('tj')">✚ 统计</div>
+            <div class="category-content" id="tj">
+                <a href="#sjcy">随机抽样</a><a href="#sjbs">数据表示</a><a href="#sjtz">数据特征</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('gl')">✚ 概率</div>
+            <div class="category-content" id="gl">
+                <a href="#sjsj">随机事件</a><a href="#xhdl">独立性</a><a href="#plygl">频率与概率</a>
+            </div>
+        </div>
+
+        <!-- 广告位 (原样保留) -->
+        <a href="/index.html" class="back-home">返回首页</a>
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容区：所有知识点卡片（与原始代码完全一致，未改动文本） -->
+    <main>
+        <!-- 平面向量 章节 -->
+        <h1>平面向量</h1>
+        
+        <section id="xlgn">
+            <div class="knowledge-card">
+                <h2>概念</h2>
+                <p>
+                    <b>向量</b>（矢量） 既有大小又有方向的量（不能比较大小）<br>
+                    <b>数量</b>（标量） 只有大小没有方向的量<br>
+                    <b>有向线段</b> 具有方向的线段 <b>三要素</b>：起点、方向、长度<br>
+                    <b>表示</b> 用有向线段表示向量<br>
+                    <b>长度</b> |向量| 可以比较大小<br>
+                    <b>零向量</b> 长度为0的向量，方向任意 <b>0</b><br>
+                    <b>单位向量</b> 长度等于1个单位长度的向量，方向任意<br>
+                    <b>平行向量</b>（共线向量） 方向相同或相反的非零向量，零向量与任意向量平行 <br>
+                    <b>相等向量</b> 长度相等且方向相同的向量，具有传递性<br>
+                </p>
+            </div>
+        </section>
+        
+        <section id="xlys">
+            <div class="knowledge-card">
+                <h2>运算</h2>
+                <p>
+                    <b>三角形法则</b> 首尾相连<br>
+                    <b>平行四边形法则</b> 对角线<br>
+                    <b>多边形法则</b> 首位顺次连接的若干向量求和，若形成封闭图形，和为<b>0</b><br>
+                    <b>运算律</b> 交换律：<b>a</b>+<b>b</b>=<b>b</b>+<b>a</b> 结合律：(<b>a</b>+<b>b</b>)+<b>c</b>=<b>a</b>+(<b>b</b>+<b>c</b>)<br>
+                    <b>相反向量</b> 长度相等，方向相反的向量<br>
+                    <b>数乘</b> 实数k与向量<b>a</b>的积是一个向量，k<b>a</b>, 满足结合律，分配律<br>
+                    <b>共线定理</b> 存在一个唯一实数k使<b>b</b>=k<b>a</b>,<b>a</b>≠<b>0</b><br>
+                    <b>推论</b>（三点共线） 平面上三点O，A，B不共线，则平面上任意点P与A，B共线的充要条件是存在实数u,
+                    v使得向量OP=u向量OA+u向量OB，u+v=1（向量上面的箭头不会打QAQ）<br>
+                    <b>推导</b> 
+                    <img src="sxbxt/sdgx.jpg" alt="三点共线" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="xljbdl">
+            <div class="knowledge-card">
+                <h2>基本定理</h2>
+                <p>
+                    <b>e1</b>,<b>e2</b>是同一平面内两个不共线向量，对于这一平面的任意向量<b>a</b>，有且只有一对实数k1，k2使<b>a</b>=k1<b>e1</b>+k2<b>e2</b><br>
+                    <b>证明</b>
+                    <img src="sxbxt/xljbdl.jpg" alt="证明" class="content-image">
+                    <b>基底</b> <b>e1</b>,<b>e2</b>不共线，我们把{<b>e1</b>,<b>e2</b>}叫做表示这一平面内所有向量的一个基底<br>
+                </p>
+            </div>
+        </section>
+
+        <section id="dhx">
+            <div class="knowledge-card">
+                <h2>等和线</h2>
+                <p>
+                    <img src="sxbxt/dhx.jpg" alt="等和线" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="xlbs">
+            <div class="knowledge-card">
+                <h2>坐标表示</h2>
+                <p>
+                    <b>基底</b> 与x轴，y轴方向相同的两个单位向量<b>i</b>,<b>j</b><br>
+                    <b>坐标</b> 有且只有一对实数x，y，使<b>a</b>=x<b>i</b>+y<b>j</b>,(x,y)为<b>a</b>的坐标<br>
+                    <b>运算</b> x,y分别算<br>
+                    <b>向量共线</b> <b>a</b>=(x1,y1),<b>b</b>=(x2,y2),<b>b</b>≠<b>0</b>,向量共线的充要条件是x1y2-x2y1=0
+                </p>
+            </div>
+        </section>
+
+        <section id="dbfd">
+            <div class="knowledge-card">
+                <h2>定比分点</h2>
+                <p>
+                    <img src="sxbxt/dbfd.jpg" alt="定比分点" class="content-image">
+                    <img src="sxbxt/dbfdt.jpg" alt="定比分点" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="slj">
+            <div class="knowledge-card">
+                <h2>数量积</h2>
+                <p>
+                    <b>向量夹角</b>
+                    <img src="sxbxt/xljj.jpg" alt="夹角" class="content-image">
+                    <b>数量积</b>
+                    <img src="sxbxt/xlslj.jpg" alt="数量积" class="content-image">
+                    <b>投影向量</b>
+                    <img src="sxbxt/tyxl.jpg" alt="投影向量" class="content-image">
+                    <b>性质</b>
+                    <img src="sxbxt/xlxz.jpg" alt="性质" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="bcdlysx">
+            <div class="knowledge-card">
+                <h2>奔驰定理与四心</h2>
+                <p>
+                    <img src="sxbxt/bcdlhsx.jpg" alt="奔驰定理与四心" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="yxdlyzxdl">
+            <div class="knowledge-card">
+                <h2>余弦定理与正弦定理</h2>
+                <p>
+                    <img src="sxbxt/yzxdl.jpg" alt="余弦定理与正弦定理" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="sydl">
+            <div class="knowledge-card">
+                <h2>射影定理和其他</h2>
+                <p>
+                    a=bcosC+ccosB;b=ccosA+acosC;c=acosB+bcosA.<br>
+                    <b>其他</b>
+                    <b>仰角</b> 在同一铅垂平面内，当视线在水平线上方时,与水平线的夹角<br>
+                    <b>俯角</b> 在同一铅垂平面内当视线在水平线下方时,与水平线的夹角<br>
+                    <b>方向角</b>从指定方向线到目标方向线的水平角(指定方向线是指正北或正南,方向角小于90°)<br>
+                    <b>方位角</b>从正北方向线按顺时针到目标方向线所转过的水平角<br>
+                    <b>实用公式</b>
+                    <img src="sxbxt/yxgs.jpg" alt="公式" class="content-image">
+                    <img src="sxbxt/qtgs.jpg" alt="公式" class="content-image">
+                    <img src="sxbxt/yxqtgs.jpg" alt="公式" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="sjxj">
+            <div class="knowledge-card">
+                <h2>三角形解</h2>
+                <p>
+                    <img src="sxbxt/sjxj.jpg" alt="三角形解" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="sjxmj">
+            <div class="knowledge-card">
+                <h2>三角形面积</h2>
+                <p>
+                    <img src="sxbxt/sjxmj.jpg" alt="三角形面积" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="jhhds">
+            <div class="knowledge-card">
+                <h2>极化恒等式</h2>
+                <p>
+                    <img src="sxbxt/jhhds.jpg" alt="极化恒等式" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <!-- 复数 章节 -->
+        <h1>复数</h1>
+
+        <section id="fsgn">
+            <div class="knowledge-card">
+                <h2>概念</h2>
+                <p>
+                    <b>复数</b> 形如a+bi(a,b∈R)的数，i是虚数单位，i^2=-1<br>
+                    <b>复数集</b> 全体复数所构成的集合C={a+bi|a，b∈R}<br>
+                    <b>表示方法</b> z=a+bi,a是复数的实部，b是复数的虚部<br>
+                    <b>分类</b> a=b=0时是实数0，b=0时是实数，b≠0时是虚数，a=0，b≠0时是纯虚数.<br>
+                    <b>相等</b> z1=a+bi,z2=c+di,a=c且b=d时z1=z2<br>
+                    <b>复平面</b> 建立平面直角坐标系表示复数的平面，x轴是实轴，y轴是虚轴<br>
+                    <b>模</b> |z|=|a+bi|=根号下a^2+b^2<br>
+                    <b>共轭复数</b> 两个实部相等，虚部互为相反数的复数，虚部不等于0的共轭复数也叫共轭虚数
+                </p>
+            </div>
+        </section>
+
+        <section id="fsys">
+            <div class="knowledge-card">
+                <h2>运算</h2>
+                <p>
+                    <b>加法</b> z1=a+bi,z2=c+di,z1+z2=(a+c)+(b+d)i 满足交换律、结合律<br>
+                    <b>减法</b> 和加法差不多<br>
+                    <b>两点间距离</b> z1=x1+y1i,z2=x2+y2i,d=|Z1Z2|=|z1-z2|=|(x1-x2)+(y1-y2)i|=根号下（x1-x2）^2+(y1-y2)^2<br>
+                    <b>意义</b> |z-z0|表示复数z和z0对应点的距离，|z-z0|=r时，z对应轨迹是以z0对应点为圆心，半径为r的圆<br>
+                    <b>乘法</b> z1=a+bi,z2=c+di,z1*z2=(ac-bd)+(ad+bc)i，满足交换律、结合律和分配律<br>
+                    <b>除法</b> z1/z2=(ac+bd)/(c^2+d^2)+(bc-ad)/(c^2+d^2)i<br>
+                    <b>常用结论</b> (a+bi)^2=a^2-b^2+2abi,(a+bi)(a-bi)=a^2+b^2,(1+i)^2=2i,(1-i)^2=-2i,1/i=-1,(1+i)/(1-i)=i,(1-i)/(1+i)=-i<br>
+                    <b>i^n</b> i^4n=1,i^4n+1=i,i^4n+2=-1,i^4n+3=-i,i^0=1,i^-n=1/i^n<br>
+                    <b>w^n</b>
+                    <img src="sxbxt/wdncf.jpg" alt="w" class="content-image">
+                    <b>复数模性质</b>
+                    <img src="sxbxt/fsmxz.jpg" alt="复数模" class="content-image">
+                    <b>共轭复数性质</b>
+                    <img src="sxbxt/gefsxz.jpg" alt="共轭复数" class="content-image">
+                    <img src="sxbxt/gefsdxz.jpg" alt="共轭复数" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="fssjbs">
+            <div class="knowledge-card">
+                <h2>三角表示</h2>
+                <p>
+                    <b>表示</b>
+                    <img src="sxbxt/sjbs1.jpg" alt="三角表示" class="content-image">
+                    <b>辐角主值</b>
+                    <img src="sxbxt/sjbs2.jpg" alt="三角表示" class="content-image">
+                    <b>乘法</b>
+                    <img src="sxbxt/sjbs3.jpg" alt="三角表示" class="content-image">
+                    <b>除法</b>
+                    <img src="sxbxt/sjbs4.jpg" alt="三角表示" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <!-- 立体几何初步 章节 -->
+        <h1>立体几何初步</h1>
+
+        <section id="jblttx">
+            <div class="knowledge-card">
+                <h2>基本立体图形</h2>
+                <p>
+                    <b>多面体</b>由若干个平面多边形围成的几何体<br>
+                    <b>多面体的面</b> 围成多面体的各个多边形<br>
+                    <b>多面体的棱</b> 两个面的公共边<br>
+                    <b>多面体的顶点</b> 棱与棱的公共点<br>
+                    <b>正多面体</b> 每个面都是全等的正多边形，每个顶点为端点都有相同的棱数<br>
+                    <b>多面体欧拉定理</b> V-E+F=2,V是顶点数,E是棱数,F是面数<br>
+                    <b>旋转面</b> 一条平面曲线(包括直线)绕它所在平面内的一条定直线旋转所形成的曲面<br>
+                    <b>旋转体</b> 封闭的旋转面围成的几何体<br>
+                    <b>旋转体的轴</b> 定直线<br>
+                    <b>棱柱</b> 两个面互相平行,其余各面都是四边形,并且相邻两个四边形的公共边都互相平行,由这些面所围成的多面体<br>
+                    <b>棱锥</b> 有一个面是多边形,其余各面都是有一个公共顶点的三角形,由这些面所围成的多面体<br>
+                    <b>正棱锥</b> 底面是正多边形,并且顶点与底面中的连线垂直于底面的棱锥,各棱长均相等的正三棱锥叫正四面体<br>
+                    <b>棱台</b> 用一个平行于棱雅底面的平面去截棱锥,底面和藏面之间的那部分多面体<br>
+                    <b>正棱台</b> 由正棱锥截得的棱台<br>
+                    <b>圆柱</b> 以矩形的一边所在直线为旋转轴,其余三边旋转一周形成的面所围成的旋转体<br>
+                    <b>圆锥</b> 以直角二角形的一条直角边所在直线为旋转轴,其余两边旋转一周形成的面所围成的旋转体<br>
+                    <b>圆台</b> 用平行于圆锥底面的平面去截圆锥,底面与截面之间的部分<br>
+                    <b>球面</b>以半圆的直径所在直线为旋转轴,旋转一周形成的曲面<br>
+                    <b>球</b> 球面所围成的旋转体
+                </p>
+            </div>
+        </section>
+
+        <section id="zgt">
+            <div class="knowledge-card">
+                <h2>直观图</h2>
+                <p>
+                    <b>空间图形的直观图</b> 用来表示空间图形的平面图形<br>
+                    <b>画法</b> 建系,横不变,纵减半;平行关系不改变,成图<br>
+                    <b>面积关系</b>一个平面多边形的面积为S,其直观图的面积为S1,则有S1=根号2/4*S,S=2根号2S1<br>
+                </p>
+            </div>
+        </section>
+
+        <section id="bmjytj">
+            <div class="knowledge-card">
+                <h2>表面积与体积</h2>
+                <p>
+                    <img src="sxbxt/bmjtj.jpg" alt="表面积与体积" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="pm">
+            <div class="knowledge-card">
+                <h2>平面</h2>
+                <p>
+                    <img src="sxbxt/pm.jpg" alt="平面" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="wzgx">
+            <div class="knowledge-card">
+                <h2>位置关系</h2>
+                <p>
+                    <b>点、线、面</b>
+                    <img src="sxbxt/dxm.jpg" alt="点线面" class="content-image">
+                    <b>异面直线</b> 不同在任何一个平面内的两条直线<br>
+                    <b>直线与平面</b>
+                    <img src="sxbxt/xm.jpg" alt="线面" class="content-image">
+                    <b>平面与平面</b>
+                    <img src="sxbxt/mm.jpg" alt="面面" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="ltpx">
+            <div class="knowledge-card">
+                <h2>平行</h2>
+                <p>
+                    <img src="sxbxt/px.jpg" alt="平行" class="content-image">
+                    <b>空间等角定理</b>
+                    <img src="sxbxt/kjdj.jpg" alt="空间等角" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="ltcz">
+            <div class="knowledge-card">
+                <h2>垂直</h2>
+                <p>
+                    <img src="sxbxt/cz.jpg" alt="垂直" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <section id="kjjlykjj">
+            <div class="knowledge-card">
+                <h2>空间距离与空间角</h2>
+                <p>
+                    <b>垂线段</b> 过一点作垂直于已知平面的直线,该点与垂足间的线段<br>
+                    <b>点面距</b> 垂线段的长度<br>
+                    <b>线面距</b> 一条直线与一个平面平行时,这条直线上任意一点到这个平面的距离<br>
+                    <b>面面距</b> 两个平面平行,那么其中一个平面内的任意一点到另一个平面的距离都相等<br>
+                    <b>异面直线所成角</b>
+                    <img src="sxbxt/ymzxscj.jpg" alt="异面直线所成角" class="content-image">
+                    范围在0-90°之间，闭区间<br>
+                    <b>直线与面所成角</b>
+                    <img src="sxbxt/zxymscj.jpg" alt="直线与面所成角" class="content-image">
+                    <b>二面角</b>
+                    <img src="sxbxt/tmj.jpg" alt="二面角" class="content-image">
+                    <b>二面角的平面角</b>
+                    <img src="sxbxt/tmjdpmj.jpg" alt="二面角的平面角" class="content-image">
+                </p>
+            </div>
+        </section>
+
+        <!-- 统计 章节 -->
+        <h1>统计</h1>
+
+        <section id="sjcy">
+            <div class="knowledge-card">
+                <h2>随机抽样</h2>
+                <p>
+                    <b>全面调查与抽样调查</b>
+                    <img src="sxbxt/qmcydc.jpg" alt="全面调查与抽样调查" class="content-image">
+                    <b>简单随机抽样</b> 设一个总体含有N(N为正整数)个个体,
+                    从中逐个抽取n(1≤m< N)个个体作为样本,如果抽取是放回的,
+                    且每次抽取时总体内的各个个体抽到的频率都相等,
+                    我们把这样的抽样方法叫做放回简单随机抽样;如果抽取是不放回的,
+                    且每次抽取时总体内未进入样本的各个个体被抽到的概率都相等，
+                    我们把这样的抽样方法叫做不放回简单随机抽样<br>
+                    <b>简单随机抽样</b> 放回简单随机抽样和不放回简单随机抽样统称为简单随机抽样<br>
+                    <b>简单随机样本</b> 通过简单随机抽样获得的样本称为简单随机样本<br>
+                    <b>简单随机抽样的方法</b> 抽签法、随机数法<br>
+                    <b>总体均值</b> 总体平均数<br>
+                    <b>样本均值</b> 样本平均数<br>
+                    <b>分层随机抽样</b> 按一个或多个变量把总体划分成若干个子总体,
+                    每个个体属于且仅属于一个子总体,在每个子总体中独立地进行简单随机抽样,
+                    再把所有子总体中抽取的样本合在一起作为总样本<br>
+                    每一个子总体称为层<br>
+                    <b>比例分配</b> 每层样本量都与层的大小成比例<br>
+                    <b>获取数据的基本途径</b> 调查、试验、观察、查询
+                </p>
+            </div>
+        </section>
+
+        <section id="sjbs">
+            <div class="knowledge-card">
+                <h2>数据表示</h2>
+                <p>
+                    <b>柱形图</b> 用一个单位长度(如1cm)表示一定的数量,
+                    根据数量的多少,画成长短相应成比例的直条,并按一定顺序排列起来的统计图<br>
+                    可以清楚地表明各种数量的多少,可以分为纵式柱形图和横式柱形图<br>
+                    <b>折线图</b> 以折线的上升或下降来表示统计数量的增减变化的统计图<br>
+                    不仅可以表示数量的多少,而且可以反映同一事物在不同时间里的发展变化情况<br>
+                    <b>扇形图</b>(饼图或饼形图) 用整个圆表示总数(单位“1”),
+                    用各个扇形的大小表示各部分量占总量的百分比<br>
+                    可以形象地表示出各部分数据在全部数据中所占的比例情况<br>
+                    当总体很大或不便获取时,用样本的频率分布去估计总体的频率分布<br>
+                    <b>频率分布表</b> 反映样本频率分布的表格<br>
+                    <b>频率分布直方图</b> 横轴表示样本数据,纵轴表示频率与组距的比值,
+                    将频率分布表中各组频率的大小用相应矩形面积的大小来表示<br>
+                    <b>频率分布折线图</b> 连接频率分布直方图中各小矩形上端的中点<br>
+                </p>
+            </div>
+        </section>
+
+        <section id="sjtz">
+            <div class="knowledge-card">
+                <h2>数据特征</h2>
+                <p>
+                    <b>众数</b> 一组数据中出现次数最多的数据(即频率分布最大值所对应的样本数据)<br>
+                    <b>中位数</b> 一组数据按从小到大(或从大到小)的顺序排成一列,处于最中回的一个数据
+                    (当数据个数是奇数时)或最中间两个数据的平均数(当数据个数是偶数时)<br>
+                    <b>平均数</b> 一组数据的和与这组数据的个数的商<br>
+                    <b>第p百分位数</b> 它使得这组数据中至少有p%的数据小于或等于这个值,
+                    且至少有(100-p)%的数据大于或等于这个值<br>
+                    25%,50%,75%分位数把一组由小到大排列后的数据分成四等份,因此称为四分位数<br>
+                    确定要求第p百分位数所在分组为[AB）,由频率分布表或频率分布直方图可知,
+                    样本中小于A的频率为a,小于B的频率为b,所以第p百分位数= A+组距*(p%-a)/(b-a)<br>
+                    <b>方差</b> <br>
+                    <b>标准差</b> 对方差开平方,取它的算术平方根<br>
+                    <b>平均数与方差</b> 如果数据x1,…,xn的平均数为x,方差为s,那么ax1+b,ax2+b，…,
+                    axn+b(a,b为常数)的平均数是ax+b,方差是a^2*s^2.<br>
+                    <b>方差公式</b>s^2=n1/n(s1^2+(x1-x)^2)+n2/n(s2^2+(x2-x)^2)
+                </p>
+            </div>
+        </section>
+
+        <!-- 概率 章节 -->
+        <h1>概率</h1>
+
+        <section id="sjsj">
+            <div class="knowledge-card">
+                <h2>随机事件与概率</h2>
+                <p>
+                    <b>随机试验</b> 对随机现象的实现和对它的观察<br>
+                    <b>样本点</b> 随机试验E的每个可能的基本结果,用ω表示<br>
+                    <b>样本空间</b> 全体样本点的集合,用Ω表示<br>
+                    <b>有限样本空间</b> 一个随机试验有n个可能结果<br>
+                    <b>样本点列举方法</b> 列举法,列表法,树状图法<br>
+                    <b>随机事件</b> 样本空间Ω的子集,一般用大写字母A,B,C…表示<br>
+                    <b>必然事件</b> 每次试验中总有一个样本点发生<br>
+                    <b>不可能事件</b> 在每次试验中都不会发生<br>
+                </p>
+                <h2>事件的关系</h2>
+                <p>
+                    <b>包含</b> 若事件A发生,则事件B一定发生,称事件B包含事件A
+                </p>
+                <h2>事件的运算</h2>
+                <p>
+                    <b>井事件</b>(和事件) A事件，与事件B至少有一个发生,AUB(或A+B)<br>
+                    <b>交事件</b>(积事件) 事件A与事件B同时发生,AnB(或AB)<br>
+                    <b>互斥事件</b> 事件才与事件B不能同时发生，AnB=∅<br>
+                    <b>对立事件</b> 事件A与事件B在任何一次试验中有且仅有一个发生,AnB=∅,AUB=Ω<br>
+                    对立必互斥,但互斥不一定对立<br>
+                    <b>概率</b> 对随机事件发生可能性大小的度量(数值)称为事件的概率,事件A的概率用P(A)表示<br>
+                    <b>共同特征</b> 有限性,等可能性<br>
+                    <b>概率的基本性质</b>1:对任意的事件 ,都有P(A)≥0.
+                    2:必然事件的概率为1,不可能事件的概率为0,即P(Ω)=1,P(∅)=0.
+                    3:如果事件A与事件B互斥,那么P(AUB)≡P(A)+P(B).
+                    4:如果事件4与事件B互为对立事件那么P(B)=1-P(A),P(A)=1-P(B).
+                    5:如果A包含于B,那么P(A)≤P(B),由该性质可得,对于任意事件A,
+                    因为∅包含于A包含于Ω,所以O≤P(A)≤ 1.
+                    6:设A,B是一个随机试验中的两个事件，有P(AUB)=P(A)+P(B)-P(AnB)<br>
+                </p>
+            </div>
+        </section>
+
+        <section id="xhdl">
+            <div class="knowledge-card">
+                <h2>事件相互独立性</h2>
+                <p>
+                    <b>相互独立事件</b>对任意两个事件A与B,若P(AB)=P(A)·P(B)成立,
+                    则称事件A与事件B相互独立,简称为独立<br>
+                    <b>性质</b>当事件A,B相互独立时,A与/B,/A与B,/A与/B也都相互独立<br>
+                </p>
+            </div>
+        </section>
+
+        <section id="plygl">
+            <div class="knowledge-card">
+                <h2>频率与概率</h2>
+                <p>
+                    <b>频数</b> 在相同的条件下重复n次试验,观察某一事件A是否出现,
+                    称n次试验中事件A出现的次数nA为事件A出现的频数<br>
+                    <b>概率</b> 称事件A出现的比例fn(A)=nA/n为事件A出现的频率<br>
+                    <b>随机模拟方法</b> 蒙特卡洛方法<br>
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 3. 粒子效果 (已修改为第一个网页的版本)
+        document.addEventListener('DOMContentLoaded', function() {
+            // 如果手机访问，直接关掉粒子
+            if (window.innerWidth < 768) return; 
+
+            const canvas = document.getElementById('particle-container');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+                    this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+                    this.speedY = Math.random() * 0.4 - 0.2;
+                    this.color = '#555';
+                }
+                
+                reset() {
+                    const edge = Math.floor(Math.random() * 4);
+                    switch(edge) {
+                        case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                        case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                        case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                        case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+                    }
+                }
+                
+                update(mouse) {
+                    if (mouse.x !== null && mouse.y !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < mouse.radius) {
+                            const attraction = 0.02;
+                            const angle = Math.atan2(dy, dx);
+                            this.speedX += Math.cos(angle) * attraction;
+                            this.speedY += Math.sin(angle) * attraction;
+                        }
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+                }
+                
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            
+            const mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            
+            const particlesArray = [];
+            const particleCount = 25; 
+            
+            function init() {
+                for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+            }
+            
+            function connectParticles() {
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a + 1; b < particlesArray.length; b++) {
+                        const dx = particlesArray[a].x - particlesArray[b].x;
+                        const dy = particlesArray[a].y - particlesArray[b].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < 100) {
+                            const opacity = 1 - (distance / 100);
+                            ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                            ctx.lineWidth = 0.3;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+                connectParticles();
+                requestAnimationFrame(animate);
+            }
+            init();
+            animate();
+        });
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            // 切换收缩状态
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120; // 阈值
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    // 降级：取视口内最靠顶部的
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    // 自动展开父级分类
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav(); // 初始调用
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>政治选修一 · 当代国际政治与经济（详细版）</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #1e4d7c;      /* 国际政治深蓝 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e8f0fe;     /* 浅蓝底色 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #1e4d7c;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #1e4d7c;
+        }
+        .category-title:hover { background: rgba(30, 77, 124, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #1d3a5c;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: #1e4d7c;
+            font-weight: 600;
+            background-color: rgba(30, 77, 124, 0.12);
+            border-left: 3px solid #1e4d7c;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #1d3a5c;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8f0fe;
+            border: 2px dashed #6b9ac4;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #1e4d7c;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e4d7c;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #6b9ac4;
+            color: #1e4d7c;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #b8d4f0;
+            padding-bottom: 10px;
+            color: #1e4d7c;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 概念强调 */
+        .concept {
+            font-weight: 600;
+            color: #1e4d7c;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (浅蓝背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (政治选修一分类) 依据统编版选择性必修1《当代国际政治与经济》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>政治选修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一单元 各具特色的国家 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit1')">✚ 第一单元 各具特色的国家</div>
+            <div class="category-content" id="cat-unit1">
+                <a href="#lesson1-1">第一课 第1框 国家是什么</a>
+                <a href="#lesson1-2">第一课 第2框 国家的政权组织形式</a>
+                <a href="#lesson1-3">第一课 第3框 政党和利益集团</a>
+                <a href="#lesson2-1">第二课 第1框 主权统一与政权分层</a>
+                <a href="#lesson2-2">第二课 第2框 单一制和复合制</a>
+            </div>
+        </div>
+        
+        <!-- 第二单元 世界多极化 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit2')">✚ 第二单元 世界多极化</div>
+            <div class="category-content" id="cat-unit2">
+                <a href="#lesson3-1">第三课 第1框 世界多极化的发展</a>
+                <a href="#lesson3-2">第三课 第2框 国际关系</a>
+                <a href="#lesson4-1">第四课 第1框 时代的主题</a>
+                <a href="#lesson4-2">第四课 第2框 挑战与应对</a>
+                <a href="#lesson5-1">第五课 第1框 中国外交政策的形成与发展</a>
+                <a href="#lesson5-2">第五课 第2框 构建人类命运共同体</a>
+            </div>
+        </div>
+        
+        <!-- 第三单元 经济全球化 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit3')">✚ 第三单元 经济全球化</div>
+            <div class="category-content" id="cat-unit3">
+                <a href="#lesson6-1">第六课 第1框 认识经济全球化</a>
+                <a href="#lesson6-2">第六课 第2框 日益开放的世界经济</a>
+                <a href="#lesson7-1">第七课 第1框 开放是当代中国的鲜明标识</a>
+                <a href="#lesson7-2">第七课 第2框 做全球发展的贡献者</a>
+            </div>
+        </div>
+        
+        <!-- 第四单元 国际组织 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit4')">✚ 第四单元 国际组织</div>
+            <div class="category-content" id="cat-unit4">
+                <a href="#lesson8-1">第八课 第1框 日益重要的国际组织</a>
+                <a href="#lesson8-2">第八课 第2框 联合国</a>
+                <a href="#lesson8-3">第八课 第3框 区域性国际组织</a>
+                <a href="#lesson9-1">第九课 第1框 中国与联合国</a>
+                <a href="#lesson9-2">第九课 第2框 中国与新兴国际组织</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">国际视野 · 大国担当</div>
+    </nav>
+    
+    <!-- 主要内容：详细版政治选修一知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一单元 各具特色的国家 -->
+        <h1>第一单元 各具特色的国家</h1>
+        
+        <section id="lesson1-1">
+            <div class="knowledge-card">
+                <h2>第一课 第1框 国家是什么</h2>
+                <ul>
+                    <li><strong>国家的产生</strong>：马克思主义认为，国家是一种历史现象，不是从来就有的；国家是在原始社会瓦解、私有制出现、阶级形成以后产生的，是阶级矛盾不可调和的产物和表现。</li>
+                    <li><strong>国家的基本要素</strong>：人口、领土、政权、主权。最重要的要素是主权。</li>
+                    <li><strong>国家的性质</strong>：国家的性质，就是国家的阶级本质。它表明国家政权掌握在什么阶级手中，什么阶级是统治阶级，什么阶级是被统治阶级。统治阶级的性质决定着国家的性质。</li>
+                    <li><strong>国家的本质</strong>：所有国家都是一定阶级对其他阶级的专政。国家是阶级统治的工具，阶级性是国家的本质属性。</li>
+                    <li><strong>民主与专政的关系</strong>：
+                        <ul>
+                            <li>区别：专政就是统治阶级凭借国家权力，强制被统治阶级服从统治阶级的意志。作为国家制度的民主，其实质是在统治阶级范围内，按照多数人的意志，实现国家职能。因此，民主具有鲜明的阶级性，是服务于统治阶级的。</li>
+                            <li>联系：民主与专政相互依存，凡实行民主制度的国家，必然包括一定阶级的民主，同时包括对其他阶级的专政。民主与专政相辅相成，民主是专政的基础，专政是民主的保障。</li>
+                        </ul>
+                    </li>
+                    <li><strong>国家的职能</strong>：政治统治职能（根本职能）和社会管理职能。</li>
+                    <li><strong>我国的国家性质</strong>：我国是人民民主专政的社会主义国家。与资本主义国家相比，享有民主的主体不同，专政的对象也不同。全过程人民民主是社会主义民主政治的本质属性，是最广泛、最真实、最管用的民主。新型的民主与新型的专政，体现着社会主义国家的本质特征。</li>
+                    <li><strong>国体与政体</strong>：
+                        <ul>
+                            <li>国体：即国家性质，反映社会各阶级在国家中的地位（表明“谁掌握政权”）。</li>
+                            <li>政体：即国家政权的组织形式，也就是国家管理形式（表明“如何掌握政权”）。</li>
+                            <li>关系：国体决定政体，政体体现国体，一定的政体服务于一定的国体。政体对国体具有反作用，适当的政体能够巩固国体，不适当的政体会危害国体。</li>
+                        </ul>
+                    </li>
+                    <li><strong>政体具有相对独立性</strong>：一个国家的政体不是一成不变的。除了国体对政体的决定作用，地理环境、历史渊源、文化传统、社会习惯、发展程度等，都是影响政体的因素。</li>
+                    <li><strong>代议制</strong>：由选举产生的、代表民意的机关来行使国家权力的制度。代议制是公民和国家之间的政治纽带，这是现代民主政体的共同特征。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson1-2">
+            <div class="knowledge-card">
+                <h2>第一课 第2框 国家的政权组织形式</h2>
+                <ul>
+                    <li><strong>人民代表大会制度</strong>：
+                        <ul>
+                            <li>地位：人民代表大会制度是我国的根本政治制度，是我国的政权组织形式，是我国的政体。它决定着国家的其他具体制度。</li>
+                            <li>形成：是中国共产党把马克思列宁主义基本原理同中国具体实际相结合的伟大创造，是中国人民在人类政治制度史上的伟大创造。人民民主专政的新中国，采用人民代表大会制度作为政权组织形式，是人民的选择、历史的必然。</li>
+                            <li>作用：是中国人民当家作主的重要途径和最高实现形式，是中国社会主义政治文明的重要制度载体。</li>
+                            <li>优越性：符合中国国情和实际、体现社会主义国家性质、保证人民当家作主、保障实现中华民族伟大复兴的好制度。</li>
+                        </ul>
+                    </li>
+                    <li><strong>现代国家的政权组织形式分类</strong>：
+                        <ul>
+                            <li>从国家权力机关和国家元首的产生方式及其职权范围看：民主共和制、君主立宪制。</li>
+                            <li>从立法机关与行政机关的关系看：议会制、总统制、半总统制。</li>
+                        </ul>
+                    </li>
+                    <li><strong>民主共和制</strong>：
+                        <ul>
+                            <li>含义：遵循民主基本原则建立起来的一种政体。国家权力机关和国家元首一般经由选举产生。</li>
+                            <li>资本主义国家民主共和制的弊端：在发达资本主义国家，资产阶级运用金钱的力量，以民主的形式掩盖国家的阶级性质。民主共和制是资产阶级对国家进行控制和管理的有效工具，也是他们维护资产阶级统治的最好的政治外壳。</li>
+                        </ul>
+                    </li>
+                    <li><strong>君主立宪制</strong>：国家元首由世袭的君主担任，但在宪法框架内，君主的权力受到不同程度的限制。是资产阶级革命不彻底或对君主制进行改良的产物。</li>
+                    <li><strong>议会制（内阁制）</strong>：
+                        <ul>
+                            <li>典型国家：英国、日本、意大利、德国等。</li>
+                            <li>主要特征：政府总揽国家的行政权力，向议会负责。政府以议会为基础产生，政府首脑一般由在议会中占多数席位的政党或政党联盟的领袖担任。当议会对政府表示不信任时，政府必须集体辞职，或由政府首脑提请国家元首解散议会，重新进行议会选举。</li>
+                        </ul>
+                    </li>
+                    <li><strong>总统制</strong>：
+                        <ul>
+                            <li>典型国家：美国、俄罗斯等。</li>
+                            <li>主要特征：总统既是国家元首，也是政府首脑。总统独立于议会之外，由选民直接选举或间接选举产生，一般有任期限制。总统只对选民负责，不对议会负责。</li>
+                        </ul>
+                    </li>
+                    <li><strong>半总统制</strong>：
+                        <ul>
+                            <li>典型国家：法国等。</li>
+                            <li>主要特征：总统由选举产生，是国家元首，拥有一定的行政权力，但不是政府首脑，政府首脑另由内阁总理担任，向议会负责。这种政体既有总统制的特征，又有议会制的特征。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson1-3">
+            <div class="knowledge-card">
+                <h2>第一课 第3框 政党和利益集团</h2>
+                <ul>
+                    <li><strong>政党</strong>：
+                        <ul>
+                            <li>产生：政党是在阶级的基础上产生的，是阶级斗争发展到一定阶段的产物。</li>
+                            <li>地位：政党是阶级的领导者。</li>
+                            <li>性质：政党是有组织的政治团体。</li>
+                            <li>主要目标：通常以执政为主要目标；也有一些政党不谋求执政，但积极致力于推广某种政治思想、维护某种政治利益。</li>
+                            <li>执政的手段：参加选举。</li>
+                        </ul>
+                    </li>
+                    <li><strong>资本主义国家政党制度</strong>：
+                        <ul>
+                            <li>类型：一党制、两党制和多党制。</li>
+                            <li>实质：资本主义国家的政党政治，无论采取什么样的形式，都无法改变其维护资产阶级利益、欺骗人民大众的根本性质。</li>
+                        </ul>
+                    </li>
+                    <li><strong>利益集团</strong>：
+                        <ul>
+                            <li>含义：具有共同利益，向政府或社会提出诉求，或以合法手段施加压力，借以影响公共政策，以争取其团体利益及其成员利益的社会团体。</li>
+                            <li>地位：是现代政治体系的重要组成部分。</li>
+                            <li>目标：不以取得政权或改变政权为目标，而是在既有政治体制内进行完全合法的活动。</li>
+                            <li>途径：游说、宣传、助选、集会游行、司法诉讼等。</li>
+                            <li>作用：在一定程度上会起到缓和社会矛盾的作用，但无法从根本上解决不同阶级之间的矛盾。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2-1">
+            <div class="knowledge-card">
+                <h2>第二课 第1框 主权统一与政权分层</h2>
+                <ul>
+                    <li><strong>国家主权</strong>：
+                        <ul>
+                            <li>含义：国家主权是现代国家得以存在的法理依据，它是统一的、不可分割的，是一个国家对其管辖区域所拥有的至高无上的、排他性的政治权力。</li>
+                            <li>地位：国家主权是一种自主自决的最高权威，没有任何其他权力主体可以对其加以否决或驳回。国家主权是国家最重要的构成要素，国家主权的丧失意味着国家的解体或灭亡。</li>
+                            <li>体现：独立自主的对外交往是国家主权的重要体现。国家主权通常以法律形式在宪法中加以规定，对外则表现为国家之间的相互承认。</li>
+                        </ul>
+                    </li>
+                    <li><strong>主权国家的基本权利</strong>：独立权、管辖权、平等权、自卫权。</li>
+                    <li><strong>中央与地方</strong>：
+                        <ul>
+                            <li>行政区划产生的原因：国家之内的行政区划，通常是为了管理上的便利和有效而产生的。行政区划的界线和分层，往往需要考虑民族、宗教、历史、地理、文化、经济、军事等诸多因素。</li>
+                            <li>中央政府与地方政府的权力划分：中央政府主要负责国家秩序与整体发展、军事、外交等国家级事务，地方各级政府主要负责各自区域内的经济发展、社会治安等地方性事务。</li>
+                        </ul>
+                    </li>
+                    <li><strong>我国中央与地方的关系</strong>：在我国，中央和地方各级国家机构按民主集中制的原则划分职权。一方面，地方利益是国家整体利益的一部分，地方必须服从中央；另一方面，在保证中央统一领导的同时，必须考虑地方特殊利益，充分发挥地方的主动性、积极性。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2-2">
+            <div class="knowledge-card">
+                <h2>第二课 第2框 单一制和复合制</h2>
+                <ul>
+                    <li><strong>单一制</strong>：
+                        <ul>
+                            <li>特征：全国只有一个中央政权、一部宪法、一种法律体系。中央享有最高权力；地方政权被置于中央政权的统一领导下，只能在宪法和法律规定的权限范围内行使职权。</li>
+                        </ul>
+                    </li>
+                    <li><strong>联邦制</strong>：
+                        <ul>
+                            <li>特征：国家整体与其组成部分的权限范围由联邦宪法规定，都在各自的权限范围内享有最高权力并直接行使于人民，相互间不得任意干涉。联邦各组成单位的权力并非由联邦整体所授予，而是它自身作为政治实体所固有的。</li>
+                        </ul>
+                    </li>
+                    <li><strong>邦联</strong>：是主权国家为某种共同利益而组成的国家联盟。邦联本身不是一个主权国家，各成员国拥有完全独立的主权。</li>
+                    <li><strong>影响国家结构形式的因素</strong>：一个国家采用何种国家结构形式，是阶级、民族、历史、文化等因素综合作用的结果。无论采取什么样的国家结构形式，人口、领土、政权和主权始终是国家存在和发展的基本条件，也是选择国家结构形式时必须面对的基本问题。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二单元 世界多极化 -->
+        <h1>第二单元 世界多极化</h1>
+        
+        <section id="lesson3-1">
+            <div class="knowledge-card">
+                <h2>第三课 第1框 世界多极化的发展</h2>
+                <ul>
+                    <li><strong>世界多极化的形成与发展</strong>：
+                        <ul>
+                            <li>突出特点：世界多极化深入发展是当今国际形势的一个突出特点。</li>
+                            <li>意义：世界向多极化发展，是建立在多种力量相互依存又相互制约的基础上的，有利于世界的和平与发展。</li>
+                            <li>趋势：世界多极化的发展将是一个漫长曲折的充满复杂斗争的演变过程，单极与多极的矛盾，将在一个相当长的时期内存在。</li>
+                        </ul>
+                    </li>
+                    <li><strong>世界主要力量</strong>：
+                        <ul>
+                            <li>美国：成为世界上唯一的超级大国，拥有最强大的经济、军事力量，并且极力维护其世界唯一超级大国地位。</li>
+                            <li>中国、欧盟、俄罗斯和日本：成为多极化国际格局中不可忽视的重要力量。</li>
+                            <li>发展中国家：在人口、经济、贸易等方面占有举足轻重的地位，是反对世界霸权主义和强权政治、促进世界和平与发展的重要力量。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson3-2">
+            <div class="knowledge-card">
+                <h2>第三课 第2框 国际关系</h2>
+                <ul>
+                    <li><strong>认识国际关系</strong>：
+                        <ul>
+                            <li>含义：国际关系是指国家之间、国际组织之间以及国家与国际组织之间的关系。其中，最主要的是国家与国家之间的关系。</li>
+                            <li>基本形式：竞争、合作与冲突。</li>
+                            <li>国际交往的主要方式：包括国家间的贸易往来，文化、科技、教育、医疗等方面的交流，外交磋商，领导人互访，缔结条约或协定等。</li>
+                            <li>国际竞争的实质：是以经济、和科技实力为基础的综合国力的较量。</li>
+                        </ul>
+                    </li>
+                    <li><strong>国际法</strong>：
+                        <ul>
+                            <li>含义：国际交往中，各国逐渐以条约和习惯做法为基础，发展出了一些被普遍遵守的行为规则，被称作国际法。</li>
+                            <li>作用：规范着国际交往的各个方面和人类活动的各个领域，对维护国际关系稳定，促进世界和平与发展发挥着重要作用。遵守国际法符合各国的共同利益。</li>
+                        </ul>
+                    </li>
+                    <li><strong>影响国际关系的主要因素</strong>：
+                        <ul>
+                            <li>影响因素：国家之间出现分离聚合、亲疏冷热的复杂关系是多种因素综合作用的结果，包括国家利益、国家实力、宗教、文化和历史等。</li>
+                            <li>决定性因素：国家利益和国家实力是影响国际关系的决定性因素。
+                                <ul>
+                                    <li>国家间的共同利益是国家合作的基础，而利益对立则是引起国家冲突的根源。</li>
+                                    <li>维护国家利益是主权国家对外活动的出发点和落脚点。</li>
+                                    <li>中国坚定地维护自己的国家利益。我国是人民当家作主的社会主义国家，国家利益与人民的根本利益相一致，维护我国的国家利益就是维护人民的根本利益。</li>
+                                    <li>维护国家利益的有力保障是强大的国家实力。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson4-1">
+            <div class="knowledge-card">
+                <h2>第四课 第1框 时代的主题</h2>
+                <ul>
+                    <li><strong>和平与发展是当今时代的主题</strong>：
+                        <ul>
+                            <li>和平问题：是指维护世界和平、防止新的世界战争的问题。和平是人类社会存在和发展的基本条件，和平为各国经济发展和其他全球性问题的解决创造必要的前提。</li>
+                            <li>发展问题：是指世界经济的发展问题，特别是发展中国家经济的发展问题。</li>
+                        </ul>
+                    </li>
+                    <li><strong>促进和平与发展的因素</strong>：
+                        <ul>
+                            <li>经济全球化发展加深了各国相互依赖程度。国家间日益增强的贸易往来，增进了彼此间的交流。各国相互依赖程度不断加深，经济上的共同利益不断扩大，共同维护和促进世界和平与发展的意愿不断增强。</li>
+                            <li>不同力量中心之间相互制衡。发展中国家力量不断增强，新兴经济体实力提升，壮大了维护世界和平、促进共同发展的力量。科学技术的进步，极大地改变了国际关系和战争面貌。</li>
+                            <li>谈判与对话成为解决冲突的主要手段。随着国际协调机制的不断完善和多边主义的深入发展，国家间交流与合作的机制日趋成熟，越来越倾向于选择和平的方式解决国家间的冲突。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson4-2">
+            <div class="knowledge-card">
+                <h2>第四课 第2框 挑战与应对</h2>
+                <ul>
+                    <li><strong>和平与发展的主要障碍</strong>：
+                        <ul>
+                            <li>霸权主义和强权政治：本质上将本国利益凌驾于其他国家的合理利益之上，凭借本国经济、军事等方面的优势，或利用国际旧秩序不合理的制度，干涉他国内政，破坏国际规则，阻碍世界和平与发展。</li>
+                            <li>贫富差距：全球发展的最突出问题是南北发展不平衡。广大发展中国家长期处于落后状态，严重影响世界和平与稳定。</li>
+                            <li>局部动荡：局部动荡频繁发生，传统安全威胁与非传统安全威胁相互交织。</li>
+                        </ul>
+                    </li>
+                    <li><strong>国际关系民主化</strong>：
+                        <ul>
+                            <li>含义：世界的命运必须由各国人民共同掌握，世界上的事情应该由各国政府和人民在平等互利的基础上，共同商量着办。</li>
+                            <li>意义：国际关系民主化是反对霸权主义和强权政治、维护世界和平与发展的有效途径，有利于建立公正合理的国际政治经济新秩序。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson5-1">
+            <div class="knowledge-card">
+                <h2>第五课 第1框 中国外交政策的形成与发展</h2>
+                <ul>
+                    <li><strong>独立自主的和平外交政策</strong>：
+                        <ul>
+                            <li>决定因素：我国的国家性质和国家利益决定了我国奉行独立自主的和平外交政策。</li>
+                            <li>基本内容：
+                                <ul>
+                                    <li>基本立场：独立自主。坚持国家主权独立，不屈服于任何外来压力，不与任何大国或国家集团结盟，不参加任何军事集团，反对霸权主义和强权政治。</li>
+                                    <li>基本目标：维护世界和平，促进共同发展。</li>
+                                    <li>基本准则：和平共处五项原则。即互相尊重主权和领土完整、互不侵犯、互不干涉内政、平等互利、和平共处。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>中国特色大国外交</strong>：
+                        <ul>
+                            <li>习近平外交思想：为进入新时代的中国外交提供了根本遵循和行动指南，开拓了马克思主义外交理论的新境界。</li>
+                            <li>核心要义：十个坚持，包括坚持以维护党中央权威为统领加强党对对外工作的集中统一领导，坚持以实现中华民族伟大复兴为使命推进中国特色大国外交等。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson5-2">
+            <div class="knowledge-card">
+                <h2>第五课 第2框 构建人类命运共同体</h2>
+                <ul>
+                    <li><strong>人类命运共同体的内涵</strong>：
+                        <ul>
+                            <li>背景：当今世界，各国相互联系、相互依存的程度空前加深，人类生活在同一个地球村，越来越成为你中有我、我中有你的命运共同体。</li>
+                            <li>核心：建设持久和平、普遍安全、共同繁荣、开放包容、清洁美丽的世界。</li>
+                            <li>具体要求：
+                                <ul>
+                                    <li>政治上：相互尊重、平等协商，坚决摒弃冷战思维和强权政治，走对话而不对抗、结伴而不结盟的国与国交往新路。</li>
+                                    <li>安全上：坚持以对话解决争端、以协商化解分歧，统筹应对传统和非传统安全威胁，反对一切形式的恐怖主义。</li>
+                                    <li>经济上：同舟共济，促进贸易和投资自由化便利化，推动经济全球化朝着更加开放、包容、普惠、平衡、共赢的方向发展。</li>
+                                    <li>文化上：尊重世界文明多样性，以文明交流超越文明隔阂、文明互鉴超越文明冲突、文明共存超越文明优越。</li>
+                                    <li>生态上：坚持环境友好，合作应对气候变化，保护好人类赖以生存的地球家园。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>中国智慧的生动实践</strong>：
+                        <ul>
+                            <li>一带一路倡议：秉持共商共建共享原则，致力于实现沿线国家政策沟通、设施联通、贸易畅通、资金融通、民心相通，是推动构建人类命运共同体的重要实践平台。</li>
+                            <li>全球治理贡献：中国积极推动全球治理体系改革和建设，在国际事务中的代表性和话语权不断增强，为全球治理贡献中国智慧和中国方案。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三单元 经济全球化 -->
+        <h1>第三单元 经济全球化</h1>
+        
+        <section id="lesson6-1">
+            <div class="knowledge-card">
+                <h2>第六课 第1框 认识经济全球化</h2>
+                <ul>
+                    <li><strong>经济全球化的主要表现</strong>：生产全球化、贸易全球化、金融全球化。</li>
+                    <li><strong>影响经济全球化的主要因素</strong>：
+                        <ul>
+                            <li>根本动力：生产力的发展。科技进步为经济全球化提供了物质技术基础。</li>
+                            <li>体制基础：市场经济体制的广泛建立，为经济全球化奠定了体制基础。</li>
+                            <li>推动力量：跨国公司的发展壮大，成为经济全球化的重要载体。</li>
+                        </ul>
+                    </li>
+                    <li><strong>经济全球化的重要载体——跨国公司</strong>：
+                        <ul>
+                            <li>含义：以母国为基地，通过对外直接投资，在两个或两个以上国家设立分支机构或子公司，从事国际化生产和经营活动的企业。</li>
+                            <li>作用：跨国公司在全球范围内组织生产、贸易、金融等活动，促进了资源在全球范围内的优化配置，推动了国际分工的深化，加速了资金、技术、人才等要素的跨国流动。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson6-2">
+            <div class="knowledge-card">
+                <h2>第六课 第2框 日益开放的世界经济</h2>
+                <ul>
+                    <li><strong>经济全球化的机遇与挑战</strong>：
+                        <ul>
+                            <li>机遇：经济全球化促进了商品、服务和要素的自由流动，推动了世界范围内资源配置效率的提高，为各国经济发展提供了更加广阔的发展空间。</li>
+                            <li>挑战：经济全球化使世界经济发展不平衡加剧，发展中国家面临更加严峻的挑战；经济全球化加剧了全球经济的不稳定性，对各国经济安全构成威胁。</li>
+                        </ul>
+                    </li>
+                    <li><strong>让经济全球化更有活力</strong>：
+                        <ul>
+                            <li>方向：推动经济全球化朝着更加开放、包容、普惠、平衡、共赢的方向发展。</li>
+                            <li>举措：完善全球治理机制，推动建设开放型世界经济，维护多边贸易体制，反对单边主义和保护主义。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson7-1">
+            <div class="knowledge-card">
+                <h2>第七课 第1框 开放是当代中国的鲜明标识</h2>
+                <ul>
+                    <li><strong>形成全面开放新格局</strong>：
+                        <ul>
+                            <li>基本国策：对外开放是我国的一项基本国策。中国坚持对外开放的基本国策，打开国门搞建设。</li>
+                            <li>格局特点：陆海内外联动、东西双向互济的全面开放新格局。</li>
+                        </ul>
+                    </li>
+                    <li><strong>对外开放与自力更生</strong>：
+                        <ul>
+                            <li>关系：我国实行对外开放，必须坚持独立自主、自力更生的原则。独立自主、自力更生是中华民族自立于世界民族之林的奋斗基点。</li>
+                            <li>要求：在立足自身发展的基础上实行对外开放，把独立自主、自力更生作为发展的根本基点，增强自主创新能力，实现关键核心技术自主可控。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson7-2">
+            <div class="knowledge-card">
+                <h2>第七课 第2框 做全球发展的贡献者</h2>
+                <ul>
+                    <li><strong>世界经济的重要推动者</strong>：
+                        <ul>
+                            <li>中国的发展是世界经济增长的重要动力源。中国对世界经济增长的贡献率不断提高，成为世界经济增长的主要稳定器和动力源。</li>
+                            <li>中国是经济全球化的受益者，更是贡献者。中国的发展为世界各国提供了广阔的市场、充足的资本、宝贵的合作机会。</li>
+                        </ul>
+                    </li>
+                    <li><strong>推动经济全球化发展</strong>：
+                        <ul>
+                            <li>中国主张：中国倡导建设开放型世界经济，支持多边贸易体制，反对保护主义，推动经济全球化朝着更加开放、包容、普惠、平衡、共赢的方向发展。</li>
+                            <li>中国行动：中国通过共建“一带一路”、举办国际进口博览会、推动国际产能合作等实际行动，为世界各国发展提供新机遇，为全球经济发展注入新动力。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四单元 国际组织 -->
+        <h1>第四单元 国际组织</h1>
+        
+        <section id="lesson8-1">
+            <div class="knowledge-card">
+                <h2>第八课 第1框 日益重要的国际组织</h2>
+                <ul>
+                    <li><strong>国际组织的分类</strong>：
+                        <ul>
+                            <li>按成员性质：政府间国际组织和非政府间国际组织。</li>
+                            <li>按地理范围：世界性国际组织和区域性国际组织。</li>
+                            <li>按职能范围：一般性国际组织和专门性国际组织。</li>
+                        </ul>
+                    </li>
+                    <li><strong>国际组织的机构</strong>：一般设有议事和决策机构、执行机构、秘书处等。</li>
+                    <li><strong>国际组织的作用</strong>：
+                        <ul>
+                            <li>积极作用：促进国家之间的政治、经济、文化、科技等领域交流与合作；协调国际政治、经济关系；调停和解决国际政治冲突和经济纠纷；促进世界和平与发展。</li>
+                            <li>局限性：国际组织参与国际事务受诸多因素制约，有其局限性。一些大国倚仗实力，有时会凌驾于国际组织之上，国际组织的作用往往大打折扣。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson8-2">
+            <div class="knowledge-card">
+                <h2>第八课 第2框 联合国</h2>
+                <ul>
+                    <li><strong>联合国的性质</strong>：当今世界最具普遍性、代表性和权威性的政府间国际组织，是政府间、世界性、一般性的国际组织。</li>
+                    <li><strong>联合国的产生</strong>：是世界人民反法西斯斗争胜利的产物，是人类为和平与发展长期努力的结果。其成立是人类历史上具有划时代意义的大事，是人类和平进步事业发展的重要里程碑。</li>
+                    <li><strong>联合国的宗旨</strong>：维持国际和平及安全，促进国际合作与发展。</li>
+                    <li><strong>联合国的原则</strong>：
+                        <ul>
+                            <li>所有会员国主权平等；各会员国应忠实履行根据宪章规定所承担的义务；各会员国应以和平方法解决国际争端。</li>
+                            <li>各会员国在国际关系中不得以不符合联合国宗旨的任何方式进行武力威胁或使用武力；各会员国对联合国依照宪章所采取的任何行动应给予一切协助。</li>
+                            <li>联合国在维护国际和平与安全的必要范围内，应确保使非会员国遵循上述原则；联合国组织不得干涉在本质上属于任何国家国内管辖的事项。</li>
+                        </ul>
+                    </li>
+                    <li><strong>联合国的主要机构</strong>：联合国大会、安全理事会、秘书处、经济及社会理事会、托管理事会、国际法院。</li>
+                    <li><strong>联合国的作用</strong>：
+                        <ul>
+                            <li>总体作用：在维护世界和平、推动共同发展、促进人类文明进步等方面发挥了重要作用，取得了巨大成就。</li>
+                            <li>安全方面：联合国作为集体安全机制的核心，在保障全球安全的国际合作中发挥着不可替代的作用。安理会在解决事关世界和平与安全的重大全球和地区问题上具有重要作用。</li>
+                            <li>经济方面：联合国发展系统长期从事开发活动，向有关国家提供发展所需的资金、技术，并帮助制定合适的发展战略和政策，为世界特别是发展中国家的经济及社会发展作出了积极贡献。</li>
+                            <li>其他方面：联合国是实践多边主义的最佳场所，是集体应对各种威胁和挑战的有效平台。</li>
+                        </ul>
+                    </li>
+                    <li><strong>联合国改革</strong>：
+                        <ul>
+                            <li>必要性：随着世界多极化与经济全球化的发展，当今世界格局发生了巨大变化，联合国旧有体制和观念也需要与时俱进适应新形势。</li>
+                            <li>遵循原则：发扬民主，广泛协商，积极稳妥，循序渐进。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson8-3">
+            <div class="knowledge-card">
+                <h2>第八课 第3框 区域性国际组织</h2>
+                <ul>
+                    <li><strong>欧洲联盟</strong>：区域一体化组织的典型。具有超国家性质的区域性国际组织，在重大国际问题上推行全方位外交，力争在国际格局中发挥重要作用。</li>
+                    <li><strong>东盟</strong>：东南亚国家联盟。是亚洲最令人瞩目的区域性国际组织，在维护地区和平与安全、推动区域合作方面发挥了重要作用。</li>
+                    <li><strong>非盟</strong>：非洲联盟。是集政治、经济、军事等为一体的全洲性政治实体，在维护非洲和平稳定、促进非洲经济发展方面发挥了重要作用。</li>
+                    <li><strong>阿盟</strong>：阿拉伯国家联盟。是世界上成立较早的区域性国际组织，在协调阿拉伯国家关系、维护地区稳定方面发挥着重要作用。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson9-1">
+            <div class="knowledge-card">
+                <h2>第九课 第1框 中国与联合国</h2>
+                <ul>
+                    <li><strong>中国与联合国关系的历史演变</strong>：
+                        <ul>
+                            <li>中国是联合国创始会员国。</li>
+                            <li>中华人民共和国在联合国的合法席位被长期剥夺。</li>
+                            <li>1971年10月25日，恢复了中华人民共和国在联合国的一切合法权利。</li>
+                            <li>从此，中国以崭新的姿态出现在联合国舞台上，与联合国的关系步入正轨，双方在各个领域的合作不断加强。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中国在联合国的地位和作用</strong>：
+                        <ul>
+                            <li>地位：中国是国际社会的重要成员，是社会主义国家，是世界上最大的发展中国家，是国际政治经济格局中的一支重要力量。作为安理会常任理事国，在事关世界和平与安全的重大事务上拥有否决权。</li>
+                            <li>作用：中国本着自身肩负的重大国际责任，尊重联合国的权威地位，维护宪章的宗旨和原则，积极参加各项工作，在人类和平与发展事业中发挥着建设性作用。</li>
+                            <li>中国的主张：中国坚定维护多边主义，坚定维护以联合国为核心的国际体系，坚定维护以国际法为基础的国际秩序，推动构建人类命运共同体。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中国对联合国改革的基本主张</strong>：
+                        <ul>
+                            <li>改革应有利于推动多边主义，提高联合国的权威和效率，以及应对新威胁和挑战的能力。</li>
+                            <li>改革应维护《联合国宪章》宗旨和原则。</li>
+                            <li>改革是全方位、多领域的，在安全和发展两方面均应有所建树。</li>
+                            <li>改革应最大限度地满足所有会员国，尤其是广大发展中国家的要求和关切。</li>
+                            <li>关于安理会改革：提高安理会的权威和效率，优先增加发展中国家代表性，坚持地域平衡原则，坚持协商一致，反对人为设时限。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson9-2">
+            <div class="knowledge-card">
+                <h2>第九课 第2框 中国与新兴国际组织</h2>
+                <ul>
+                    <li><strong>二十国集团</strong>：
+                        <ul>
+                            <li>性质：由发达经济体与新兴经济体共同组成的国际经济合作论坛。</li>
+                            <li>中国作用：中国在二十国集团中发出中国声音，提出中国方案，为推动世界经济增长、完善全球经济治理贡献中国智慧。</li>
+                        </ul>
+                    </li>
+                    <li><strong>金砖国家</strong>：
+                        <ul>
+                            <li>性质：新兴市场和发展中国家对话与合作的平台。</li>
+                            <li>中国作用：中国在金砖国家合作中发挥建设性作用，推动金砖国家成为推动世界多极化、完善全球治理的重要力量。</li>
+                        </ul>
+                    </li>
+                    <li><strong>上海合作组织</strong>：
+                        <ul>
+                            <li>性质：中国与中亚、俄罗斯等国家建立的永久性政府间国际组织，是维护地区安全与稳定的重要平台。</li>
+                            <li>中国作用：中国积极推动上海合作组织框架内的安全、经济、人文等领域合作，为维护地区和平稳定作出了重要贡献。</li>
+                        </ul>
+                    </li>
+                    <li><strong>亚洲基础设施投资银行</strong>：
+                        <ul>
+                            <li>性质：中国倡议成立的多边金融机构。</li>
+                            <li>意义：为亚洲地区基础设施建设提供了新的融资渠道，推动了亚洲经济发展，是中国参与全球金融治理的重要实践。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#1e4d7c';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

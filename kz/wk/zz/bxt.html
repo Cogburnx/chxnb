@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>政治必修二 · 经济与社会（详细版）</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #1e4d7c;      /* 经济蓝 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e8f0fe;     /* 浅蓝底色 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #1e4d7c;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #1e4d7c;
+        }
+        .category-title:hover { background: rgba(30, 77, 124, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #1d3a5c;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: #1e4d7c;
+            font-weight: 600;
+            background-color: rgba(30, 77, 124, 0.12);
+            border-left: 3px solid #1e4d7c;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #1d3a5c;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8f0fe;
+            border: 2px dashed #6b9ac4;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #1e4d7c;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e4d7c;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #6b9ac4;
+            color: #1e4d7c;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #b8d4f0;
+            padding-bottom: 10px;
+            color: #1e4d7c;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 概念强调 */
+        .concept {
+            font-weight: 600;
+            color: #1e4d7c;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (浅蓝背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (政治必修二分类) 依据统编版必修2《经济与社会》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>政治必修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一课 我国的生产资料所有制 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-lesson1')">✚ 第一课 我国的生产资料所有制</div>
+            <div class="category-content" id="cat-lesson1">
+                <a href="#lesson1-1">第1框 公有制为主体 多种所有制经济共同发展</a>
+                <a href="#lesson1-2">第2框 坚持“两个毫不动摇”</a>
+            </div>
+        </div>
+        
+        <!-- 第二课 我国的社会主义市场经济体制 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-lesson2')">✚ 第二课 社会主义市场经济体制</div>
+            <div class="category-content" id="cat-lesson2">
+                <a href="#lesson2-1">第1框 使市场在资源配置中起决定性作用</a>
+                <a href="#lesson2-2">第2框 更好发挥政府作用</a>
+            </div>
+        </div>
+        
+        <!-- 第三课 我国的经济发展 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-lesson3')">✚ 第三课 我国的经济发展</div>
+            <div class="category-content" id="cat-lesson3">
+                <a href="#lesson3-1">第1框 坚持新发展理念</a>
+                <a href="#lesson3-2">第2框 建设现代化经济体系</a>
+            </div>
+        </div>
+        
+        <!-- 第四课 我国的个人收入分配与社会保障 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-lesson4')">✚ 第四课 个人收入分配与社会保障</div>
+            <div class="category-content" id="cat-lesson4">
+                <a href="#lesson4-1">第1框 我国的个人收入分配</a>
+                <a href="#lesson4-2">第2框 我国的社会保障</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">公有制为主体 · 多种所有制共同发展</div>
+    </nav>
+    
+    <!-- 主要内容：详细版政治必修二知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一课 我国的生产资料所有制 -->
+        <h1>第一课 我国的生产资料所有制</h1>
+        <section id="lesson1-1">
+            <div class="knowledge-card">
+                <h2>第1框 公有制为主体 多种所有制经济共同发展</h2>
+                <ul>
+                    <li><strong>物质资料生产</strong>：
+                        <ul>
+                            <li>人类要生存和发展，就要满足衣食住行等基本生活需要，就必须进行物质资料生产。</li>
+                            <li>物质资料的生产离不开人的劳动和生产资料。劳动是物质财富的源泉，也是价值的唯一源泉。生产资料是创造物质财富和价值的条件。</li>
+                        </ul>
+                    </li>
+                    <li><strong>生产资料所有制的作用</strong>：
+                        <ul>
+                            <li>地位：生产资料所有制在生产关系中起着决定性作用，是生产关系的核心，是经济制度的基础。</li>
+                            <li>作用：不同社会的生产资料所有制不同，同一个社会可以有不同形式的生产资料所有制，其中，占支配地位的生产资料所有制决定着一个社会的基本性质和发展方向。</li>
+                        </ul>
+                    </li>
+                    <li><strong>我国的生产资料所有制</strong>：
+                        <ul>
+                            <li>内容：我国在社会主义初级阶段坚持公有制为主体、多种所有制经济共同发展。</li>
+                            <li>地位：这是中国特色社会主义制度的重要支柱，体现了中国特色社会主义制度的优越性。</li>
+                        </ul>
+                    </li>
+                    <li><strong>公有制经济</strong>：
+                        <ul>
+                            <li>范围：包括国有经济、集体经济以及混合所有制经济中的国有成分和集体成分。</li>
+                            <li>以公有制为主体的原因：
+                                <ul>
+                                    <li>以公有制为主体是社会主义初级阶段经济制度的根本特征，是社会主义经济制度的基础。</li>
+                                    <li>以公有制为主体是促进生产力发展的根本要求。生产资料公有制适应社会化大生产要求，是社会主义国家对社会生产和经济发展进行宏观调控的根本制度基础，有利于推动经济持续健康发展。</li>
+                                    <li>以公有制为主体是实现共同富裕的基本前提。生产决定分配，生产资料公有制决定了社会主义国家必须采取按劳分配制度，体现了人们在生产资料占有上的平等关系，能防止两极分化，有利于人民共享发展成果，实现共同富裕。</li>
+                                </ul>
+                            </li>
+                            <li>公有制主体地位的体现：
+                                <ul>
+                                    <li>公有资产在社会总资产中占优势。这是就全国而言，有的地方、有的行业可以有所差别。公有资产占优势，要有量的优势，更要注重质的提高。</li>
+                                    <li>国有经济控制国民经济命脉，对经济发展起主导作用。国有经济起主导作用，主要体现在控制力上。对关系国民经济命脉的重要行业和关键领域，国有经济必须占支配地位。</li>
+                                </ul>
+                            </li>
+                            <li>国有企业的重要作用：国有企业是国有经济最主要的实现形式，是中国特色社会主义的重要物质基础和政治基础，是推进国家现代化、保障人民共同利益的重要力量，是我们党执政兴国的重要支柱和依靠力量。</li>
+                        </ul>
+                    </li>
+                    <li><strong>非公有制经济</strong>：
+                        <ul>
+                            <li>范围：包括个体经济、私营经济、港澳台投资经济、外商投资经济以及混合所有制经济中的非国有成分和非集体成分。</li>
+                            <li>个体经济：由劳动者个人或家庭占有生产资料，从事个体劳动和经营的经济。</li>
+                            <li>私营经济：以生产资料私有和雇佣劳动为基础的经济。</li>
+                            <li>地位：非公有制经济是社会主义市场经济的重要组成部分。</li>
+                            <li>作用：成为稳定经济增长和改善民生的重要力量、创业就业的主要领域、技术创新的重要主体、国家税收的重要来源，为我国社会主义市场经济发展、政府职能转变、农村富余劳动力转移、国际市场开拓等发挥了重要作用。</li>
+                        </ul>
+                    </li>
+                    <li><strong>公有制经济与非公有制经济的关系</strong>：
+                        <ul>
+                            <li>在社会主义初级阶段，公有制经济与非公有制经济不是相互排斥、相互抵消的，而是相辅相成、相得益彰、共同发展，统一于社会主义现代化建设进程之中。</li>
+                            <li>多种所有制经济共同发展，有利于发挥各种所有制的长处，调动不同经济主体的积极性和创造性，有效利用各方面的资源，取长补短，激发社会主义市场经济的活力，推动经济持续健康发展。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson1-2">
+            <div class="knowledge-card">
+                <h2>第2框 坚持“两个毫不动摇”</h2>
+                <ul>
+                    <li><strong>毫不动摇巩固和发展公有制经济</strong>：
+                        <ul>
+                            <li><strong>发展壮大国有经济</strong>：
+                                <ul>
+                                    <li>要以解放和发展社会生产力为标准，以提高国有资本效率、增强国有企业活力为中心，全面推进依法治企，加强和改进党对国有企业的领导，做强做优做大国有资本和国有企业，不断增强国有经济竞争力、创新力、控制力、影响力、抗风险能力。</li>
+                                    <li>要推进国有经济布局优化和结构调整。推动国有经济进一步聚焦战略安全、产业引领、国计民生、公共服务等功能，向关系国家安全、国民经济命脉的重要行业集中，向提供公共服务、应急能力建设和公益性等关系国计民生的重要行业集中，向前瞻性战略性新兴产业集中。</li>
+                                    <li>要探索公有制多种实现形式，发展国有资本、集体资本、非公有资本等交叉持股、相互融合的混合所有制经济，积极稳妥推进国有企业混合所有制改革，规范有序发展混合所有制经济。</li>
+                                </ul>
+                            </li>
+                            <li><strong>发展壮大农村集体经济</strong>：
+                                <ul>
+                                    <li>要深化农村集体产权制度改革，保障农民财产权益。</li>
+                                    <li>要完善农村基本经营制度，培育新型农业经营主体，健全农业社会化服务体系，建立符合市场经济要求的集体经济运行机制。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>毫不动摇鼓励、支持、引导非公有制经济</strong>：
+                        <ul>
+                            <li><strong>政策方面</strong>：要培育更多充满活力的市场主体，营造支持非公有制经济高质量发展的制度环境；营造各种所有制主体依法平等使用资源要素、公开公平公正参与市场竞争、同等受到法律保护的市场环境；要健全支持非公有制经济发展的法治环境，贯彻落实包括市场准入、企业融资等在内的促进非公有制经济健康发展的各项政策措施，形成促进非公有制经济发展的良好环境和社会氛围。</li>
+                            <li><strong>企业管理方面</strong>：要支持和帮助非公有制企业提高企业管理水平、完善管理体制机制，提高生产技术水平和研发能力，从而不断提高企业的效率和市场竞争力。</li>
+                            <li><strong>非公有制经济人士方面</strong>：要促进非公有制经济人士健康成长，推动非公有制经济人士做合格的中国特色社会主义事业建设者。非公有制经济人士要坚持爱国敬业，坚持守法经营、诚信经营，构建亲清政商关系，坚持回报社会、积极承担社会责任，树立企业的良好社会形象。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二课 我国的社会主义市场经济体制 -->
+        <h1>第二课 我国的社会主义市场经济体制</h1>
+        <section id="lesson2-1">
+            <div class="knowledge-card">
+                <h2>第1框 使市场在资源配置中起决定性作用</h2>
+                <ul>
+                    <li><strong>资源配置的必要性</strong>：
+                        <ul>
+                            <li>资源是有限的，为了满足人类的多方面需要，社会必须对资源进行合理配置，以尽可能少的资源投入生产尽可能多的产品、获得尽可能大的效益。</li>
+                            <li>计划和市场是资源配置的两种基本手段。计划经济体制是计划在资源配置中起决定性作用；市场经济体制是市场在资源配置中起决定性作用。</li>
+                        </ul>
+                    </li>
+                    <li><strong>市场决定资源配置</strong>：
+                        <ul>
+                            <li>市场决定资源配置是市场经济的一般规律。</li>
+                            <li>机制：主要通过价格、供求、竞争等机制来调节。</li>
+                            <li>优点：市场价格及其波动，能够反映供求状况及其变化，市场供求的变化也会影响市场价格。市场竞争能够引导资源流向效率高的领域和企业，推动科学技术和经营管理进步，实现优胜劣汰。</li>
+                        </ul>
+                    </li>
+                    <li><strong>市场体系</strong>：
+                        <ul>
+                            <li>统一开放、竞争有序的市场体系，是使市场在资源配置中起决定性作用的基础。</li>
+                            <li>要加快形成企业自主经营、公平竞争，消费者自由选择、自主消费，商品和要素自由流动、平等交换的现代市场体系，提高资源配置效率和公平性。</li>
+                            <li>建设现代市场体系的措施：
+                                <ul>
+                                    <li>建立公平开放透明的市场规则：
+                                        <ul>
+                                            <li>要完善公平竞争制度，强化竞争政策基础地位，落实公平竞争审查制度，加强和改进反垄断和反不正当竞争执法。</li>
+                                            <li>要建立健全社会征信体系，褒扬诚信，惩戒失信。</li>
+                                            <li>要健全优胜劣汰市场化退出机制，从而实现市场准入畅通、市场开放有序、市场竞争充分、市场秩序规范。</li>
+                                        </ul>
+                                    </li>
+                                    <li>完善主要由市场决定价格的机制。凡是能由市场形成价格的都交给市场，政府不进行不当干预。政府定价主要限定在重要公用事业、公益性服务、网络型自然垄断环节等方面。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2-2">
+            <div class="knowledge-card">
+                <h2>第2框 更好发挥政府作用</h2>
+                <ul>
+                    <li><strong>社会主义市场经济体制的基本特征</strong>：
+                        <ul>
+                            <li>坚持党的领导，发挥党总揽全局、协调各方的领导核心作用，是我国社会主义市场经济体制的一个重要特征。党的领导是中国特色社会主义最本质的特征和中国特色社会主义制度的最大优势。</li>
+                            <li>把社会主义制度和市场经济有机结合起来，既能发挥市场经济的长处，又能发挥我国社会主义制度的显著优势。</li>
+                            <li>促进全体人民实现共同富裕是社会主义市场经济体制的根本目标。</li>
+                            <li>科学的宏观调控、有效的政府治理，是社会主义市场经济体制优势的内在要求。社会主义市场经济体制能够通过更好发挥政府作用，集中力量办大事的显著优势，促进经济社会持续健康发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>我国政府的经济职能和作用</strong>：
+                        <ul>
+                            <li>通过实施国家重大发展战略和中长期经济社会发展规划制度，实现经济社会发展目标。</li>
+                            <li>通过实施宏观经济政策，保持宏观经济稳定。</li>
+                            <li>通过实施产业政策，促进产业结构不断优化升级，增强国民经济竞争力。</li>
+                            <li>通过实施区域政策和环境政策，推动区域经济协调发展和可持续发展。</li>
+                            <li>通过市场监管、质量监管、安全监管，规范市场秩序，保障公平竞争，弥补市场缺陷。</li>
+                            <li>通过加强和优化公共服务，保障社会公平正义，促进共同富裕，更好满足人民日益增长的美好生活需要。</li>
+                        </ul>
+                    </li>
+                    <li><strong>科学的宏观调控</strong>：
+                        <ul>
+                            <li>原因：科学的宏观调控是政府的主要经济职能之一；是社会主义市场经济体制优势的内在要求；市场调节的缺陷，要求我们更好地发挥政府作用，实施科学的宏观调控。</li>
+                            <li>含义：国家综合运用各种手段对经济总量进行调节和控制。</li>
+                            <li>目标：主要是促进经济增长、增加就业、稳定物价、保持国际收支平衡。</li>
+                        </ul>
+                    </li>
+                    <li><strong>加快完善社会主义市场经济体制</strong>：充分发挥市场在资源配置中的决定性作用，更好发挥政府作用，激发各类市场主体活力，为经济高质量发展提供体制保障。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三课 我国的经济发展 -->
+        <h1>第三课 我国的经济发展</h1>
+        <section id="lesson3-1">
+            <div class="knowledge-card">
+                <h2>第1框 坚持新发展理念</h2>
+                <ul>
+                    <li><strong>以人民为中心的发展思想</strong>：
+                        <ul>
+                            <li>含义：坚持以人民为中心的发展思想，就是把实现人民幸福作为发展的目的和归宿，做到发展为了人民、发展依靠人民、发展成果由人民共享。</li>
+                            <li>基本要求：发展为了人民，就是要从人民群众的根本利益出发谋发展、促发展；发展依靠人民，就是要把人民作为发展的力量源泉；发展成果由人民共享，就是要使发展成果惠及全体人民，不断增进人民福祉。</li>
+                            <li>意义：以人民为中心的发展思想，反映了坚持人民主体地位的内在要求，彰显了人民至上的价值取向，是新发展理念必须始终坚持的基本原则。</li>
+                        </ul>
+                    </li>
+                    <li><strong>贯彻新发展理念</strong>：
+                        <ul>
+                            <li>理论是行动的先导，一定的发展实践是由一定的发展理念来引领的。新时代需要新发展理念。</li>
+                            <li>要着力解决好发展不平衡不充分问题，破解发展难题，增强发展动力，厚植发展优势，更好满足人民在经济、政治、文化、社会、生态等方面日益增长的美好生活需要，必须牢固树立并切实贯彻创新、协调、绿色、开放、共享的发展理念。</li>
+                        </ul>
+                    </li>
+                    <li><strong>新发展理念的内涵</strong>：
+                        <ul>
+                            <li><strong>创新发展</strong>：注重的是解决发展动力问题。发展动力决定发展速度、效能、可持续性，创新是引领发展的第一动力。坚持创新发展，要把创新摆在国家发展全局的核心位置，不断推进理论创新、制度创新、科技创新、文化创新等各方面创新。</li>
+                            <li><strong>协调发展</strong>：注重的是解决发展不平衡问题。协调发展是持续健康发展的内在要求，是发展平衡和不平衡的统一。坚持协调发展，要正确处理发展中的重大关系，重点促进城乡区域协调发展，促进经济社会协调发展等。</li>
+                            <li><strong>绿色发展</strong>：注重的是解决人与自然和谐共生问题。绿色发展是永续发展的必要条件和人民对美好生活追求的重要体现。坚持绿色发展，要坚持节约资源和保护环境的基本国策，坚持可持续发展，坚定走生产发展、生活富裕、生态良好的文明发展道路，建设人与自然和谐共生的现代化。</li>
+                            <li><strong>开放发展</strong>：注重的是解决发展内外联动问题。开放带来进步，封闭必然落后，开放是国家繁荣发展的必由之路。坚持开放发展，要顺应我国经济深度融入世界经济的趋势，奉行互利共赢的开放战略，发展更高层次的开放型经济。</li>
+                            <li><strong>共享发展</strong>：注重的是解决社会公平正义问题。广大人民群众共享改革发展成果，是社会主义的本质要求。坚持共享发展，要作出更有效的制度安排，使全体人民在共建共享发展中有更多获得感、幸福感、安全感，朝着共同富裕方向稳步前进。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson3-2">
+            <div class="knowledge-card">
+                <h2>第2框 建设现代化经济体系</h2>
+                <ul>
+                    <li><strong>现代化经济体系的含义</strong>：
+                        <ul>
+                            <li>国家强，经济体系必须强。建设现代化经济体系是转变经济发展方式、优化经济结构、转换经济增长动力的迫切要求。</li>
+                            <li>现代化经济体系是由社会经济活动各个环节、各个层面、各个领域的相互关系和内在联系构成的有机整体。包括创新引领、协同发展的产业体系，统一开放、竞争有序的市场体系，体现效率、促进公平的收入分配体系，彰显优势、协调联动的城乡区域发展体系，节约资源、环境友好的绿色发展体系，多元平衡、安全高效的全面开放体系，充分发挥市场作用、更好发挥政府作用的经济体制。</li>
+                        </ul>
+                    </li>
+                    <li><strong>推动经济高质量发展</strong>：
+                        <ul>
+                            <li>随着我国经济发展进入新时代，我国经济由高速增长阶段转向高质量发展阶段。推动经济高质量发展，必须建设好现代化经济体系。</li>
+                        </ul>
+                    </li>
+                    <li><strong>建设现代化经济体系的措施</strong>：
+                        <ul>
+                            <li><strong>建设创新引领、协同发展的产业体系</strong>：实现实体经济、科技创新、现代金融、人力资源协同发展，使科技创新在实体经济发展中的贡献份额不断提高，现代金融服务实体经济的能力不断增强，人力资源支撑实体经济发展的作用不断优化。</li>
+                            <li><strong>实施乡村振兴战略</strong>：农业农村农民问题是关系国计民生的根本性问题。要坚持农业农村优先发展，建立健全城乡融合发展体制机制和政策体系，加快推进农业农村现代化。</li>
+                            <li><strong>实施区域协调发展战略</strong>：加大力度支持革命老区、民族地区、边疆地区、贫困地区加快发展，强化举措推进西部大开发形成新格局，深化改革加快东北等老工业基地振兴，发挥优势推动中部地区崛起，创新引领率先实现东部地区优化发展，建立更加有效的区域协调发展新机制。</li>
+                            <li><strong>建设更高水平开放型经济新体制</strong>：推动开放朝着优化结构、拓展深度、提高效益方向转变。要更好利用全球资源和市场，继续积极推进“一带一路”框架下的国际交流合作，形成陆海内外联动、东西双向互济的开放格局，共同推进经济全球化朝着更加开放、包容、普惠、平衡、共赢的方向发展。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四课 我国的个人收入分配与社会保障 -->
+        <h1>第四课 我国的个人收入分配与社会保障</h1>
+        <section id="lesson4-1">
+            <div class="knowledge-card">
+                <h2>第1框 我国的个人收入分配</h2>
+                <ul>
+                    <li><strong>我国现阶段的个人收入分配制度</strong>：
+                        <ul>
+                            <li>内容：按劳分配为主体、多种分配方式并存。</li>
+                            <li>原因：生产资料所有制决定分配方式。我国坚持公有制为主体、多种所有制经济共同发展，决定了按劳分配为主体、多种分配方式并存的分配制度。</li>
+                        </ul>
+                    </li>
+                    <li><strong>按劳分配</strong>：
+                        <ul>
+                            <li>含义：按劳分配是社会主义的分配原则，有劳动能力的社会成员必须参加劳动；在作了必要扣除后，以劳动者提供的劳动（包括劳动数量和质量）为尺度对个人进行分配，多劳多得、少劳少得。</li>
+                            <li>意义：有助于充分调动劳动者的积极性和创造性，激励劳动者努力学习科学技术、提高劳动技能，促进社会生产发展；是对以往几千年来不劳而获的剥削制度的根本否定，体现了劳动者共同劳动、平等分配的社会地位。</li>
+                        </ul>
+                    </li>
+                    <li><strong>按生产要素分配</strong>：
+                        <ul>
+                            <li>内容：让劳动、资本、土地、知识、技术、管理、数据等生产要素参与收入分配。</li>
+                            <li>意义：有利于让一切要素的活力竞相迸发，让一切创造社会财富的源泉充分涌流，推动资源优化配置，促进经济发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>居民收入的途径</strong>：
+                        <ul>
+                            <li>劳动性收入：指通过劳动所获得的收入，包括工资、奖金、津贴等。</li>
+                            <li>财产性收入：指通过自己所拥有的各类财产获得的收入，如银行存款所得的利息、房屋出租所得的租金等。</li>
+                            <li>经营性收入：指通过生产经营活动所获得的收入。</li>
+                            <li>转移性收入：指国家、单位、社会团体对住户的各种经常性转移支付和住户之间的经常性收入转移，如养老金、社会救济和补助、政策性生产补贴等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>完善个人收入分配</strong>：
+                        <ul>
+                            <li>要大力发展生产力，增加社会财富总量。</li>
+                            <li>要坚持按劳分配为主体、多种分配方式并存的分配制度。</li>
+                            <li>要坚持在经济增长的同时实现居民收入同步增长、在劳动生产率提高的同时实现劳动报酬同步提高。</li>
+                            <li>初次分配要兼顾效率与公平，再分配要更加注重公平。要健全以税收、社会保障、转移支付等为主要手段的再分配调节机制，强化税收调节。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson4-2">
+            <div class="knowledge-card">
+                <h2>第2框 我国的社会保障</h2>
+                <ul>
+                    <li><strong>社会保障的含义和作用</strong>：
+                        <ul>
+                            <li>社会保障是保障人民生活、调节社会分配的一项基本制度。</li>
+                            <li>作用：社会保障作为精巧的“社会减震器”，通过防范和化解社会成员的生存危机，保障他们的基本生活权利，有效维护社会生活秩序的稳定；通过国民收入再分配，发挥收入分配调节功能，调节不同社会群体之间的利益关系，促进社会公平正义；通过风险分摊与责任共担，充分发挥社会互助功能，推动社会持续健康发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>我国社会保障体系的主要内容</strong>：
+                        <ul>
+                            <li><strong>社会保险</strong>：是社会保障体系的核心。包括基本养老保险、基本医疗保险、工伤保险、失业保险、生育保险等。</li>
+                            <li><strong>社会救助</strong>：是最先形成的、历史最悠久的社会保障形式。它是政府通过国民收入再分配，对因自然灾害或其他经济社会原因而无法维持最低生活水平的公民给予无偿帮助，以保障其最低生活水平。社会救助是保障社会成员生活安全和生存权利的“最后一道防线”。</li>
+                            <li><strong>社会福利</strong>：是政府和社会向老年人、残疾人、妇女、儿童和其他社会成员提供的社会化服务、实物供给或者福利津贴，以满足社会成员的生活需要并促使其生活质量不断得到改善和提高。社会福利是最高层次的社会保障。</li>
+                            <li><strong>社会优抚</strong>：是国家和社会依法对现役军人、复员退伍军人以及军烈属等优抚对象实行物质照顾、生活和工作安置、精神抚慰的特殊社会保障。社会优抚具有褒扬性、补偿性、优待性相结合的特点。</li>
+                        </ul>
+                    </li>
+                    <li><strong>完善社会保障体系的要求</strong>：
+                        <ul>
+                            <li>要公平对待每个公民并确保其享受相应的社会保障权益。</li>
+                            <li>既要尽力而为，又要量力而行，要坚持社会保障水平与经济社会发展相适应。</li>
+                            <li>要做到权责清晰，明确各方的权利与责任，严格依法监管。</li>
+                            <li>要健全覆盖全民、统筹城乡、公平统一、安全规范、可持续的多层次社会保障体系。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

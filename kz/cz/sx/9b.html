@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>初中数学·九年级下册（详细版）</title>
+    
+    <!-- KaTeX 渲染 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #b85c1a;      /* 橙色，象征数学活力 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fff3e6;     /* 浅米色背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #b85c1a;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #b85c1a;
+        }
+        .category-title:hover { background: rgba(184, 92, 26, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #5a3e2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+        .category-content a.active {
+            color: #b85c1a;
+            font-weight: 600;
+            background-color: rgba(184, 92, 26, 0.12);
+            border-left: 3px solid #b85c1a;
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #5a3e2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fae6d1;
+            border: 2px dashed #e3a56d;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #b85c1a;
+        }
+
+        body.collapsed nav { padding: 20px 5px; }
+        body.collapsed .sidebar-header h2 { opacity: 0; width: 0; margin: 0; pointer-events: none; }
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home { display: none !important; }
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #b85c1a;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e3a56d;
+            color: #b85c1a;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #fad4bc;
+            padding-bottom: 10px;
+            color: #b85c1a;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 170px 1fr; }
+            body.collapsed { grid-template-columns: 55px 1fr; }
+            nav { padding: 15px 8px; }
+            .sidebar-header h2 { font-size: 16px; }
+            #toggleSidebar { font-size: 22px; width: 28px; height: 28px; }
+            .category-title { font-size: 14px; padding: 6px 4px; }
+            .category-content a { font-size: 12px; padding: 4px 0; }
+            main { padding: 15px 15px; }
+            h1 { font-size: 22px; margin: 20px 0; }
+            body.collapsed .category-title::before { font-size: 18px; }
+        }
+        @media (max-width: 480px) {
+            body { grid-template-columns: 140px 1fr; }
+            body.collapsed { grid-template-columns: 48px 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>数学·九年级下册</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch26')">✚ 第二十六章 反比例函数</div>
+            <div class="category-content" id="cat-ch26">
+                <a href="#sec26-1">26.1 反比例函数</a>
+                <a href="#sec26-2">26.2 实际问题与反比例函数</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch27')">✚ 第二十七章 相似</div>
+            <div class="category-content" id="cat-ch27">
+                <a href="#sec27-1">27.1 图形的相似</a>
+                <a href="#sec27-2">27.2 相似三角形</a>
+                <a href="#sec27-3">27.3 位似</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch28')">✚ 第二十八章 锐角三角函数</div>
+            <div class="category-content" id="cat-ch28">
+                <a href="#sec28-1">28.1 锐角三角函数</a>
+                <a href="#sec28-2">28.2 解直角三角形及其应用</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch29')">✚ 第二十九章 投影与视图</div>
+            <div class="category-content" id="cat-ch29">
+                <a href="#sec29-1">29.1 投影</a>
+                <a href="#sec29-2">29.2 三视图</a>
+                <a href="#sec29-3">29.3 课题学习 制作立体模型</a>
+            </div>
+        </div>
+        
+        <a href="/kz/cz/cz.html" class="back-home">返回首页</a>
+        <div class="ad-space">数学 · 思维的力量</div>
+    </nav>
+    
+    <main>
+        <!-- 第二十六章 反比例函数 -->
+        <h1>第二十六章 反比例函数</h1>
+        <section id="sec26-1">
+            <div class="knowledge-card">
+                <h2>26.1 反比例函数</h2>
+                <ul>
+                    <li><strong>定义</strong>：一般地，形如 \(y = \frac{k}{x}\)（\(k\)为常数，\(k \neq 0\)）的函数，叫做反比例函数。其中\(x\)是自变量，\(y\)是函数。自变量\(x\)的取值范围是不等于0的一切实数。</li>
+                    <li><strong>反比例函数的图象与性质</strong>：
+                        <ul>
+                            <li>反比例函数的图象是双曲线，它有两支，分别位于第一、三象限或第二、四象限。</li>
+                            <li>当\(k>0\)时，两支曲线分别位于第一、三象限内，在每个象限内，y随x的增大而减小。</li>
+                            <li>当\(k<0\)时，两支曲线分别位于第二、四象限内，在每个象限内，y随x的增大而增大。</li>
+                            <li>双曲线无限接近于坐标轴，但永远不与坐标轴相交（关于原点中心对称）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>反比例函数解析式的确定</strong>：已知反比例函数图象上一点坐标，代入\(y=\frac{k}{x}\)求出k值。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec26-2">
+            <div class="knowledge-card">
+                <h2>26.2 实际问题与反比例函数</h2>
+                <ul>
+                    <li><strong>应用</strong>：利用反比例函数解决实际问题，如行程问题中的速度与时间（\(v = s/t\)），面积一定时的长与宽，杠杆原理等。关键：找出问题中的等量关系，建立反比例函数模型，根据实际意义确定自变量取值范围，再结合函数性质解决问题。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二十七章 相似 -->
+        <h1>第二十七章 相似</h1>
+        <section id="sec27-1">
+            <div class="knowledge-card">
+                <h2>27.1 图形的相似</h2>
+                <ul>
+                    <li><strong>相似图形</strong>：形状相同的图形叫做相似图形。全等形是相似形的特例（相似比为1）。</li>
+                    <li><strong>相似多边形</strong>：两个边数相同的多边形，如果它们的角分别相等，边成比例，那么这两个多边形叫做相似多边形。相似多边形对应边的比叫做相似比。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec27-2">
+            <div class="knowledge-card">
+                <h2>27.2 相似三角形</h2>
+                <ul>
+                    <li><strong>相似三角形的判定</strong>：
+                        <ul>
+                            <li>预备定理：平行于三角形一边的直线和其他两边相交，所构成的三角形与原三角形相似。</li>
+                            <li>判定定理1：三边成比例的两个三角形相似。</li>
+                            <li>判定定理2：两边成比例且夹角相等的两个三角形相似。</li>
+                            <li>判定定理3：两角分别相等的两个三角形相似。</li>
+                            <li>直角三角形相似：斜边和一条直角边成比例的两个直角三角形相似。</li>
+                        </ul>
+                    </li>
+                    <li><strong>相似三角形的性质</strong>：
+                        <ul>
+                            <li>相似三角形的对应角相等，对应边成比例。</li>
+                            <li>相似三角形对应高的比、对应中线的比、对应角平分线的比都等于相似比。</li>
+                            <li>相似三角形周长的比等于相似比，面积的比等于相似比的平方。</li>
+                        </ul>
+                    </li>
+                    <li><strong>相似三角形的应用</strong>：利用相似三角形测量高度、距离（如金字塔高度测量、河宽测量）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec27-3">
+            <div class="knowledge-card">
+                <h2>27.3 位似</h2>
+                <ul>
+                    <li><strong>位似图形</strong>：如果两个图形不仅相似，而且对应顶点的连线相交于一点，对应边互相平行，那么这样的两个图形叫做位似图形，这个点叫做位似中心。位似图形是相似图形的特殊形式，位似中心到对应点的距离之比等于相似比。</li>
+                    <li><strong>位似作图</strong>：利用位似可以将一个图形放大或缩小。在平面直角坐标系中，如果以原点为位似中心，相似比为k，那么位似图形对应点的坐标比等于k或-k。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二十八章 锐角三角函数 -->
+        <h1>第二十八章 锐角三角函数</h1>
+        <section id="sec28-1">
+            <div class="knowledge-card">
+                <h2>28.1 锐角三角函数</h2>
+                <ul>
+                    <li><strong>锐角三角函数的定义</strong>：在Rt△ABC中，∠C=90°。
+                        <ul>
+                            <li>正弦：\(\sin A = \frac{\angle A的对边}{斜边} = \frac{a}{c}\)</li>
+                            <li>余弦：\(\cos A = \frac{\angle A的邻边}{斜边} = \frac{b}{c}\)</li>
+                            <li>正切：\(\tan A = \frac{\angle A的对边}{\angle A的邻边} = \frac{a}{b}\)</li>
+                        </ul>
+                    </li>
+                    <li><strong>特殊角的三角函数值</strong>：
+                        <table class="mini-table" style="border-collapse: collapse; width: 80%; margin: 10px auto;">
+                            <tr style="background: #fad4bc;"><th>角度</th><th>30°</th><th>45°</th><th>60°</th></tr>
+                            <tr><td>sin</td><td>\(\frac{1}{2}\)</td><td>\(\frac{\sqrt{2}}{2}\)</td><td>\(\frac{\sqrt{3}}{2}\)</td></tr>
+                            <tr><td>cos</td><td>\(\frac{\sqrt{3}}{2}\)</td><td>\(\frac{\sqrt{2}}{2}\)</td><td>\(\frac{1}{2}\)</td></tr>
+                            <tr><td>tan</td><td>\(\frac{\sqrt{3}}{3}\)</td><td>1</td><td>\(\sqrt{3}\)</td></tr>
+                        </table>
+                    </li>
+                    <li><strong>锐角三角函数之间的关系</strong>：\(\sin^2 A + \cos^2 A = 1\)；\(\tan A = \frac{\sin A}{\cos A}\)；\(\sin A = \cos(90°-A)\)等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec28-2">
+            <div class="knowledge-card">
+                <h2>28.2 解直角三角形及其应用</h2>
+                <ul>
+                    <li><strong>解直角三角形</strong>：由直角三角形中的已知元素，求出其余未知元素的过程，叫做解直角三角形。依据：勾股定理、锐角三角函数关系、两锐角互余。</li>
+                    <li><strong>应用</strong>：解决实际问题，如测量高度（仰角、俯角）、坡度（坡角）、方位角等。关键：构造直角三角形，利用三角函数建立方程。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二十九章 投影与视图 -->
+        <h1>第二十九章 投影与视图</h1>
+        <section id="sec29-1">
+            <div class="knowledge-card">
+                <h2>29.1 投影</h2>
+                <ul>
+                    <li><strong>投影</strong>：一般地，用光线照射物体，在某个平面（地面、墙壁等）上得到的影子叫做物体的投影。照射光线叫做投影线，投影所在的平面叫做投影面。</li>
+                    <li><strong>平行投影</strong>：由平行光线形成的投影。如太阳光下的影子。平行投影中，物体与影子形状相似，方向相同。</li>
+                    <li><strong>中心投影</strong>：由同一点（点光源）发出的光线形成的投影。如灯光下的影子。中心投影中，影子的大小、方向随物体与光源的距离变化而变化。</li>
+                    <li><strong>正投影</strong>：投影线垂直于投影面产生的投影。当物体某个面与投影面平行时，该面的正投影与该面全等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec29-2">
+            <div class="knowledge-card">
+                <h2>29.2 三视图</h2>
+                <ul>
+                    <li><strong>视图</strong>：从某一方向观察物体时，所看到的平面图形叫做视图。</li>
+                    <li><strong>三视图</strong>：
+                        <ul>
+                            <li>主视图：从正面看到的视图，反映物体的长和高。</li>
+                            <li>左视图：从左面看到的视图，反映物体的宽和高。</li>
+                            <li>俯视图：从上面看到的视图，反映物体的长和宽。</li>
+                        </ul>
+                    </li>
+                    <li><strong>画三视图的规则</strong>：
+                        <ul>
+                            <li>主视图与俯视图长对正，主视图与左视图高平齐，左视图与俯视图宽相等。</li>
+                            <li>看得见的部分轮廓线画成实线，看不见的部分画成虚线。</li>
+                        </ul>
+                    </li>
+                    <li><strong>由三视图想象立体图形</strong>：根据三视图判断几何体的形状，并计算其表面积和体积。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec29-3">
+            <div class="knowledge-card">
+                <h2>29.3 课题学习 制作立体模型</h2>
+                <ul>
+                    <li><strong>步骤</strong>：根据三视图画出展开图，然后剪裁、折叠、粘合，制作出立体模型。培养空间想象能力和动手能力。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particle-container');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.2 + 0.6;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = '#b85c1a';
+                }
+                update(mouse) {
+                    if (mouse.x !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < mouse.radius) {
+                            const force = (mouse.radius - distance) / mouse.radius;
+                            const angle = Math.atan2(dy, dx);
+                            this.speedX += Math.cos(angle) * force * 0.03;
+                            this.speedY += Math.sin(angle) * force * 0.03;
+                        }
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            const mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            
+            const particlesArray = Array.from({ length: 40 }, () => new Particle());
+
+            function connect() {
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a+1; b < particlesArray.length; b++) {
+                        const dx = particlesArray[a].x - particlesArray[b].x;
+                        const dy = particlesArray[a].y - particlesArray[b].y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < 100) {
+                            ctx.strokeStyle = `rgba(184, 92, 26, ${1 - distance/100})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+                connect();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => { requestAnimationFrame(updateActiveNav); });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

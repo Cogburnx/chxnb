@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>生物选修一</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #bf5b1a;      /* 生物技术暖橙色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fff3e0;     /* 浅米黄背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #bf5b1a;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #bf5b1a;
+        }
+        .category-title:hover { background: rgba(191, 91, 26, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #5a3e2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮橙色 */
+        .category-content a.active {
+            color: #bf5b1a;
+            font-weight: 600;
+            background-color: rgba(191, 91, 26, 0.12);
+            border-left: 3px solid #bf5b1a;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #5a3e2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #ffe0b2;
+            border: 2px dashed #ffa726;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #bf5b1a;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #bf5b1a;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ffb74d;
+            color: #bf5b1a;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #ffcc80;
+            padding-bottom: 10px;
+            color: #bf5b1a;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 实验步骤等强调 */
+        .step {
+            font-weight: 600;
+            color: #a04000;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (暖色背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (生物选修一分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>生物选修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 专题一 传统发酵技术 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ferment')">✚ 传统发酵技术</div>
+            <div class="category-content" id="cat-ferment">
+                <a href="#wine-vinegar">果酒和果醋的制作</a>
+                <a href="#sufu">腐乳的制作</a>
+                <a href="#pickle">泡菜的制作与亚硝酸盐检测</a>
+            </div>
+        </div>
+        
+        <!-- 专题二 微生物培养与应用 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-microbe')">✚ 微生物培养与应用</div>
+            <div class="category-content" id="cat-microbe">
+                <a href="#lab-culture">微生物的实验室培养</a>
+                <a href="#urea-bacteria">土壤中分解尿素的细菌的分离与计数</a>
+                <a href="#cellulose-bacteria">分解纤维素的微生物的分离</a>
+            </div>
+        </div>
+        
+        <!-- 专题三 植物组织培养 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-plant')">✚ 植物组织培养</div>
+            <div class="category-content" id="cat-plant">
+                <a href="#chrysanthemum">菊花的组织培养</a>
+                <a href="#anther">月季的花药培养</a>
+            </div>
+        </div>
+        
+        <!-- 专题四 酶的研究与应用 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-enzyme')">✚ 酶的研究与应用</div>
+            <div class="category-content" id="cat-enzyme">
+                <a href="#pectinase">果胶酶在果汁生产中的作用</a>
+                <a href="#detergent">探讨加酶洗衣粉的洗涤效果</a>
+                <a href="#immobilized">酵母细胞的固定化</a>
+            </div>
+        </div>
+        
+        <!-- 专题五 DNA和蛋白质技术 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-dna')">✚ DNA和蛋白质技术</div>
+            <div class="category-content" id="cat-dna">
+                <a href="#dna-extract">DNA的粗提取与鉴定</a>
+                <a href="#pcr">多聚酶链式反应扩增DNA片段</a>
+                <a href="#hemoglobin">血红蛋白的提取和分离</a>
+            </div>
+        </div>
+        
+        <!-- 专题六 植物有效成分的提取 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-extract')">✚ 植物有效成分提取</div>
+            <div class="category-content" id="cat-extract">
+                <a href="#essential-oil">植物芳香油的提取</a>
+                <a href="#carotene">胡萝卜素的提取</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">动手实践 · 探索生物技术</div>
+    </nav>
+    
+    <!-- 主要内容：详细版生物选修一知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 专题一 传统发酵技术 -->
+        <h1>专题一 传统发酵技术</h1>
+        <section id="wine-vinegar">
+            <div class="knowledge-card">
+                <h2>果酒和果醋的制作</h2>
+                <ul>
+                    <li><strong>菌种</strong>：
+                        <ul>
+                            <li><strong>果酒</strong>：酵母菌（真核生物，兼性厌氧），最适温度18~25℃。有氧时大量繁殖，无氧时发酵产生酒精。</li>
+                            <li><strong>果醋</strong>：醋酸菌（原核生物，好氧菌），最适温度30~35℃。当氧气、糖源充足时，将葡萄糖分解成醋酸；当缺少糖源时，先将乙醇变为乙醛，再将乙醛变为醋酸。</li>
+                        </ul>
+                    </li>
+                    <li><strong>原理</strong>：
+                        <ul>
+                            <li>葡萄酒：C₆H₁₂O₆ → 2C₂H₅OH + 2CO₂（酵母菌无氧呼吸）。</li>
+                            <li>醋酸：C₂H₅OH + O₂ → CH₃COOH + H₂O（醋酸菌有氧呼吸）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>材料</strong>：新鲜葡萄（或苹果），榨汁机，发酵瓶（可用带盖的玻璃瓶），醋酸菌（或暴露空气自然接种）。</li>
+                    <li><strong>制作步骤（果酒）</strong>：
+                        <ol>
+                            <li>冲洗葡萄（去除枝梗，防止污染），榨汁装入发酵瓶（留1/3空间供CO₂排出）。</li>
+                            <li>密闭发酵，温度控制在18~25℃。初期酵母菌有氧繁殖（可短时通气），后期无氧发酵产生酒精。</li>
+                            <li>10~12天后，观察到气泡减少，液面不再翻腾，酒味浓郁，即可过滤装瓶。</li>
+                        </ol>
+                    </li>
+                    <li><strong>果醋制作</strong>：
+                        <ol>
+                            <li>在葡萄酒基础上，打开瓶盖，通入无菌空气，温度调至30~35℃。</li>
+                            <li>加入醋酸菌液，或暴露于空气中（醋酸菌自然富集），每天搅拌1~2次增加溶氧。</li>
+                            <li>7~8天后，醋酸生成，酸味明显，停止发酵。</li>
+                        </ol>
+                    </li>
+                    <li><strong>注意事项</strong>：
+                        <ul>
+                            <li>发酵瓶要消毒（70%酒精擦拭或煮沸），防止杂菌污染。</li>
+                            <li>葡萄不能反复冲洗，避免洗掉野生酵母。</li>
+                            <li>果酒制作过程中，拧松瓶盖但不打开（排气），防止爆瓶。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sufu">
+            <div class="knowledge-card">
+                <h2>腐乳的制作</h2>
+                <ul>
+                    <li><strong>主要菌种</strong>：毛霉（属真菌），还包括青霉、酵母等。毛霉的最适温度15~18℃。</li>
+                    <li><strong>原理</strong>：毛霉等产生的蛋白酶将豆腐中的蛋白质分解为小分子肽和氨基酸，脂肪酶将脂肪分解为甘油和脂肪酸，从而形成腐乳的特殊风味。</li>
+                    <li><strong>材料</strong>：含水量70%左右的豆腐（过软不易成形），盐，卤汤（酒、香辛料等）。</li>
+                    <li><strong>制作步骤</strong>：
+                        <ol>
+                            <li>豆腐块平放在笼屉内，保持温度15~18℃，自然接种或接种毛霉孢子。5天后豆腐表面长满白色菌丝。</li>
+                            <li>加盐腌制：逐层加盐，盐量从下往上增加，腌制8天左右。盐能析出水分，抑制微生物生长，使腐乳成形。</li>
+                            <li>配制卤汤：酒（12%左右）、香辛料（花椒、桂皮等）、调味品，将腌好的豆腐块放入卤汤中，密封。</li>
+                            <li>后期发酵：室温下密封3~6个月，成熟。</li>
+                        </ol>
+                    </li>
+                    <li><strong>注意事项</strong>：
+                        <ul>
+                            <li>豆腐水分过多易腐败，过少则口感硬。</li>
+                            <li>盐浓度过高影响风味，过低易变质。</li>
+                            <li>卤汤中酒可抑制微生物生长，同时赋予酒香。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="pickle">
+            <div class="knowledge-card">
+                <h2>泡菜的制作与亚硝酸盐检测</h2>
+                <ul>
+                    <li><strong>菌种</strong>：乳酸菌（包括乳酸链球菌、乳酸杆菌等，厌氧或兼性厌氧），最适温度26~36℃。</li>
+                    <li><strong>原理</strong>：无氧条件下乳酸菌将葡萄糖分解为乳酸。C₆H₁₂O₆ → 2C₃H₆O₃（乳酸）。</li>
+                    <li><strong>材料</strong>：新鲜蔬菜（白菜、萝卜等），泡菜坛（带水封），盐水（5%~20%），香辛料。</li>
+                    <li><strong>制作步骤</strong>：
+                        <ol>
+                            <li>蔬菜洗净切块，晾干；配制盐水（煮沸冷却后使用，杀灭杂菌）。</li>
+                            <li>蔬菜装坛，压实，注入盐水淹没蔬菜，加香辛料，盖上坛盖，水封（保证无氧环境）。</li>
+                            <li>室温发酵，7~10天即可食用。</li>
+                        </ol>
+                    </li>
+                    <li><strong>亚硝酸盐检测</strong>（格里斯试剂比色法）：
+                        <ul>
+                            <li><strong>原理</strong>：在盐酸酸化条件下，亚硝酸盐与对氨基苯磺酸发生重氮化反应，再与N-1萘基乙二胺盐酸盐结合形成玫瑰红色染料，与标准显色液比较，估算亚硝酸盐含量。</li>
+                            <li><strong>步骤</strong>：泡菜研磨过滤→提取液→加入试剂显色→比色测定。</li>
+                            <li><strong>变化规律</strong>：发酵初期亚硝酸盐含量上升（杂菌硝酸还原酶作用），中期下降（乳酸环境抑制杂菌，亚硝酸盐被分解），后期稳定低水平。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 专题二 微生物培养与应用 -->
+        <h1>专题二 微生物培养与应用</h1>
+        <section id="lab-culture">
+            <div class="knowledge-card">
+                <h2>微生物的实验室培养</h2>
+                <ul>
+                    <li><strong>培养基</strong>：
+                        <ul>
+                            <li>按物理性质：液体、半固体、固体（加琼脂）。</li>
+                            <li>按功能：基础、选择、鉴别培养基。</li>
+                            <li>成分：水、碳源、氮源、无机盐，有些需生长因子。</li>
+                        </ul>
+                    </li>
+                    <li><strong>无菌技术</strong>：
+                        <ul>
+                            <li><strong>消毒</strong>：用理化方法杀死部分微生物（不包括芽孢和孢子）。如煮沸、紫外线、酒精擦拭。</li>
+                            <li><strong>灭菌</strong>：杀死所有微生物包括芽孢。方法：高压蒸汽灭菌（121℃ 15-30min）、干热灭菌（160-170℃ 2h）、灼烧灭菌（接种环）、过滤除菌（不耐热物质）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>纯化方法</strong>：
+                        <ul>
+                            <li><strong>平板划线法</strong>：通过划线稀释菌种，最后得到单菌落。注意划线前后灼烧接种环，不能划破培养基。</li>
+                            <li><strong>稀释涂布平板法</strong>：菌液梯度稀释，涂布到平板上，培养后计数菌落数。一般选择菌落数30~300的平板计数。</li>
+                        </ul>
+                    </li>
+                    <li><strong>菌种保存</strong>：
+                        <ul>
+                            <li>短期：4℃斜面保存。</li>
+                            <li>长期：甘油管藏（-20℃或-80℃）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="urea-bacteria">
+            <div class="knowledge-card">
+                <h2>土壤中分解尿素的细菌的分离与计数</h2>
+                <ul>
+                    <li><strong>原理</strong>：选择培养基以尿素为唯一氮源，只有能合成脲酶的微生物才能生长。脲酶将尿素分解为氨，使pH升高，酚红指示剂变红。</li>
+                    <li><strong>步骤</strong>：
+                        <ol>
+                            <li>土壤取样：从有动植物遗体处取土，铲去表层土。</li>
+                            <li>制备土壤悬液：称取1g土壤，加入99mL无菌水，振荡，制成10⁻²稀释液，依次稀释至10⁻⁶。</li>
+                            <li>涂布平板：取0.1mL稀释液涂布在以尿素为唯一氮源的培养基平板上。</li>
+                            <li>培养计数：30~37℃培养1~2天，统计菌落数。计算公式：每克土壤中菌数 = (菌落数平均值 × 稀释倍数) / 涂布量(0.1mL换算为mL)。</li>
+                        </ol>
+                    </li>
+                    <li><strong>鉴别</strong>：在培养基中加入酚红，菌落周围出现红色环带，说明产生脲酶。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="cellulose-bacteria">
+            <div class="knowledge-card">
+                <h2>分解纤维素的微生物的分离</h2>
+                <ul>
+                    <li><strong>原理</strong>：刚果红能与纤维素形成红色复合物，当纤维素被分解后，菌落周围出现透明圈。利用选择培养基（以纤维素为唯一碳源）富集。</li>
+                    <li><strong>步骤</strong>：
+                        <ol>
+                            <li>土壤取样：富含纤维素的环境（如腐叶土）。</li>
+                            <li>选择培养：将土样加入以纤维素为碳源的液体培养基中，摇床培养1~2天（富集纤维素分解菌）。</li>
+                            <li>梯度稀释，涂布到刚果红纤维素培养基平板上。</li>
+                            <li>挑选透明圈大的菌落（分解能力强）接种到斜面保存。</li>
+                        </ol>
+                    </li>
+                    <li><strong>刚果红染色法</strong>：
+                        <ul>
+                            <li>先培养微生物，长出菌落后，加入刚果红溶液染色，1h后倒掉，再加入NaCl溶液脱色，出现透明圈。</li>
+                            <li>或直接在培养基中加入刚果红，但需注意染料与纤维素形成复合物可能影响菌落生长。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 专题三 植物组织培养 -->
+        <h1>专题三 植物组织培养</h1>
+        <section id="chrysanthemum">
+            <div class="knowledge-card">
+                <h2>菊花的组织培养</h2>
+                <ul>
+                    <li><strong>原理</strong>：植物细胞具有全能性，离体的器官、组织或细胞在无菌条件下，通过激素诱导，能脱分化和再分化形成完整植株。</li>
+                    <li><strong>培养基</strong>：MS培养基（含大量元素、微量元素、有机物），添加植物激素（生长素、细胞分裂素）。生长素/细胞分裂素比例高时利于生根，比例低时利于生芽。</li>
+                    <li><strong>步骤</strong>：
+                        <ol>
+                            <li>外植体消毒：取菊花幼嫩茎段，流水冲洗，70%酒精消毒30s，无菌水冲洗，再用次氯酸钠溶液消毒2~3min，无菌水冲洗多次。</li>
+                            <li>接种：将外植体切段（带节）接种到诱导培养基（MS+BA（细胞分裂素）+NAA（生长素））上。</li>
+                            <li>培养：温度18~22℃，光照16h/d。先脱分化形成愈伤组织，再分化出丛芽。</li>
+                            <li>生根培养：将丛芽切割转入生根培养基（1/2MS+NAA）诱导生根。</li>
+                            <li>炼苗移栽：打开瓶盖适应环境，移栽到基质中。</li>
+                        </ol>
+                    </li>
+                    <li><strong>注意事项</strong>：
+                        <ul>
+                            <li>激素浓度和比例要适宜，pH一般5.8。</li>
+                            <li>整个过程需无菌操作。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="anther">
+            <div class="knowledge-card">
+                <h2>月季的花药培养</h2>
+                <ul>
+                    <li><strong>原理</strong>：花药中的花粉（小孢子）是单倍体细胞，通过培养可发育成单倍体植株，再经秋水仙素处理获得纯合二倍体，缩短育种年限。</li>
+                    <li><strong>材料选择</strong>：选择单核期（单核靠边期）的花蕾，此时花粉对离体刺激敏感。可通过醋酸洋红染色镜检确定发育时期。</li>
+                    <li><strong>步骤</strong>：
+                        <ol>
+                            <li>花蕾消毒（同外植体消毒）。</li>
+                            <li>无菌条件下剥离花药，接种到诱导培养基（MS + 激素）上。注意不要损伤花药，以免产生二倍体愈伤组织。</li>
+                            <li>培养：温度25℃左右，初期暗培养利于愈伤组织形成，后见光分化。</li>
+                            <li>花粉胚或愈伤组织分化出单倍体植株。</li>
+                            <li>染色体加倍：用秋水仙素处理幼苗，获得纯合二倍体。</li>
+                        </ol>
+                    </li>
+                    <li><strong>影响因素</strong>：亲本基因型、花粉发育时期、培养基组成、培养条件等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 专题四 酶的研究与应用 -->
+        <h1>专题四 酶的研究与应用</h1>
+        <section id="pectinase">
+            <div class="knowledge-card">
+                <h2>果胶酶在果汁生产中的作用</h2>
+                <ul>
+                    <li><strong>果胶</strong>：植物细胞壁和胞间层成分，不溶于水，使果汁浑浊。果胶酶包括多聚半乳糖醛酸酶、果胶分解酶、果胶酯酶等。</li>
+                    <li><strong>作用</strong>：分解果胶，使果汁澄清，提高出汁率。</li>
+                    <li><strong>实验探究</strong>：探究温度、pH对果胶酶活性的影响；探究酶用量。用榨取的苹果泥加酶处理后，测量滤液体积或观察澄清度。</li>
+                    <li><strong>注意事项</strong>：果胶酶最适温度40~50℃，最适pH 3.5~5.5。酶用量需通过实验确定最适范围。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="detergent">
+            <div class="knowledge-card">
+                <h2>探讨加酶洗衣粉的洗涤效果</h2>
+                <ul>
+                    <li><strong>酶的种类</strong>：蛋白酶（分解蛋白质污渍）、脂肪酶（分解油渍）、淀粉酶（分解淀粉类污渍）、纤维素酶（使纤维蓬松，易去污）。</li>
+                    <li><strong>实验设计</strong>：用不同加酶洗衣粉洗涤相同污布，控制水温、时间、水量等变量，比较清洁效果。注意设置对照（普通洗衣粉）。</li>
+                    <li><strong>注意事项</strong>：
+                        <ul>
+                            <li>酶在高温下失活，水温不宜过高（一般40℃左右）。</li>
+                            <li>蛋白酶不能洗涤真丝、羊毛织物（蛋白质纤维会被分解）。</li>
+                            <li>酶的活性受pH影响，洗衣粉多呈碱性。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="immobilized">
+            <div class="knowledge-card">
+                <h2>酵母细胞的固定化</h2>
+                <ul>
+                    <li><strong>固定化方法</strong>：包埋法（常用海藻酸钠）、化学结合法、物理吸附法。细胞多采用包埋法，因为体积大，酶多用结合法。</li>
+                    <li><strong>固定化酵母细胞步骤</strong>：
+                        <ol>
+                            <li>酵母活化：干酵母加入蒸馏水，搅拌，1h后备用。</li>
+                            <li>配制海藻酸钠溶液：0.7g海藻酸钠溶于10mL水，小火加热溶解，冷却至室温。</li>
+                            <li>混合：将活化酵母细胞加入海藻酸钠溶液中，混匀。</li>
+                            <li>固定：用注射器将混合液缓慢滴入CaCl₂溶液中，形成凝胶珠（钙离子与海藻酸根交联）。</li>
+                            <li>洗涤备用：用蒸馏水冲洗凝胶珠，去除CaCl₂。</li>
+                        </ol>
+                    </li>
+                    <li><strong>应用</strong>：固定化酵母可用于连续发酵生产酒精、啤酒等，易于产物分离和酶回收。</li>
+                    <li><strong>注意事项</strong>：
+                        <ul>
+                            <li>海藻酸钠浓度不宜过高（不易成形）或过低（珠不牢固）。</li>
+                            <li>混合液温度不能太高，以免杀死酵母。</li>
+                            <li>CaCl₂浓度一般0.05mol/L。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 专题五 DNA和蛋白质技术 -->
+        <h1>专题五 DNA和蛋白质技术</h1>
+        <section id="dna-extract">
+            <div class="knowledge-card">
+                <h2>DNA的粗提取与鉴定</h2>
+                <ul>
+                    <li><strong>材料</strong>：鸡血（哺乳动物红细胞无细胞核，不宜用）、菜花、香蕉等。</li>
+                    <li><strong>原理</strong>：
+                        <ul>
+                            <li>DNA在2mol/L NaCl溶液中溶解度大，在0.14mol/L NaCl中溶解度最低（析出）。</li>
+                            <li>DNA不溶于冷酒精（蛋白质等可溶），可进一步纯化。</li>
+                            <li>鉴定：二苯胺试剂（沸水浴）使DNA变蓝色。</li>
+                        </ul>
+                    </li>
+                    <li><strong>步骤（以鸡血为例）</strong>：
+                        <ol>
+                            <li>制备鸡血细胞液：加柠檬酸钠抗凝，离心取下层细胞。</li>
+                            <li>释放DNA：加蒸馏水使细胞吸水涨破，搅拌后用纱布过滤。</li>
+                            <li>溶解核内DNA：加入2mol/L NaCl溶液，使DNA溶解。</li>
+                            <li>析出DNA：加蒸馏水稀释至0.14mol/L NaCl，DNA析出（用玻璃棒卷起）。</li>
+                            <li>再溶解：将丝状物溶于2mol/L NaCl。</li>
+                            <li>纯化：加冷酒精（95%），DNA沉淀，用玻璃棒挑出。</li>
+                            <li>鉴定：取少量DNA溶于NaCl，加入二苯胺试剂，沸水浴5min，观察蓝色。</li>
+                        </ol>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="pcr">
+            <div class="knowledge-card">
+                <h2>多聚酶链式反应扩增DNA片段</h2>
+                <ul>
+                    <li><strong>原理</strong>：DNA体外复制，利用DNA聚合酶（Taq酶，耐高温），以少量DNA为模板，在引物引导下，通过高温变性、低温复性、中温延伸三步循环，大量扩增目的DNA。</li>
+                    <li><strong>反应体系</strong>：模板DNA、引物（两种）、Taq酶、脱氧核苷酸（dNTP）、缓冲液（含Mg²⁺）。</li>
+                    <li><strong>基本步骤</strong>：
+                        <ul>
+                            <li>变性：90~95℃，DNA双链解开。</li>
+                            <li>复性：55~60℃，引物与模板链结合。</li>
+                            <li>延伸：70~75℃，Taq酶催化合成互补链。</li>
+                            <li>循环30次左右，DNA扩增约2ⁿ倍。</li>
+                        </ul>
+                    </li>
+                    <li><strong>结果检测</strong>：琼脂糖凝胶电泳，用溴化乙锭（EB）染色，紫外灯下观察DNA条带。</li>
+                    <li><strong>注意事项</strong>：
+                        <ul>
+                            <li>引物设计要避免自身互补，长度18-25bp。</li>
+                            <li>防止外源DNA污染，使用无菌器材。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="hemoglobin">
+            <div class="knowledge-card">
+                <h2>血红蛋白的提取和分离</h2>
+                <ul>
+                    <li><strong>材料</strong>：新鲜猪血（加抗凝剂）。</li>
+                    <li><strong>步骤</strong>：
+                        <ol>
+                            <li>样品处理：离心分离红细胞，洗涤红细胞（加生理盐水），加蒸馏水（低渗）和甲苯（使细胞破裂），释放血红蛋白。</li>
+                            <li>粗分离：离心去除细胞碎片，得到血红蛋白溶液。</li>
+                            <li>透析：将溶液装入透析袋，置于磷酸缓冲液中，去除小分子杂质。</li>
+                            <li>凝胶色谱法纯化：根据分子大小分离蛋白质。大分子先流出，小分子后流出。常用凝胶如Sephadex G-75。</li>
+                            <li>纯度鉴定：SDS-聚丙烯酰胺凝胶电泳（SDS-PAGE），根据分子量分离蛋白质条带。</li>
+                        </ol>
+                    </li>
+                    <li><strong>注意事项</strong>：
+                        <ul>
+                            <li>整个过程在低温下进行（防止蛋白质变性）。</li>
+                            <li>凝胶色谱柱装填要均匀，不能有气泡。</li>
+                            <li>洗脱液流速要稳定。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 专题六 植物有效成分的提取 -->
+        <h1>专题六 植物有效成分的提取</h1>
+        <section id="essential-oil">
+            <div class="knowledge-card">
+                <h2>植物芳香油的提取</h2>
+                <ul>
+                    <li><strong>方法</strong>：
+                        <ul>
+                            <li><strong>水蒸气蒸馏法</strong>：利用水蒸气将挥发性较强的芳香油携带出来，冷凝后分离。适用于挥发性高的精油（如玫瑰油、薄荷油）。分为水中蒸馏、水上蒸馏、水气蒸馏。</li>
+                            <li><strong>压榨法</strong>：通过机械压榨，将柑橘、柠檬等果皮中的芳香油压出，分离。</li>
+                            <li><strong>有机溶剂萃取法</strong>：用石油醚、乙醇等有机溶剂浸泡原料，蒸去溶剂得到芳香油。适用于挥发性较低、热敏感的成分。</li>
+                        </ul>
+                    </li>
+                    <li><strong>实验操作（以玫瑰精油为例）</strong>：
+                        <ol>
+                            <li>鲜玫瑰花放入蒸馏瓶，加水，加热蒸馏。</li>
+                            <li>冷凝管收集馏出液，得到乳白色的油水混合物。</li>
+                            <li>用分液漏斗分离出油层，加入无水硫酸钠吸水，得到精油。</li>
+                        </ol>
+                    </li>
+                    <li><strong>注意事项</strong>：
+                        <ul>
+                            <li>蒸馏时间不宜过长，防止有效成分分解。</li>
+                            <li>压榨法需用石灰水浸泡，破坏细胞结构，提高出油率。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="carotene">
+            <div class="knowledge-card">
+                <h2>胡萝卜素的提取</h2>
+                <ul>
+                    <li><strong>性质</strong>：胡萝卜素是脂溶性物质，化学性质稳定，不溶于水，微溶于乙醇，易溶于石油醚等有机溶剂。β-胡萝卜素在人体内可转化为维生素A。</li>
+                    <li><strong>提取方法</strong>：常用有机溶剂萃取法，因为胡萝卜素挥发性差，不能用水蒸气蒸馏。</li>
+                    <li><strong>步骤</strong>：
+                        <ol>
+                            <li>材料处理：胡萝卜粉碎，干燥（脱水，利于萃取）。</li>
+                            <li>萃取：将胡萝卜粉装入萃取装置，加入石油醚，水浴加热回流萃取。</li>
+                            <li>过滤：除去固体残渣，得到萃取液。</li>
+                            <li>浓缩：用蒸馏装置蒸发石油醚，得到胡萝卜素粗品。</li>
+                        </ol>
+                    </li>
+                    <li><strong>鉴定</strong>：纸层析法，以标准胡萝卜素样品对照，观察层析带的位置和颜色。</li>
+                    <li><strong>注意事项</strong>：
+                        <ul>
+                            <li>萃取剂应选择沸点低、毒性小、不易燃、对胡萝卜素溶解度大的（如石油醚）。</li>
+                            <li>避免明火加热，使用水浴防止着火。</li>
+                            <li>干燥温度不宜过高，防止胡萝卜素分解。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 3. 粒子效果 (暖橙色)
+        document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

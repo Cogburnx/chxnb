@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>地理必修二</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #c96b1c;      /* 人文地理暖橙色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fae5d3;     /* 浅橙黄背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #c96b1c;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #c96b1c;
+        }
+        .category-title:hover { background: rgba(201, 107, 28, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #5a3e2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮橙色 */
+        .category-content a.active {
+            color: #c96b1c;
+            font-weight: 600;
+            background-color: rgba(201, 107, 28, 0.12);
+            border-left: 3px solid #c96b1c;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #5a3e2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fbe9e7;
+            border: 2px dashed #ffab91;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #c96b1c;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #c96b1c;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f6b68b;
+            color: #c96b1c;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #fad4bc;
+            padding-bottom: 10px;
+            color: #c96b1c;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 表格样式 (可选) */
+        .mini-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+        }
+        .mini-table td, .mini-table th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (暖橙背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (地理必修二分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>地理必修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一章 人口 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-population')">✚ 人口</div>
+            <div class="category-content" id="cat-population">
+                <a href="#pop-growth">人口增长模式与人口问题</a>
+                <a href="#pop-migration">人口迁移</a>
+                <a href="#pop-capacity">环境人口容量</a>
+            </div>
+        </div>
+        
+        <!-- 第二章 聚落 (城市与乡村) -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-settlement')">✚ 聚落 (城市与乡村)</div>
+            <div class="category-content" id="cat-settlement">
+                <a href="#rural-urban">城乡空间结构</a>
+                <a href="#urbanization">城镇化进程与特点</a>
+                <a href="#culture-landscape">地域文化与城乡景观</a>
+            </div>
+        </div>
+        
+        <!-- 第三章 农业 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-agriculture')">✚ 农业</div>
+            <div class="category-content" id="cat-agriculture">
+                <a href="#agri-location">农业区位因素</a>
+                <a href="#agri-types">主要农业地域类型</a>
+            </div>
+        </div>
+        
+        <!-- 第四章 工业 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-industry')">✚ 工业</div>
+            <div class="category-content" id="cat-industry">
+                <a href="#industry-location">工业区位因素</a>
+                <a href="#industry-region">工业地域与产业转移</a>
+            </div>
+        </div>
+        
+        <!-- 第五章 交通运输布局与区域发展 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-transport')">✚ 交通运输布局与区域发展</div>
+            <div class="category-content" id="cat-transport">
+                <a href="#trans-location">交通运输布局的区位因素</a>
+                <a href="#trans-effect">交通运输对区域发展的影响</a>
+            </div>
+        </div>
+        
+        <!-- 第六章 环境与发展 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-environment')">✚ 环境与发展</div>
+            <div class="category-content" id="cat-environment">
+                <a href="#human-earth">人地关系与可持续发展</a>
+                <a href="#env-issues">主要环境问题与循环经济</a>
+                <a href="#coordinate">协调人地关系的主要途径</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">人文荟萃 · 持续发展</div>
+    </nav>
+    
+    <!-- 主要内容：详细版地理必修二知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一章 人口 (详细) -->
+        <h1>第一章 人口</h1>
+        <section id="pop-growth">
+            <div class="knowledge-card">
+                <h2>人口增长模式与人口问题</h2>
+                <ul>
+                    <li><strong>人口增长模式</strong>（由出生率、死亡率、自然增长率决定）：
+                        <ul>
+                            <li><strong>原始型</strong>：高出生率、高死亡率、低自然增长率。主要存在于原始社会，生产力极低。</li>
+                            <li><strong>传统型</strong>：高出生率、低死亡率、高自然增长率。工业化初期，死亡率下降，人口快速增长（如许多发展中国家）。</li>
+                            <li><strong>现代型</strong>：低出生率、低死亡率、低自然增长率。发达国家普遍，人口增长缓慢甚至负增长。</li>
+                        </ul>
+                    </li>
+                    <li><strong>人口增长模式转变</strong>：由原始型→传统型→现代型，根本驱动力是社会生产力发展。</li>
+                    <li><strong>人口问题</strong>：
+                        <ul>
+                            <li>发展中国家：人口增长过快，导致资源、环境压力，就业、教育、医疗紧张。对策：计划生育，控制人口增长。</li>
+                            <li>发达国家：人口老龄化，劳动力不足，社会养老负担重。对策：鼓励生育，接纳移民，延迟退休。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="pop-migration">
+            <div class="knowledge-card">
+                <h2>人口迁移</h2>
+                <ul>
+                    <li><strong>概念</strong>：人口居住地发生长期或永久性变更（国际迁移、国内迁移）。</li>
+                    <li><strong>推拉理论</strong>：
+                        <ul>
+                            <li>推力：迁出地的不利因素（就业难、自然灾害、政治压迫等）。</li>
+                            <li>拉力：迁入地的有利因素（就业机会多、收入高、环境好等）。</li>
+                            <li>中间障碍：距离、交通、政策、移民法规等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>影响人口迁移的因素</strong>：
+                        <ul>
+                            <li>自然因素：气候、土壤、水源、矿产资源、自然灾害。</li>
+                            <li>经济因素：经济发展水平、就业机会、收入差距（最主要、经常起作用的因素）。</li>
+                            <li>社会文化因素：宗教、种族、家庭、教育。</li>
+                            <li>政治因素：战争、政策（如三峡移民）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>人口迁移的影响</strong>：
+                        <ul>
+                            <li>对迁出地：减轻人口压力，增加收入（侨汇），但可能造成人才流失。</li>
+                            <li>对迁入地：提供劳动力，促进经济发展，但也带来交通、住房、环境压力。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="pop-capacity">
+            <div class="knowledge-card">
+                <h2>环境人口容量</h2>
+                <ul>
+                    <li><strong>环境承载力</strong>：环境能持续供养的人口数量，通常用环境人口容量表示。</li>
+                    <li><strong>环境人口容量</strong>：在可预见到的时期内，利用本地资源及其他资源、智力、技术等条件，在保证符合社会文化准则的物质生活水平下，一个国家或地区所能持续供养的人口数量。具有不确定性和相对确定性。</li>
+                    <li><strong>影响因素</strong>：
+                        <ul>
+                            <li>资源丰富程度（首要因素，正相关）。</li>
+                            <li>科技发展水平（正相关，提高资源利用率）。</li>
+                            <li>地区的对外开放程度（正相关，资源互通）。</li>
+                            <li>人口的文化和生活消费水平（负相关）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>合理人口容量</strong>：最适宜的人口数量，比环境人口容量小，有助于可持续发展。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 聚落 (城市与乡村) (详细) -->
+        <h1>第二章 聚落 (城市与乡村)</h1>
+        <section id="rural-urban">
+            <div class="knowledge-card">
+                <h2>城乡空间结构</h2>
+                <ul>
+                    <li><strong>乡村空间结构</strong>：
+                        <ul>
+                            <li>乡村以农业用地和居民点为主，聚落规模较小，分布分散或集中（取决于地形、生产方式）。</li>
+                            <li>内部结构简单，一般有住宅、公共服务设施、道路等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>城市空间结构</strong>：
+                        <ul>
+                            <li><strong>功能分区</strong>：商业区（市中心或交通干线，呈点状或条状）、住宅区（最广泛的用地，分化出高级与低级住宅区）、工业区（城市外围，沿交通线分布）。</li>
+                            <li><strong>主要结构模式</strong>：
+                                <ul>
+                                    <li>同心圆模式：城市各功能区呈同心圆状分布，由中心向外扩展。</li>
+                                    <li>扇形模式：功能区沿交通线呈扇形或楔形向外延伸。</li>
+                                    <li>多核心模式：城市出现多个核心，形成不同功能中心。</li>
+                                </ul>
+                            </li>
+                            <li><strong>影响城市内部结构的主要因素</strong>：经济因素（地租水平，交通通达度）、社会因素（收入、种族、宗教）、历史因素、行政因素。</li>
+                        </ul>
+                    </li>
+                    <li><strong>合理规划城乡空间</strong>：协调各类用地，改善人居环境，实现可持续发展。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="urbanization">
+            <div class="knowledge-card">
+                <h2>城镇化进程与特点</h2>
+                <ul>
+                    <li><strong>城镇化</strong>：人口向城镇集聚、城镇用地扩展、乡村转变为城镇的过程。主要标志：城镇人口增加、城镇人口比重上升、城镇用地规模扩大。</li>
+                    <li><strong>世界城镇化进程</strong>（S形曲线）：
+                        <ul>
+                            <li><strong>初期阶段</strong>：城镇化水平较低（<30%），发展缓慢。</li>
+                            <li><strong>中期阶段</strong>（加速阶段）：人口快速向城镇集中，出现郊区城镇化，城镇化水平30%~70%。</li>
+                            <li><strong>后期阶段</strong>：城镇化水平高（>70%），增速减缓甚至停滞，可能出现逆城镇化现象（人口向郊区和小城镇迁移）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>发达国家与发展中国家城镇化差异</strong>：
+                        <ul>
+                            <li>发达国家：起步早，水平高（>70%），目前速度慢，出现逆城镇化和再城镇化。</li>
+                            <li>发展中国家：起步晚，水平较低，速度快，存在虚假城镇化（城镇化超前于经济发展）和滞后城镇化（城镇化落后于工业化）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>城镇化对地理环境的影响</strong>：
+                        <ul>
+                            <li>有利：创造就业，推动经济增长，提高生活水平。</li>
+                            <li>不利：环境污染（大气、水、噪声、垃圾）、交通拥堵、住房紧张、就业困难、社会秩序混乱（“城市病”）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>生态城市建设</strong>：发展低碳经济、绿色交通，合理规划城市功能区，建设海绵城市，提高资源利用率。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="culture-landscape">
+            <div class="knowledge-card">
+                <h2>地域文化与城乡景观</h2>
+                <ul>
+                    <li><strong>地域文化</strong>：在特定地域长期形成，体现在建筑、服饰、饮食、习俗等方面。</li>
+                    <li><strong>城乡景观中的文化体现</strong>：
+                        <ul>
+                            <li>如北京的四合院（体现宗族伦理、内向封闭）、陕北窑洞（适应黄土高原气候、就地取材）、江南水乡（小桥流水，体现水乡文化）。</li>
+                            <li>欧洲城市多教堂、广场，体现宗教与市民文化。</li>
+                        </ul>
+                    </li>
+                    <li><strong>保护地域文化</strong>：维护城乡特色，避免千城一面。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 农业 (详细) -->
+        <h1>第三章 农业</h1>
+        <section id="agri-location">
+            <div class="knowledge-card">
+                <h2>农业区位因素</h2>
+                <ul>
+                    <li><strong>自然因素</strong>：
+                        <ul>
+                            <li>气候：光照、热量、降水、昼夜温差影响作物种类和产量。</li>
+                            <li>地形：平原适宜机械化，山地适宜林业、牧业，梯田种植。</li>
+                            <li>土壤：不同作物喜不同土壤（如酸性红壤种茶树）。</li>
+                            <li>水源：灌溉水源（河流、湖泊、地下水）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>社会经济因素</strong>：
+                        <ul>
+                            <li>市场：决定农业生产的类型和规模（如城市郊区发展乳畜业、园艺业）。</li>
+                            <li>交通运输：对易腐烂农产品（乳、肉、蛋、菜）影响大，需保鲜冷藏技术。</li>
+                            <li>政策：政府补贴、税收优惠、农业规划。</li>
+                            <li>科技：育种、灌溉、化肥、机械化提高产量和效率。</li>
+                            <li>劳动力：劳动力数量、价格、素质。</li>
+                        </ul>
+                    </li>
+                    <li><strong>农业区位选择</strong>：综合考虑自然和社会经济条件，因地制宜，发挥优势。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="agri-types">
+            <div class="knowledge-card">
+                <h2>主要农业地域类型</h2>
+                <ul>
+                    <li><strong>季风水田农业（水稻种植业）</strong>：
+                        <ul>
+                            <li>分布：东亚、东南亚、南亚季风区。</li>
+                            <li>特点：小农经营，精耕细作，单产高，机械化水平低，水利工程量大，商品率低。</li>
+                        </ul>
+                    </li>
+                    <li><strong>商品谷物农业</strong>：
+                        <ul>
+                            <li>分布：美国、加拿大、阿根廷、澳大利亚、乌克兰等地广人稀地区。</li>
+                            <li>特点：生产规模大，机械化程度高，商品率高，家庭农场为主。</li>
+                        </ul>
+                    </li>
+                    <li><strong>大牧场放牧业</strong>：
+                        <ul>
+                            <li>分布：美国、澳大利亚、新西兰、阿根廷、南非等干旱半干旱气候区。</li>
+                            <li>特点：地广人稀，大规模放牧，专业化程度高，交通便利（冷藏船）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>乳畜业</strong>：
+                        <ul>
+                            <li>分布：西欧、北美五大湖地区、新西兰等地（靠近大城市）。</li>
+                            <li>特点：商品率高，机械化程度高，市场指向，饲料供应。</li>
+                        </ul>
+                    </li>
+                    <li><strong>混合农业</strong>：
+                        <ul>
+                            <li>分布：欧洲、北美、澳大利亚（墨累-达令盆地）。</li>
+                            <li>特点：种植业与畜牧业并重，形成良性生态系统，合理安排农事活动，市场适应性强。</li>
+                        </ul>
+                    </li>
+                    <li><strong>地中海农业</strong>：
+                        <ul>
+                            <li>分布：地中海沿岸、美国加州、南非等。</li>
+                            <li>特点：种植耐旱作物（小麦、大麦、橄榄、葡萄、柑橘），商品率高。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 工业 (详细) -->
+        <h1>第四章 工业</h1>
+        <section id="industry-location">
+            <div class="knowledge-card">
+                <h2>工业区位因素</h2>
+                <ul>
+                    <li><strong>自然因素</strong>：
+                        <ul>
+                            <li>土地：地形平坦，面积广阔，地价较低。</li>
+                            <li>水源：接近河流、湖泊，满足工业用水。</li>
+                            <li>原料：靠近原料产地（如钢铁工业靠近铁矿、煤矿）。</li>
+                            <li>能源：接近能源供应地（如高耗能工业靠近水电站、火电厂）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>社会经济因素</strong>：
+                        <ul>
+                            <li>市场：靠近消费地，减少运费（如啤酒厂、家具厂）。</li>
+                            <li>交通：便捷的交通网络（港口、铁路、公路、机场）。</li>
+                            <li>劳动力：数量、价格、素质（劳动密集型工业需廉价劳动力，技术密集型需高素质人才）。</li>
+                            <li>科技：高新技术产业依托科研机构和人才。</li>
+                            <li>政策：税收优惠、土地补贴、工业扶持。</li>
+                            <li>集聚与分散：集聚可共享基础设施，降低成本；分散可缓解环境压力，寻找最优区位。</li>
+                        </ul>
+                    </li>
+                    <li><strong>区位因素变化</strong>：科技进步使原料、能源影响减弱，市场、交通、信息、环境等影响增强。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="industry-region">
+            <div class="knowledge-card">
+                <h2>工业地域与产业转移</h2>
+                <ul>
+                    <li><strong>工业联系</strong>：工序联系、空间联系、信息联系。</li>
+                    <li><strong>工业集聚</strong>：
+                        <ul>
+                            <li>好处：加强企业间信息交流，降低运输成本，共用基础设施，产生规模效益。</li>
+                            <li>例子：传统工业区（德国鲁尔区）、新工业区（美国硅谷）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>工业分散</strong>：
+                        <ul>
+                            <li>原因：企业间寻求最优区位（如零部件复杂、市场广阔），降低生产成本，缓解环境压力。</li>
+                            <li>条件：现代交通、通信技术的发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>传统工业区</strong>：
+                        <ul>
+                            <li>特点：一般是在丰富煤铁资源基础上发展起来的，以重工业为主（钢铁、机械、化工等）。面临资源枯竭、环境污染等问题（如鲁尔区、我国东北）。整治措施：调整产业结构，发展新兴产业和第三产业，治理环境。</li>
+                        </ul>
+                    </li>
+                    <li><strong>新工业区</strong>：
+                        <ul>
+                            <li>特点：以轻工业或高新技术产业为主，规模小，灵活，分散。如意大利东北部和中部（轻工业）、美国硅谷（高新技术）、德国南部（高科技）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>产业转移</strong>：
+                        <ul>
+                            <li>原因：劳动力成本上升、市场饱和、环境压力、政策引导。</li>
+                            <li>规律：由发达国家/地区向发展中国家/欠发达地区转移，由中心城市向外围转移。</li>
+                            <li>影响：对移出地：优化产业结构，但可能失业；对移入地：促进经济发展，但也带来污染。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五章 交通运输布局与区域发展 (详细) -->
+        <h1>第五章 交通运输布局与区域发展</h1>
+        <section id="trans-location">
+            <div class="knowledge-card">
+                <h2>交通运输布局的区位因素</h2>
+                <ul>
+                    <li><strong>交通运输线（铁路、公路、航道）</strong>：
+                        <ul>
+                            <li>自然因素：地形（平原造价低，山区工程量大）、地质（避开断层、滑坡）、气候（暴雨、冻土）、水文（避开沼泽、河流）。</li>
+                            <li>社会经济因素：人口和聚落分布（连接城镇）、经济发展水平（运输需求）、资源分布（资源运输）、生态环境保护（减少破坏）。</li>
+                            <li>技术因素：克服自然障碍（如青藏铁路的冻土问题）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>交通运输点（港口、车站、航空港）</strong>：
+                        <ul>
+                            <li>港口：水域条件（水深、避风）、陆域条件（地形平坦、经济腹地广）、城市依托。</li>
+                            <li>车站：客流/货流集中地、交通便利、与城市交通衔接。</li>
+                            <li>航空港：地形平坦、少雾、净空条件好、远离城市噪声区、交通便利。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="trans-effect">
+            <div class="knowledge-card">
+                <h2>交通运输对区域发展的影响</h2>
+                <ul>
+                    <li><strong>促进区域经济发展</strong>：
+                        <ul>
+                            <li>缩短时空距离，降低运输成本，加快商品流通。</li>
+                            <li>带动相关产业（旅游、商业、物流），促进就业。</li>
+                            <li>促进资源开发，将资源优势转化为经济优势。</li>
+                            <li>加强区域联系，推动经济一体化（如高速公路、高铁沿线经济带）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>影响聚落形态和商业网点布局</strong>：
+                        <ul>
+                            <li>聚落多沿交通线扩展（如铁路枢纽城市）。</li>
+                            <li>商业网点多分布在交通便捷处（交通最优原则）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>对社会文化的影响</strong>：促进文化交流，改变生活方式，加强民族团结。</li>
+                    <li><strong>对环境的影响</strong>：交通噪声、尾气污染；生态破坏（如公路穿越自然保护区）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第六章 环境与发展 (详细) -->
+        <h1>第六章 环境与发展</h1>
+        <section id="human-earth">
+            <div class="knowledge-card">
+                <h2>人地关系与可持续发展</h2>
+                <ul>
+                    <li><strong>人地关系思想演变</strong>：
+                        <ul>
+                            <li>崇拜自然（生产力极低）→改造自然（农业社会）→征服自然（工业社会，环境问题凸显）→谋求人地协调（可持续发展）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>环境问题产生</strong>：人类活动索取资源超过环境承载力，排放废弃物超过环境自净能力。</li>
+                    <li><strong>可持续发展</strong>：
+                        <ul>
+                            <li>定义：既满足当代人的需求，又不损害后代人满足其需求的能力。</li>
+                            <li>内涵：生态持续（基础）、经济持续（条件）、社会持续（目的）。</li>
+                            <li>原则：公平性、持续性、共同性。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="env-issues">
+            <div class="knowledge-card">
+                <h2>主要环境问题与循环经济</h2>
+                <ul>
+                    <li><strong>全球性环境问题</strong>：
+                        <ul>
+                            <li>全球变暖（温室气体增加）、臭氧层破坏（氟氯烃）、酸雨（SO₂、NOx）。</li>
+                            <li>资源短缺（淡水、能源、矿产）。</li>
+                            <li>生态破坏：森林减少、土地荒漠化、生物多样性锐减、水土流失。</li>
+                        </ul>
+                    </li>
+                    <li><strong>环境污染</strong>：大气污染、水污染、土壤污染、固体废弃物污染、噪声污染。</li>
+                    <li><strong>循环经济</strong>：
+                        <ul>
+                            <li>概念：以资源高效利用和循环利用为核心，以“减量化、再利用、再循环”（3R原则）为原则。</li>
+                            <li>表现形式：
+                                <ul>
+                                    <li>清洁生产（工业生产全过程控制污染）。</li>
+                                    <li>生态农业（种植、养殖、加工结合，物质循环）。</li>
+                                    <li>绿色消费，废物回收再利用。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="coordinate">
+            <div class="knowledge-card">
+                <h2>协调人地关系的主要途径</h2>
+                <ul>
+                    <li><strong>控制人口规模</strong>：计划生育，优生优育，提高人口素质。</li>
+                    <li><strong>转变发展模式</strong>：发展循环经济，推行清洁生产，实现绿色低碳。</li>
+                    <li><strong>自然资源的可持续利用</strong>：
+                        <ul>
+                            <li>水资源：节约用水，防治污染，海水淡化。</li>
+                            <li>土地资源：保护耕地，合理规划，防治荒漠化。</li>
+                            <li>森林资源：植树造林，合理采伐，建立自然保护区。</li>
+                            <li>矿产资源：提高利用率，开发替代品，循环利用。</li>
+                        </ul>
+                    </li>
+                    <li><strong>公众参与</strong>：提高环保意识，绿色消费，参与环保活动。</li>
+                    <li><strong>政策法规与国际合作</strong>：制定环保法律，参与国际公约（如《巴黎协定》）。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

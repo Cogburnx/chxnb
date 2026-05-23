@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>生物选修三</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #0d47a1;      /* 科技深蓝 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e3f2fd;     /* 浅蓝色背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #0d47a1;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #0d47a1;
+        }
+        .category-title:hover { background: rgba(13, 71, 161, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #1e3a5f;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮深蓝 */
+        .category-content a.active {
+            color: #0d47a1;
+            font-weight: 600;
+            background-color: rgba(13, 71, 161, 0.12);
+            border-left: 3px solid #0d47a1;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #1e3a5f;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e1f5fe;
+            border: 2px dashed #4fc3f7;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #0d47a1;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #0d47a1;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #90caf9;
+            color: #0d47a1;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #bbdefb;
+            padding-bottom: 10px;
+            color: #0d47a1;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 让嵌套列表更清晰 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (科技蓝背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (生物选修三分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>生物选修三</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 专题一 基因工程 (细分两个子页) -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-gene')">✚ 基因工程</div>
+            <div class="category-content" id="cat-gene">
+                <a href="#gene-tools">工具与基本步骤</a>
+                <a href="#gene-apply">应用与蛋白质工程</a>
+            </div>
+        </div>
+        
+        <!-- 专题二 细胞工程 (细分两个子页) -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-cell')">✚ 细胞工程</div>
+            <div class="category-content" id="cat-cell">
+                <a href="#plant-cell">植物细胞工程</a>
+                <a href="#animal-cell">动物细胞工程</a>
+            </div>
+        </div>
+        
+        <!-- 专题三 胚胎工程 (细分两个子页) -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-embryo')">✚ 胚胎工程</div>
+            <div class="category-content" id="cat-embryo">
+                <a href="#embryo-dev">体内受精与早期发育</a>
+                <a href="#embryo-tech">体外受精与胚胎移植</a>
+            </div>
+        </div>
+        
+        <!-- 专题四 生态工程 (细分两个子页) -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-eco')">✚ 生态工程</div>
+            <div class="category-content" id="cat-eco">
+                <a href="#eco-principle">基本原理</a>
+                <a href="#eco-example">实例与应用</a>
+            </div>
+        </div>
+        
+        <!-- 专题五 安全与伦理 (细分两个子页) -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ethics')">✚ 安全与伦理</div>
+            <div class="category-content" id="cat-ethics">
+                <a href="#safety">转基因安全性与生物武器</a>
+                <a href="#ethics">伦理问题探讨</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">科技向善 · 造福人类</div>
+    </nav>
+    
+    <!-- 主要内容：详细版生物选修三知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一章 基因工程 (详细) -->
+        <h1>基因工程</h1>
+        <section id="gene-tools">
+            <div class="knowledge-card">
+                <h2>基因工程工具与基本步骤</h2>
+                <ul>
+                    <li><strong>工具酶</strong>
+                        <ul>
+                            <li><strong>限制性内切核酸酶（限制酶）</strong>：主要从原核生物中分离，识别双链DNA分子的特定核苷酸序列（通常为4-8bp的回文序列），切割磷酸二酯键。产生黏性末端（错切）或平末端（平切）。例如EcoRI识别GAATTC，切割后产生黏性末端。</li>
+                            <li><strong>DNA连接酶</strong>：催化形成磷酸二酯键，连接DNA片段。两种常用：E.coli DNA连接酶（需NAD⁺）和T4 DNA连接酶（需ATP，可连接黏性末端和平末端）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>载体</strong>
+                        <ul>
+                            <li><strong>质粒</strong>：小型环状DNA，存在于细菌或酵母中，独立于拟核/染色体外。具备复制原点、多克隆位点（多个限制酶切位点）、标记基因（如氨苄青霉素抗性基因）。</li>
+                            <li><strong>噬菌体衍生物</strong>：如λ噬菌体改造的载体，可插入较大片段（10-20kb）。</li>
+                            <li><strong>黏粒（科斯质粒）</strong>：结合质粒和λ噬菌体特点，可容纳35-45kb。</li>
+                            <li><strong>动植物病毒载体</strong>：用于真核细胞，如Ti质粒（农杆菌）、逆转录病毒载体。</li>
+                        </ul>
+                    </li>
+                    <li><strong>基本操作步骤</strong>
+                        <ol>
+                            <li><strong>目的基因的获取</strong>
+                                <ul>
+                                    <li>从基因文库获取：基因组文库（含全部基因）、cDNA文库（由mRNA逆转录，不含内含子和启动子）。</li>
+                                    <li>PCR扩增：利用DNA聚合酶，在引物引导下，通过高温变性、低温复性、中温延伸循环，特异性扩增目的基因。</li>
+                                    <li>人工合成：化学合成（短肽基因）或通过mRNA逆转录合成cDNA。</li>
+                                </ul>
+                            </li>
+                            <li><strong>基因表达载体的构建（核心步骤）</strong>
+                                <ul>
+                                    <li>组成：目的基因、启动子（RNA聚合酶识别位点）、终止子、标记基因（便于筛选）、复制原点（必要时）。</li>
+                                    <li>过程：同种限制酶切割载体和目的DNA，用DNA连接酶连接形成重组载体。</li>
+                                </ul>
+                            </li>
+                            <li><strong>将目的基因导入受体细胞</strong>
+                                <ul>
+                                    <li><strong>植物细胞</strong>：农杆菌转化法（双子叶植物）、基因枪法（单子叶）、花粉管通道法（我国独创）。</li>
+                                    <li><strong>动物细胞</strong>：显微注射法（将基因注入受精卵原核），逆转录病毒感染。</li>
+                                    <li><strong>微生物</strong>：Ca²⁺处理法（感受态细胞），电穿孔法。</li>
+                                </ul>
+                            </li>
+                            <li><strong>目的基因的检测与鉴定</strong>
+                                <ul>
+                                    <li><strong>分子水平检测</strong>：
+                                        <ul>
+                                            <li>DNA分子杂交（Southern blot）：检测转基因生物染色体DNA是否插入目的基因。</li>
+                                            <li>分子杂交（Northern blot）：检测目的基因是否转录出mRNA。</li>
+                                            <li>抗原-抗体杂交（Western blot）：检测目的基因是否翻译成蛋白质。</li>
+                                        </ul>
+                                    </li>
+                                    <li><strong>个体生物学水平鉴定</strong>：如抗虫棉接种害虫观察抗性；改良品质性状的直接观察。</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="gene-apply">
+            <div class="knowledge-card">
+                <h2>基因工程应用 & 蛋白质工程</h2>
+                <ul>
+                    <li><strong>植物基因工程应用</strong>
+                        <ul>
+                            <li><strong>抗虫转基因植物</strong>：如转Bt毒蛋白基因棉花（抗虫棉）。</li>
+                            <li><strong>抗病转基因植物</strong>：导入病毒外壳蛋白基因、抗病相关基因。</li>
+                            <li><strong>抗除草剂转基因植物</strong>：如草甘膦抗性基因。</li>
+                            <li><strong>改良品质</strong>：如转维生素A前体基因的“金大米”。</li>
+                        </ul>
+                    </li>
+                    <li><strong>动物基因工程应用</strong>
+                        <ul>
+                            <li><strong>提高生长速度</strong>：如转生长激素基因鱼。</li>
+                            <li><strong>乳腺生物反应器</strong>：将药用蛋白基因与乳腺蛋白基因启动子重组，通过哺乳动物乳腺分泌药物（如抗凝血酶Ⅲ）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>医药卫生应用</strong>
+                        <ul>
+                            <li><strong>基因工程药物</strong>：胰岛素、干扰素、白细胞介素、生长激素、乙肝疫苗等（利用大肠杆菌或酵母生产）。</li>
+                            <li><strong>基因治疗</strong>：将正常基因导入患者细胞，治疗遗传病。分为体外基因治疗（如腺苷脱氨酶缺乏症）和体内基因治疗（直接注射）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>蛋白质工程</strong>
+                        <ul>
+                            <li><strong>概念</strong>：以蛋白质分子的结构规律与功能关系为基础，通过基因修饰或合成，对现有蛋白质进行改造或制造新的蛋白质，以满足人类需求。</li>
+                            <li><strong>基本流程</strong>：从预期的蛋白质功能出发→设计预期的蛋白质结构→推测应有的氨基酸序列→找到对应的脱氧核苷酸序列（基因）→合成新基因或改造原有基因→表达出新的蛋白质。</li>
+                            <li><strong>与基因工程的区别</strong>：基因工程只能生产自然界已有的蛋白质；蛋白质工程可创造出自然界不存在的蛋白质，是基因工程的延伸和深化。</li>
+                            <li><strong>实例</strong>：改造T4溶菌酶提高热稳定性；设计具有特定活性的嵌合抗体；研制速效胰岛素（将胰岛素B链第28位脯氨酸改为天冬氨酸）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 细胞工程 (详细) -->
+        <h1>细胞工程</h1>
+        <section id="plant-cell">
+            <div class="knowledge-card">
+                <h2>植物细胞工程</h2>
+                <ul>
+                    <li><strong>植物组织培养</strong>
+                        <ul>
+                            <li><strong>原理</strong>：植物细胞具有全能性（已分化的细胞仍具有发育成完整个体的潜能）。</li>
+                            <li><strong>培养条件</strong>：无菌环境、适宜温度、光照（适当）、植物激素（生长素和细胞分裂素比例调控脱分化和再分化）、营养物质（无机盐、蔗糖等）。</li>
+                            <li><strong>过程</strong>：外植体（离体组织）→消毒→接种→诱导愈伤组织（脱分化）→再分化（生芽生根）→完整植株。</li>
+                            <li><strong>应用</strong>：
+                                <ul>
+                                    <li><strong>微型繁殖</strong>：快速繁殖优良品种。</li>
+                                    <li><strong>作物脱毒</strong>：利用茎尖分生组织无病毒的特点，培养脱毒苗。</li>
+                                    <li><strong>人工种子</strong>：以胚状体、不定芽等包裹人工种皮制成，可低温保存。</li>
+                                    <li><strong>突变体筛选</strong>：利用愈伤组织易发生突变的特点，筛选抗病、抗盐突变体。</li>
+                                    <li><strong>次生代谢产物生产</strong>：通过细胞悬浮培养生产紫草宁、人参皂苷等。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>植物体细胞杂交</strong>
+                        <ul>
+                            <li><strong>目的</strong>：克服远缘杂交不亲和性，获得种间或属间杂种植株。</li>
+                            <li><strong>过程</strong>：
+                                <ol>
+                                    <li>去除细胞壁（纤维素酶、果胶酶处理）→获得原生质体。</li>
+                                    <li>诱导原生质体融合：物理法（电融合、离心、振动）、化学法（聚乙二醇PEG）。</li>
+                                    <li>杂种细胞筛选（利用细胞形态、标记基因等）。</li>
+                                    <li>杂种细胞通过组织培养形成杂种植株。</li>
+                                </ol>
+                            </li>
+                            <li><strong>意义与实例</strong>：如“番茄-马铃薯”杂种植株（但未达到预期地上结番茄地下结马铃薯），白菜-甘蓝等。实际应用更多体现在柑橘、烟草等体细胞杂交育种。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="animal-cell">
+            <div class="knowledge-card">
+                <h2>动物细胞工程</h2>
+                <ul>
+                    <li><strong>动物细胞培养</strong>
+                        <ul>
+                            <li><strong>条件</strong>：
+                                <ul>
+                                    <li>无菌、无毒环境（添加抗生素、定期更换培养液）。</li>
+                                    <li>营养：合成培养基含葡萄糖、氨基酸、无机盐、维生素、血清（提供生长因子）。</li>
+                                    <li>温度、pH：36.5℃±0.5℃，pH 7.2~7.4。</li>
+                                    <li>气体环境：95%空气 + 5% CO₂（CO₂维持pH）。</li>
+                                </ul>
+                            </li>
+                            <li><strong>过程</strong>：取动物组织→剪碎→胰蛋白酶/胶原蛋白酶处理→分散成单个细胞→制成细胞悬液→原代培养（传代前）→传代培养（细胞贴壁生长，接触抑制后需分瓶）。</li>
+                            <li><strong>细胞株与细胞系</strong>：有限细胞系（传代有限，正常细胞）；无限细胞系（发生突变或转化，可无限传代，如癌细胞系）。</li>
+                            <li><strong>应用</strong>：生产病毒疫苗、单克隆抗体、药物筛选、细胞生理研究。</li>
+                        </ul>
+                    </li>
+                    <li><strong>动物细胞核移植</strong>
+                        <ul>
+                            <li><strong>原理</strong>：动物细胞核具有全能性（虽然卵细胞质能重编程体细胞核）。</li>
+                            <li><strong>过程</strong>：从供体体细胞中取出细胞核→注入去核的卵母细胞（MⅡ期）→电刺激融合并激活→早期胚胎发育→移植到代孕母体→克隆动物。</li>
+                            <li><strong>应用</strong>：加速良种繁育（如克隆奶牛）、保护濒危物种（如克隆大熊猫）、治疗性克隆（获得胚胎干细胞用于疾病治疗）。</li>
+                            <li><strong>问题</strong>：成功率低，克隆动物健康问题（如早衰、畸形）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>单克隆抗体</strong>
+                        <ul>
+                            <li><strong>原理</strong>：B淋巴细胞能产生特异性抗体但不能无限增殖，骨髓瘤细胞能无限增殖但不产生抗体，融合后杂交瘤细胞兼具两种特性。</li>
+                            <li><strong>制备过程</strong>：
+                                <ol>
+                                    <li>免疫小鼠：用特定抗原注射小鼠，取脾脏中的B淋巴细胞。</li>
+                                    <li>细胞融合：用聚乙二醇（PEG）或电融合法将B细胞与骨髓瘤细胞融合。</li>
+                                    <li>筛选杂交瘤细胞：使用HAT培养基（含次黄嘌呤、氨基蝶呤、胸腺嘧啶），未融合的B细胞死亡，未融合的骨髓瘤细胞因缺乏HGPRT酶而死亡，只有融合的杂交瘤细胞存活。</li>
+                                    <li>克隆化培养：用有限稀释法获得单个杂交瘤细胞，筛选能产生所需抗体的阳性克隆。</li>
+                                    <li>大量生产：体外培养（培养液）或体内接种（小鼠腹水）获得单克隆抗体。</li>
+                                </ol>
+                            </li>
+                            <li><strong>优点</strong>：特异性强、灵敏度高、可大量制备、纯度高。</li>
+                            <li><strong>应用</strong>：诊断试剂（早孕试纸、肿瘤标志物检测）、靶向药物（“生物导弹”——单抗与药物偶联）、蛋白质纯化（亲和层析）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 胚胎工程 (详细) -->
+        <h1>胚胎工程</h1>
+        <section id="embryo-dev">
+            <div class="knowledge-card">
+                <h2>体内受精与早期胚胎发育</h2>
+                <ul>
+                    <li><strong>精子获能</strong>：刚射出的精子不能立即与卵子受精，必须在雌性生殖道内经历获能过程，即精子质膜去除抑制因子，发生生理变化，获得受精能力。体外获能可用培养液处理。</li>
+                    <li><strong>卵子准备</strong>：卵子需发育到减数第二次分裂中期（MⅡ期）才具备受精能力。排卵时卵子处于减数第一次分裂前的次级卵母细胞阶段，在输卵管中受精过程中完成减数第二次分裂。</li>
+                    <li><strong>受精过程</strong>：
+                        <ul>
+                            <li>顶体反应：精子与卵子透明带接触，顶体释放水解酶，溶解透明带。</li>
+                            <li>透明带反应：精子穿过透明带触及卵黄膜，透明带立即发生反应阻止多精入卵。</li>
+                            <li>卵细胞膜反应：精子入卵后，卵黄膜封闭，进一步阻止多精入卵。</li>
+                            <li>原核形成：精子尾部退化，核膨大形成雄原核；卵子完成第二次分裂，形成雌原核。</li>
+                            <li>配子结合：两个原核融合，形成合子（受精卵）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>早期胚胎发育</strong>：
+                        <ul>
+                            <li>受精卵→卵裂（有丝分裂）→桑椹胚（细胞数32左右，全能细胞）→囊胚（出现内细胞团和滋养层，内细胞团发育为胎儿，滋养层发育为胎膜和胎盘）→原肠胚（三个胚层分化）。</li>
+                            <li>孵化：囊胚从透明带中伸展出来，着床准备。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="embryo-tech">
+            <div class="knowledge-card">
+                <h2>体外受精与胚胎移植</h2>
+                <ul>
+                    <li><strong>体外受精</strong>
+                        <ul>
+                            <li><strong>卵母细胞采集</strong>：用促性腺激素处理雌性动物（超数排卵），从输卵管或卵巢中采集卵母细胞。人类则用超声引导穿刺取卵。</li>
+                            <li><strong>精子采集与获能</strong>：收集精子，用获能液处理（如肝素诱导获能）。</li>
+                            <li><strong>受精</strong>：将获能精子与成熟卵母细胞在培养液中共同孵育，完成受精。</li>
+                            <li><strong>早期胚胎培养</strong>：受精卵移入发育培养液中继续培养至桑椹胚或囊胚阶段。</li>
+                        </ul>
+                    </li>
+                    <li><strong>胚胎移植</strong>
+                        <ul>
+                            <li><strong>生理基础</strong>：
+                                <ul>
+                                    <li>供体和受体同期发情处理（激素调节），为胚胎提供相同生理环境。</li>
+                                    <li>早期胚胎处于游离状态，易于收集和移植。</li>
+                                    <li>受体对移入的胚胎不发生免疫排斥。</li>
+                                    <li>胚胎遗传特性不受受体影响。</li>
+                                </ul>
+                            </li>
+                            <li><strong>基本程序</strong>：
+                                <ol>
+                                    <li>供体超数排卵（注射促性腺激素）。</li>
+                                    <li>配种或人工授精。</li>
+                                    <li>胚胎收集（冲胚，从输卵管或子宫）。</li>
+                                    <li>胚胎质量检查（显微镜下选择健康胚胎）。</li>
+                                    <li>胚胎移植：手术法（经输卵管或子宫）或非手术法（子宫颈）。</li>
+                                    <li>受体妊娠检查，分娩。</li>
+                                </ol>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>胚胎分割</strong>
+                        <ul>
+                            <li>概念：将早期胚胎切割成多份，经移植获得同卵双胎或多胎。</li>
+                            <li>操作：选择桑椹胚或囊胚（囊胚需将内细胞团均等分割），用显微手术刀或分割针切割。</li>
+                            <li>意义：提高胚胎利用率，产生遗传背景相同的后代。</li>
+                        </ul>
+                    </li>
+                    <li><strong>胚胎干细胞（ES细胞）</strong>
+                        <ul>
+                            <li>来源：早期胚胎（囊胚内细胞团）或原始生殖细胞。</li>
+                            <li>特性：全能性或多能性；形态上体积小、核大；体外培养可维持未分化状态。</li>
+                            <li>应用：研究细胞分化、基因敲除动物模型、细胞治疗（如修复受损组织）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 生态工程 (详细) -->
+        <h1>生态工程</h1>
+        <section id="eco-principle">
+            <div class="knowledge-card">
+                <h2>生态工程基本原理</h2>
+                <ul>
+                    <li><strong>物质循环再生原理</strong>：物质在生态系统中可循环利用，废物资源化。例如“桑基鱼塘”中蚕沙养鱼，塘泥肥田。</li>
+                    <li><strong>物种多样性原理</strong>：生物多样性程度越高，生态系统营养结构越复杂，抵抗力稳定性越高。如人工混交林比单一林更稳定。</li>
+                    <li><strong>协调与平衡原理</strong>：生物与环境的协调，生物数量不超过环境承载力（K值），避免生态失衡。如草原放牧量不能超载。</li>
+                    <li><strong>整体性原理</strong>：自然、经济、社会三方面协调统一，综合考虑生态效益、经济效益、社会效益。如林业建设要兼顾林业、牧民、社会需求。</li>
+                    <li><strong>系统学与工程学原理</strong>
+                        <ul>
+                            <li>系统的结构决定功能：通过优化系统结构改善功能（如增加食物链环节）。</li>
+                            <li>整体功能大于部分之和：“1+1>2”，如豆科植物与根瘤菌共生固氮。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="eco-example">
+            <div class="knowledge-card">
+                <h2>生态工程实例与应用</h2>
+                <ul>
+                    <li><strong>农村综合发展型生态工程</strong>
+                        <ul>
+                            <li>典型模式：北京留民营村的“农-牧-沼-鱼”循环模式。以沼气工程为中心，将种植业、养殖业有机结合，实现废物资源化，减少污染，增加产出。</li>
+                            <li>应用原理：物质循环再生、整体性、物种多样性。</li>
+                        </ul>
+                    </li>
+                    <li><strong>湿地生态恢复工程</strong>
+                        <ul>
+                            <li>目的：恢复湿地生态功能，如调蓄洪水、净化水质、保护生物多样性。</li>
+                            <li>措施：退耕还湖、植被恢复（种植芦苇等水生植物）、控制污染源、引入野生动物。</li>
+                            <li>案例：鄱阳湖湿地恢复。</li>
+                        </ul>
+                    </li>
+                    <li><strong>矿区废弃地生态恢复工程</strong>
+                        <ul>
+                            <li>问题：土壤结构破坏、重金属污染、植被难以恢复。</li>
+                            <li>措施：表土回填（保持土壤种子库）、覆土改良、种植耐性植物（如豆科牧草）、利用微生物恢复土壤活性。</li>
+                            <li>原理：协调与平衡、物种多样性。</li>
+                        </ul>
+                    </li>
+                    <li><strong>大区域生态系统恢复工程</strong>
+                        <ul>
+                            <li>如“三北”防护林建设、退耕还林还草工程。</li>
+                            <li>注意问题：避免树种单一导致的病虫害蔓延（需考虑物种多样性），因地制宜选择树种（协调与平衡）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>城市环境生态工程</strong>
+                        <ul>
+                            <li>内容：垃圾分类处理、污水治理、增加绿化面积、减少汽车尾气、推广清洁能源。</li>
+                            <li>整体性原则：城市规划需综合考虑环境容量、市民生活、经济发展。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五章 生物技术的安全性与伦理问题 (详细) -->
+        <h1>安全性与伦理问题</h1>
+        <section id="safety">
+            <div class="knowledge-card">
+                <h2>转基因生物的安全性与生物武器</h2>
+                <ul>
+                    <li><strong>转基因生物安全性争论焦点</strong>
+                        <ul>
+                            <li><strong>食物安全</strong>：是否含有毒性或过敏原？营养成分是否改变？标志基因（如抗生素抗性基因）是否会转移到人体肠道微生物？</li>
+                            <li><strong>生物安全（生态安全）</strong>：转基因植物可能通过花粉向野生近缘种转移基因，产生“超级杂草”；可能对非靶标生物（如蜜蜂、土壤生物）造成伤害；可能影响生物多样性。</li>
+                            <li><strong>环境安全</strong>：转基因作物是否会破坏生态平衡？是否会加速害虫抗性进化？</li>
+                        </ul>
+                    </li>
+                    <li><strong>理性看待转基因技术</strong>
+                        <ul>
+                            <li>趋利避害，不能因噎废食。加强监管、风险评估、公众参与。</li>
+                            <li>我国对转基因作物的管理：严格的安全评价制度（包括实验研究、中间试验、环境释放、生产性试验、安全证书等阶段）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>生物武器</strong>
+                        <ul>
+                            <li>种类：致病菌（炭疽杆菌、鼠疫杆菌）、病毒（埃博拉病毒）、毒素（肉毒毒素）、转基因生物武器（基因改造增强致病力）。</li>
+                            <li>特点：传染性强、污染面积广、不易被发现、生产成本低、危害时间长。</li>
+                            <li>国际公约：《禁止生物武器公约》（1972年）禁止发展、生产、储存、获取生物武器。我国是缔约国，坚决反对任何形式的生物武器。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="ethics">
+            <div class="knowledge-card">
+                <h2>生物技术伦理问题探讨</h2>
+                <ul>
+                    <li><strong>克隆技术伦理</strong>
+                        <ul>
+                            <li><strong>治疗性克隆</strong>：利用克隆技术获得胚胎干细胞，用于医学研究和细胞治疗。支持者认为可挽救生命；反对者认为胚胎也是生命，应受尊重。</li>
+                            <li><strong>生殖性克隆（克隆人）</strong>：克隆完整的人。伦理争议极大：涉及人的尊严、家庭关系、基因多样性、安全风险等。我国明确禁止生殖性克隆人，不反对治疗性克隆研究。</li>
+                        </ul>
+                    </li>
+                    <li><strong>试管婴儿与“设计试管婴儿”</strong>
+                        <ul>
+                            <li><strong>试管婴儿</strong>：解决不孕不育问题，已经得到广泛接受。</li>
+                            <li><strong>设计试管婴儿</strong>：在胚胎移植前进行遗传学诊断（PGD），选择符合特定基因型的胚胎。用于避免遗传病（如血友病）是合乎伦理的；但用于性别选择、智力筛选等非医疗目的则引起伦理担忧。</li>
+                        </ul>
+                    </li>
+                    <li><strong>基因身份证与基因歧视</strong>
+                        <ul>
+                            <li>基因身份证记录个人基因信息，可能被保险公司、雇主利用，导致基因歧视（如携带某些疾病易感基因的人被拒保）。</li>
+                            <li>应立法保护基因隐私，禁止基因歧视。</li>
+                        </ul>
+                    </li>
+                    <li><strong>基因治疗伦理</strong>
+                        <ul>
+                            <li><strong>体细胞基因治疗</strong>：仅影响个体，风险可控，伦理争议较小（如治疗重症联合免疫缺陷病）。</li>
+                            <li><strong>生殖细胞基因治疗</strong>：改变遗传物质并可能传递给后代，安全性未知，涉及后代选择权问题，目前国际上严格禁止。</li>
+                        </ul>
+                    </li>
+                    <li><strong>我国立场与伦理审查</strong>：建立伦理委员会，遵守“知情同意、保护隐私、尊重自主、有利不伤害”等原则。加强生物技术研究的伦理监管，确保科技发展符合人类福祉。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 3. 粒子效果 (科技蓝调)
+        document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

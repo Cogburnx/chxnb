@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>数学选修二</title>
+    
+    <!-- KaTeX 渲染（选修二公式密集） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        /* 无图片，保留样式以备将来 */
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;  /* 移动端固定左侧宽度 */
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (数学选修二分类) -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>数学选修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-sl')">✚ 数列</div>
+            <div class="category-content" id="cat-sl">
+                <a href="#slgn">数列的概念</a>
+                <a href="#dcsl">等差数列</a>
+                <a href="#dbsl">等比数列</a>
+                <a href="#slqz">数列求和</a>
+                <a href="#slzl">数列综合</a>
+                <a href="#sxglyf">数学归纳法</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ds')">✚ 导数及其应用</div>
+            <div class="category-content" id="cat-ds">
+                <a href="#dsgn">导数的概念</a>
+                <a href="#dsjs">导数的计算</a>
+                <a href="#dsyy">导数在研究函数中的应用</a>
+                <a href="#zqsl">导数的实际应用</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-fl')">✚ 推理与证明</div>
+            <div class="category-content" id="cat-fl">
+                <a href="#hqtl">合情推理</a>
+                <a href="#yytl">演绎推理</a>
+                <a href="#zmff">证明方法</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：数学选修二知识点卡片（纯文字，无图片） -->
+    <main>
+        <!-- 数列 章节 -->
+        <h1>数列</h1>
+        
+        <section id="slgn">
+            <div class="knowledge-card">
+                <h2>数列的概念</h2>
+                <p>
+                    <b>数列的定义</b>：按一定次序排列的一列数叫做数列，数列中的每一个数叫做这个数列的项。<br>
+                    <b>数列的表示</b>：一般形式 \(a_1, a_2, a_3, \ldots, a_n, \ldots\)，简记为 \(\{a_n\}\)。<br>
+                    <b>通项公式</b>：如果数列 \(\{a_n\}\) 的第 \(n\) 项 \(a_n\) 与 \(n\) 之间的关系可以用一个公式来表示，那么这个公式叫做数列的通项公式。<br>
+                    <b>递推公式</b>：如果已知数列 \(\{a_n\}\) 的第一项（或前几项），且从第二项（或某一项）开始的任一项 \(a_n\) 与它的前一项 \(a_{n-1}\)（或前几项）间的关系可以用一个公式来表示，那么这个公式叫做数列的递推公式。<br>
+                    <b>数列的分类</b>：有穷数列、无穷数列；递增数列、递减数列、常数列、摆动数列。
+                </p>
+            </div>
+        </section>
+        
+        <section id="dcsl">
+            <div class="knowledge-card">
+                <h2>等差数列</h2>
+                <p>
+                    <b>定义</b>：从第2项起，每一项与它的前一项的差等于同一个常数，这个常数叫做公差，记作 \(d\)。<br>
+                    <b>等差中项</b>：如果 \(a, A, b\) 成等差数列，那么 \(A\) 叫做 \(a\) 与 \(b\) 的等差中项，且 \(A = \frac{a+b}{2}\)。<br>
+                    <b>通项公式</b>：\(a_n = a_1 + (n-1)d\)。推广：\(a_n = a_m + (n-m)d\)。<br>
+                    <b>前 \(n\) 项和公式</b>：\(S_n = \frac{n(a_1+a_n)}{2} = na_1 + \frac{n(n-1)}{2}d\)。 <br>
+                    <b>性质</b>：<br>
+                    1. 若 \(m+n = p+q\)，则 \(a_m + a_n = a_p + a_q\)。<br>
+                    2. 数列 \(S_n, S_{2n}-S_n, S_{3n}-S_{2n}, \ldots\) 也成等差数列。<br>
+                    3. 等差数列 \(\{a_n\}\) 满足 \(S_n = An^2 + Bn\)（\(A, B\) 为常数）。<br>
+                    4. 若 \(a_1 > 0, d < 0\)，则 \(S_n\) 存在最大值；若 \(a_1 < 0, d > 0\)，则 \(S_n\) 存在最小值。
+                </p>
+            </div>
+        </section>
+
+        <section id="dbsl">
+            <div class="knowledge-card">
+                <h2>等比数列</h2>
+                <p>
+                    <b>定义</b>：从第2项起，每一项与它的前一项的比等于同一个常数，这个常数叫做公比，记作 \(q\)（\(q \neq 0\)）。 <br>
+                    <b>等比中项</b>：如果 \(a, G, b\) 成等比数列，那么 \(G\) 叫做 \(a\) 与 \(b\) 的等比中项，且 \(G^2 = ab\)（\(G = \pm\sqrt{ab}\)）。 <br>
+                    <b>通项公式</b>：\(a_n = a_1 q^{n-1}\)。推广：\(a_n = a_m q^{n-m}\)。 <br>
+                    <b>前 \(n\) 项和公式</b>： <br>
+                    \[
+                    S_n = \begin{cases}
+                    na_1, & q = 1 \\
+                    \frac{a_1(1-q^n)}{1-q} = \frac{a_1 - a_n q}{1-q}, & q \neq 1
+                    \end{cases}
+                    \]
+                    <b>性质</b>： <br>
+                    1. 若 \(m+n = p+q\)，则 \(a_m \cdot a_n = a_p \cdot a_q\)。<br>
+                    2. 当 \(q \neq -1\) 或 \(q = -1\) 且 \(n\) 为奇数时，数列 \(S_n, S_{2n}-S_n, S_{3n}-S_{2n}, \ldots\) 仍成等比数列，公比为 \(q^n\)。
+                </p>
+            </div>
+        </section>
+
+        <section id="slqz">
+            <div class="knowledge-card">
+                <h2>数列求和</h2>
+                <p>
+                    <b>公式法</b>：直接应用等差、等比数列求和公式。<br>
+                    <b>分组求和法</b>：将一个数列拆分成几个可以直接求和的数列。<br>
+                    <b>裂项相消法</b>：将数列的通项拆成两项之差，求和时抵消中间项。常见裂项：\(\frac{1}{n(n+1)} = \frac{1}{n} - \frac{1}{n+1}\)；\(\frac{1}{(2n-1)(2n+1)} = \frac{1}{2}\left(\frac{1}{2n-1} - \frac{1}{2n+1}\right)\)；\(\frac{1}{n(n+1)(n+2)} = \frac{1}{2}\left[\frac{1}{n(n+1)} - \frac{1}{(n+1)(n+2)}\right]\)。<br>
+                    <b>错位相减法</b>：适用于一个等差数列与一个等比数列对应项相乘构成的数列。<br>
+                    <b>倒序相加法</b>：适用于与首末两项等距离的两项之和相等的数列（如等差数列）。
+                </p>
+            </div>
+        </section>
+
+        <section id="slzl">
+            <div class="knowledge-card">
+                <h2>数列综合</h2>
+                <p>
+                    <b>\(a_n\) 与 \(S_n\) 的关系</b>：\[ a_n = \begin{cases} S_1, & n=1 \\ S_n - S_{n-1}, & n \geq 2 \end{cases} \]<br>
+                    <b>数列的单调性</b>：\(a_{n+1} - a_n > 0\) 为递增数列；\(a_{n+1} - a_n < 0\) 为递减数列。<br>
+                    <b>周期数列</b>：存在正整数 \(T\) 使得 \(a_{n+T} = a_n\) 对一切 \(n\) 成立。<br>
+                    <b>数列与函数</b>：数列可以看作定义在正整数集（或其子集）上的函数。
+                </p>
+            </div>
+        </section>
+
+        <section id="sxglyf">
+            <div class="knowledge-card">
+                <h2>数学归纳法</h2>
+                <p>
+                    <b>原理</b>：用于证明与正整数 \(n\) 有关的命题。<br>
+                    <b>步骤</b>： <br>
+                    1. <b>归纳奠基</b>：证明当 \(n\) 取第一个值 \(n_0\)（通常 \(n_0=1\)）时命题成立。<br>
+                    2. <b>归纳递推</b>：假设当 \(n = k\)（\(k \geq n_0\)）时命题成立，证明当 \(n = k+1\) 时命题也成立。<br>
+                    由（1）和（2）可知，命题对于所有 \(n \geq n_0\) 的自然数都成立。<br>
+                    <b>应用</b>：证明恒等式、不等式、整除问题、数列通项等。
+                </p>
+            </div>
+        </section>
+
+        <!-- 导数及其应用 章节 -->
+        <h1>导数及其应用</h1>
+
+        <section id="dsgn">
+            <div class="knowledge-card">
+                <h2>导数的概念</h2>
+                <p>
+                    <b>平均变化率</b>：函数 \(y = f(x)\) 从 \(x_1\) 到 \(x_2\) 的平均变化率为 \(\frac{\Delta y}{\Delta x} = \frac{f(x_2) - f(x_1)}{x_2 - x_1}\)。  <br>
+                    <b>瞬时变化率</b>：当 \(\Delta x \to 0\) 时，平均变化率的极限称为函数在 \(x = x_0\) 处的瞬时变化率。  <br>
+                    <b>导数的定义</b>：函数 \(y = f(x)\) 在 \(x = x_0\) 处的导数 \(f'(x_0) = \lim_{\Delta x \to 0} \frac{\Delta y}{\Delta x} = \lim_{\Delta x \to 0} \frac{f(x_0 + \Delta x) - f(x_0)}{\Delta x}\)。  <br>
+                    <b>导数的几何意义</b>：函数 \(y = f(x)\) 在点 \(x_0\) 处的导数 \(f'(x_0)\) 表示曲线在该点处的切线斜率。  <br>
+                    <b>导函数</b>：如果函数 \(y = f(x)\) 在区间内每一点都可导，则称 \(f(x)\) 在该区间内可导，其导函数简称导数，记作 \(f'(x)\) 或 \(y'\)。  
+                </p>
+            </div>
+        </section>
+
+        <section id="dsjs">
+            <div class="knowledge-card">
+                <h2>导数的计算</h2>
+                <p>
+                    <b>基本初等函数的导数公式</b>： <br>
+                    \(c' = 0\)（\(c\) 为常数）；\((x^\alpha)' = \alpha x^{\alpha-1}\)；\((\sin x)' = \cos x\)；\((\cos x)' = -\sin x\)；<br>
+                    \((\tan x)' = \sec^2 x\)；\((a^x)' = a^x \ln a\)（\(a > 0, a \neq 1\)）；\((e^x)' = e^x\)；<br>
+                    \((\log_a x)' = \frac{1}{x \ln a}\)（\(a > 0, a \neq 1\)）；\((\ln x)' = \frac{1}{x}\)。<br>
+                    <b>导数的四则运算法则</b>： <br>
+                    \([f(x) \pm g(x)]' = f'(x) \pm g'(x)\)；<br>
+                    \([f(x)g(x)]' = f'(x)g(x) + f(x)g'(x)\)；特别地，\([kf(x)]' = kf'(x)\)；<br>
+                    \(\left[\frac{f(x)}{g(x)}\right]' = \frac{f'(x)g(x) - f(x)g'(x)}{[g(x)]^2}\)（\(g(x) \neq 0\)）。<br>
+                    <b>复合函数的导数</b>： <br>
+                    若 \(y = f(u)\)，\(u = \varphi(x)\)，则 \(y'_x = y'_u \cdot u'_x = f'(u) \cdot \varphi'(x)\)。
+                </p>
+            </div>
+        </section>
+
+        <section id="dsyy">
+            <div class="knowledge-card">
+                <h2>导数在研究函数中的应用</h2>
+                <p>
+                    <b>函数的单调性与导数</b>： <br>
+                    在某个区间 \((a, b)\) 内，如果 \(f'(x) > 0\)，则函数 \(y = f(x)\) 在这个区间内单调递增；<br>
+                    如果 \(f'(x) < 0\)，则函数 \(y = f(x)\) 在这个区间内单调递减。<br>
+                    <b>函数的极值与导数</b>： <br>
+                    设函数 \(y = f(x)\) 在点 \(x_0\) 处可导，且 \(f'(x_0) = 0\)。<br>
+                    如果在 \(x_0\) 附近的左侧 \(f'(x) > 0\)，右侧 \(f'(x) < 0\)，那么 \(f(x_0)\) 是极大值；<br>
+                    如果在 \(x_0\) 附近的左侧 \(f'(x) < 0\)，右侧 \(f'(x) > 0\)，那么 \(f(x_0)\) 是极小值。<br>
+                    <b>函数的最值与导数</b>： <br>
+                    求函数 \(y = f(x)\) 在区间 \([a, b]\) 上的最大值与最小值的步骤：<br>
+                    1. 求函数 \(y = f(x)\) 在区间 \((a, b)\) 内的极值；<br>
+                    2. 将函数 \(y = f(x)\) 的各极值与端点处的函数值 \(f(a), f(b)\) 比较，其中最大的一个是最大值，最小的一个是最小值。
+                </p>
+            </div>
+        </section>
+
+        <section id="zqsl">
+            <div class="knowledge-card">
+                <h2>导数的实际应用</h2>
+                <p>
+                    <b>生活中的优化问题</b>：利用导数解决利润最大、面积体积最大、成本最小、用料最省等问题。  <br>
+                    步骤：建立实际问题的数学模型（列出函数关系式）→ 确定定义域 → 求导 → 解方程 \(f'(x) = 0\) → 比较极值与端点值 → 得出最优解。<br>
+                    <b>物理中的应用</b>：瞬时速度是位移函数的导数，瞬时加速度是速度函数的导数。  
+                </p>
+            </div>
+        </section>
+
+        <!-- 推理与证明 章节 -->
+        <h1>推理与证明</h1>
+
+        <section id="hqtl">
+            <div class="knowledge-card">
+                <h2>合情推理</h2>
+                <p>
+                    <b>归纳推理</b>：由某类事物的部分对象具有某些特征，推出该类事物的全部对象都具有这些特征的推理，或者由个别事实概括出一般结论的推理。归纳推理是由部分到整体、由个别到一般的推理。  <br>
+                    <b>类比推理</b>：由两类对象具有某些类似特征和其中一类对象的某些已知特征，推出另一类对象也具有这些特征的推理。类比推理是由特殊到特殊的推理。  <br>
+                    <b>合情推理的作用</b>：提出猜想，发现结论，为证明提供思路。
+                </p>
+            </div>
+        </section>
+
+        <section id="yytl">
+            <div class="knowledge-card">
+                <h2>演绎推理</h2>
+                <p>
+                    <b>定义</b>：从一般性的原理出发，推出某个特殊情况下的结论的推理。演绎推理是由一般到特殊的推理。  <br>
+                    <b>三段论</b>：演绎推理的一般模式，包括：<br>
+                    大前提——已知的一般原理；<br>
+                    小前提——所研究的特殊情况；<br>
+                    结论——根据一般原理对特殊情况作出的判断。  <br>
+                    例："所有的金属都能导电（大前提），铜是金属（小前提），所以铜能导电（结论）。"
+                </p>
+            </div>
+        </section>
+
+        <section id="zmff">
+            <div class="knowledge-card">
+                <h2>证明方法</h2>
+                <p>
+                    <b>综合法</b>：从已知条件和某些数学定义、定理、公理等出发，通过推理推导出所要证明的结论成立。  <br>
+                    <b>分析法</b>：从要证明的结论出发，逐步寻求使它成立的充分条件，直至最后把要证明的结论归结为判定一个明显成立的条件为止。  <br>
+                    <b>反证法</b>：假设原命题不成立，经过正确的推理，最后得出矛盾，因此说明假设错误，从而证明原命题成立。  <br>
+                    <b>数学归纳法</b>：（已在数列部分介绍）用于证明与正整数有关的命题。
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+          // 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

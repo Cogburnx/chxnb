@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>初中科学·八年级上册（详细版）</title>
+    
+    <!-- KaTeX 渲染 (用于公式) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2c7da0;      /* 科学蓝色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e6f4ff;     /* 浅蓝背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #2c7da0;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #2c7da0;
+        }
+        .category-title:hover { background: rgba(44, 125, 160, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #1e5a73;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+        .category-content a.active {
+            color: #2c7da0;
+            font-weight: 600;
+            background-color: rgba(44, 125, 160, 0.12);
+            border-left: 3px solid #2c7da0;
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #1e5a73;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e0f0f5;
+            border: 2px dashed #7fb4c4;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2c7da0;
+        }
+
+        body.collapsed nav { padding: 20px 5px; }
+        body.collapsed .sidebar-header h2 { opacity: 0; width: 0; margin: 0; pointer-events: none; }
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home { display: none !important; }
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c7da0;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #7fb4c4;
+            color: #2c7da0;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #c2dfe9;
+            padding-bottom: 10px;
+            color: #2c7da0;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 170px 1fr; }
+            body.collapsed { grid-template-columns: 55px 1fr; }
+            nav { padding: 15px 8px; }
+            .sidebar-header h2 { font-size: 16px; }
+            #toggleSidebar { font-size: 22px; width: 28px; height: 28px; }
+            .category-title { font-size: 14px; padding: 6px 4px; }
+            .category-content a { font-size: 12px; padding: 4px 0; }
+            main { padding: 15px 15px; }
+            h1 { font-size: 22px; margin: 20px 0; }
+            body.collapsed .category-title::before { font-size: 18px; }
+        }
+        @media (max-width: 480px) {
+            body { grid-template-columns: 140px 1fr; }
+            body.collapsed { grid-template-columns: 48px 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>科学·八年级上册</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch1')">✚ 第一章 水和水的溶液</div>
+            <div class="category-content" id="cat-ch1">
+                <a href="#sec1-1">1.1 地球上的水</a>
+                <a href="#sec1-2">1.2 水的组成</a>
+                <a href="#sec1-3">1.3 水的浮力</a>
+                <a href="#sec1-4">1.4 物质在水中的分散状况</a>
+                <a href="#sec1-5">1.5 物质的溶解</a>
+                <a href="#sec1-6">1.6 物质的分离</a>
+                <a href="#sec1-7">1.7 水资源的利用、开发和保护</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch2')">✚ 第二章 天气与气候</div>
+            <div class="category-content" id="cat-ch2">
+                <a href="#sec2-1">2.1 大气层</a>
+                <a href="#sec2-2">2.2 气温</a>
+                <a href="#sec2-3">2.3 大气的压强</a>
+                <a href="#sec2-4">2.4 风和降水</a>
+                <a href="#sec2-5">2.5 天气预报</a>
+                <a href="#sec2-6">2.6 气候和影响气候的因素</a>
+                <a href="#sec2-7">2.7 我国的气候特征与主要气象灾害</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch3')">✚ 第三章 生命活动的调节</div>
+            <div class="category-content" id="cat-ch3">
+                <a href="#sec3-1">3.1 植物生命活动的调节</a>
+                <a href="#sec3-2">3.2 人体的激素调节</a>
+                <a href="#sec3-3">3.3 神经调节</a>
+                <a href="#sec3-4">3.4 动物的行为</a>
+                <a href="#sec3-5">3.5 体温调节</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch4')">✚ 第四章 电路探秘</div>
+            <div class="category-content" id="cat-ch4">
+                <a href="#sec4-1">4.1 电荷与电流</a>
+                <a href="#sec4-2">4.2 电路的组成与连接</a>
+                <a href="#sec4-3">4.3 电流的测量</a>
+                <a href="#sec4-4">4.4 电压的测量</a>
+                <a href="#sec4-5">4.5 电阻</a>
+                <a href="#sec4-6">4.6 欧姆定律</a>
+                <a href="#sec4-7">4.7 电路分析与应用</a>
+            </div>
+        </div>
+        
+        <a href="/kz/cz/cz.html" class="back-home">返回首页</a>
+        <div class="ad-space">探索科学 · 创新实践</div>
+    </nav>
+    
+    <main>
+        <!-- 第一章 水和水的溶液 -->
+        <h1>第一章 水和水的溶液</h1>
+        <section id="sec1-1">
+            <div class="knowledge-card">
+                <h2>1.1 地球上的水</h2>
+                <ul>
+                    <li><strong>水的分布</strong>：地球表面约71%被水覆盖，但淡水仅占2.5%，可利用的淡水不足1%。</li>
+                    <li><strong>水循环</strong>：蒸发（蒸腾）→水汽输送→降水→径流→海洋，使水资源不断更新。</li>
+                    <li><strong>水资源分布不均</strong>：我国南方多、北方少，夏秋多、冬春少，需跨流域调水（如南水北调）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-2">
+            <div class="knowledge-card">
+                <h2>1.2 水的组成</h2>
+                <ul>
+                    <li><strong>电解水实验</strong>：正极产生氧气，负极产生氢气，体积比V(H₂):V(O₂)=2:1。证明水由氢元素和氧元素组成，化学式H₂O。</li>
+                    <li><strong>水的物理性质</strong>：无色无味透明液体，4℃时密度最大（1g/cm³），冰的密度小于水（0.9g/cm³）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-3">
+            <div class="knowledge-card">
+                <h2>1.3 水的浮力</h2>
+                <ul>
+                    <li><strong>浮力</strong>：浸在液体（或气体）中的物体受到向上的托力，方向竖直向上。</li>
+                    <li><strong>阿基米德原理</strong>：浸在液体中的物体受到向上的浮力，浮力大小等于物体排开的液体所受的重力。公式：\(F_{浮} = G_{排} = \rho_{液} g V_{排}\)。</li>
+                    <li><strong>物体的浮沉条件</strong>：
+                        <ul>
+                            <li>上浮：\(F_{浮} > G\)，\(\rho_{物} < \rho_{液}\)。</li>
+                            <li>悬浮：\(F_{浮} = G\)，\(\rho_{物} = \rho_{液}\)。</li>
+                            <li>下沉：\(F_{浮} < G\)，\(\rho_{物} > \rho_{液}\)。</li>
+                        </ul>
+                    </li>
+                    <li><strong>浮力的应用</strong>：轮船（空心增大排液体积）、潜水艇（改变自重）、密度计（漂浮原理，刻度上小下大）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-4">
+            <div class="knowledge-card">
+                <h2>1.4 物质在水中的分散状况</h2>
+                <ul>
+                    <li><strong>溶液</strong>：一种或几种物质分散到另一种物质中，形成均一、稳定的混合物。特征：均一性、稳定性。溶质（被溶解的物质）、溶剂（能溶解其他物质的物质）。</li>
+                    <li><strong>悬浊液</strong>：固体小颗粒悬浮在液体中，不均一、不稳定（如泥水）。</li>
+                    <li><strong>乳浊液</strong>：小液滴分散在液体中，不均一、不稳定（如油水混合物）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-5">
+            <div class="knowledge-card">
+                <h2>1.5 物质的溶解</h2>
+                <ul>
+                    <li><strong>溶解度</strong>：在一定温度下，某固态物质在100g溶剂中达到饱和状态时所溶解的质量。影响因素：温度（大多数固体随温度升高而增大，熟石灰随温度升高而减小）、压强（气体溶解度随压强增大而增大，随温度升高而减小）。</li>
+                    <li><strong>饱和溶液与不饱和溶液</strong>：一定温度下，不能再溶解某种溶质的溶液为饱和溶液，反之为不饱和溶液。相互转化：改变温度、加溶质、蒸发溶剂等。</li>
+                    <li><strong>溶质质量分数</strong>：\(\omega = \frac{m_{溶质}}{m_{溶液}} \times 100\%\)。可用于计算溶液的配制和稀释。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-6">
+            <div class="knowledge-card">
+                <h2>1.6 物质的分离</h2>
+                <ul>
+                    <li><strong>结晶</strong>：从溶液中析出固体的过程。方法：蒸发结晶（适用于溶解度受温度影响不大的物质，如NaCl）、冷却热饱和溶液（适用于溶解度受温度影响大的物质，如KNO₃）。</li>
+                    <li><strong>过滤</strong>：分离固体和液体混合物。一贴、二低、三靠（滤纸紧贴漏斗内壁；液面低于滤纸边缘、滤纸边缘低于漏斗边缘；烧杯口紧靠玻璃棒、玻璃棒紧靠三层滤纸、漏斗下端紧靠烧杯内壁）。</li>
+                    <li><strong>蒸馏</strong>：分离沸点不同的液体混合物。利用加热使液体汽化，再冷凝液化。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-7">
+            <div class="knowledge-card">
+                <h2>1.7 水资源的利用、开发和保护</h2>
+                <ul>
+                    <li><strong>水资源危机</strong>：淡水短缺、水污染（工业废水、农业化肥、生活污水）。</li>
+                    <li><strong>保护措施</strong>：节约用水、防治水污染、合理开发地下水、跨流域调水、海水淡化等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 天气与气候 -->
+        <h1>第二章 天气与气候</h1>
+        <section id="sec2-1">
+            <div class="knowledge-card">
+                <h2>2.1 大气层</h2>
+                <ul>
+                    <li><strong>大气分层</strong>：对流层（天气现象）、平流层（臭氧层、飞机飞行）、中间层、暖层、散逸层。对流层高度随纬度、季节变化（低纬厚、夏季厚）。</li>
+                    <li><strong>大气的垂直温度变化</strong>：对流层气温随高度增加而降低（每升高100m降0.6℃），平流层随高度增加而升高。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-2">
+            <div class="knowledge-card">
+                <h2>2.2 气温</h2>
+                <ul>
+                    <li><strong>气温的测量</strong>：百叶箱（离地面1.5m，避免阳光直射），单位℃。一天中最高温出现在14时左右，最低温出现在日出前后。年较差：最热月与最冷月平均气温差。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-3">
+            <div class="knowledge-card">
+                <h2>2.3 大气的压强</h2>
+                <ul>
+                    <li><strong>大气压的存在</strong>：马德堡半球实验证明。大气压随高度增加而减小，随天气变化（晴天气压高，阴雨天气压低）。</li>
+                    <li><strong>大气压的测量</strong>：托里拆利实验，标准大气压=760mm Hg=1.013×10⁵Pa。</li>
+                    <li><strong>大气压与生活</strong>：吸盘、吸管、抽水机、高压锅等利用大气压。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-4">
+            <div class="knowledge-card">
+                <h2>2.4 风和降水</h2>
+                <ul>
+                    <li><strong>风</strong>：空气的水平运动。风向（风吹来的方向），风速（风级）。</li>
+                    <li><strong>降水形成条件</strong>：空气上升冷却、水汽充足、有凝结核。降水形式：雨、雪、冰雹等。</li>
+                    <li><strong>湿度与降水</strong>：相对湿度表示空气中水汽的饱和程度，干湿球温度计测量。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-5">
+            <div class="knowledge-card">
+                <h2>2.5 天气预报</h2>
+                <ul>
+                    <li><strong>天气图与符号</strong>：高压中心（晴朗），低压中心（阴雨），冷锋（降温降水），暖锋（升温降水）。</li>
+                    <li><strong>常用天气符号</strong>：晴、多云、阴、小雨、中雨、大雨、雷阵雨、雾、雪等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-6">
+            <div class="knowledge-card">
+                <h2>2.6 气候和影响气候的因素</h2>
+                <ul>
+                    <li><strong>气候</strong>：某一地区多年天气的平均状况。影响气候的因素：纬度位置（太阳辐射）、海陆位置（海洋性气候与大陆性气候）、地形（海拔每升高1000m气温下降6℃，迎风坡降水多）、季风（冬季风寒冷干燥，夏季风温暖湿润）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-7">
+            <div class="knowledge-card">
+                <h2>2.7 我国的气候特征与主要气象灾害</h2>
+                <ul>
+                    <li><strong>气候特征</strong>：季风气候显著（东部），大陆性气候强（西部），气候复杂多样。</li>
+                    <li><strong>主要气象灾害</strong>：寒潮（冬季）、台风（夏秋）、洪涝、干旱、沙尘暴等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 生命活动的调节 -->
+        <h1>第三章 生命活动的调节</h1>
+        <section id="sec3-1">
+            <div class="knowledge-card">
+                <h2>3.1 植物生命活动的调节</h2>
+                <ul>
+                    <li><strong>向性运动</strong>：植物受外界刺激引起的定向运动。向光性（茎向光弯曲）、向地性（根向地、茎背地）、向水性等。原因是生长素分布不均匀。</li>
+                    <li><strong>植物激素</strong>：生长素（促进细胞伸长，高浓度抑制生长）、赤霉素、细胞分裂素、脱落酸、乙烯等，调节生长发育。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-2">
+            <div class="knowledge-card">
+                <h2>3.2 人体的激素调节</h2>
+                <ul>
+                    <li><strong>内分泌腺</strong>：垂体（生长激素）、甲状腺（甲状腺激素）、肾上腺、胰岛（胰岛素）、性腺等。</li>
+                    <li><strong>激素的作用</strong>：
+                        <ul>
+                            <li>生长激素：幼年不足→侏儒症；过多→巨人症；成年过多→肢端肥大症。</li>
+                            <li>甲状腺激素：促进发育，提高神经系统兴奋性。幼年不足→呆小症；过多→甲亢。</li>
+                            <li>胰岛素：降低血糖。分泌不足→糖尿病（注射胰岛素）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-3">
+            <div class="knowledge-card">
+                <h2>3.3 神经调节</h2>
+                <ul>
+                    <li><strong>神经元</strong>：神经系统结构和功能的基本单位，包括细胞体、树突、轴突。功能：接受刺激，产生并传导兴奋。</li>
+                    <li><strong>反射与反射弧</strong>：反射是神经调节的基本方式，反射弧包括感受器→传入神经→神经中枢→传出神经→效应器。</li>
+                    <li><strong>中枢神经系统</strong>：脑（大脑、小脑、脑干）和脊髓。大脑皮层是最高级中枢，小脑维持平衡，脑干调节心跳、呼吸等基本生命活动。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-4">
+            <div class="knowledge-card">
+                <h2>3.4 动物的行为</h2>
+                <ul>
+                    <li><strong>先天性行为</strong>：生来就有，由遗传决定（如婴儿吮吸、蜜蜂采蜜）。</li>
+                    <li><strong>后天学习行为</strong>：在遗传基础上，通过环境因素和学习获得（如小狗算数、猴子骑车）。</li>
+                    <li><strong>动物行为的意义</strong>：适应环境，生存繁衍。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-5">
+            <div class="knowledge-card">
+                <h2>3.5 体温调节</h2>
+                <ul>
+                    <li><strong>恒温动物与变温动物</strong>：鸟类、哺乳类恒温；其他动物变温。人体体温维持在37℃左右。</li>
+                    <li><strong>调节机制</strong>：下丘脑为体温调节中枢。产热（骨骼肌战栗、代谢增强）和散热（皮肤血管扩张、出汗）动态平衡。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 电路探秘 -->
+        <h1>第四章 电路探秘</h1>
+        <section id="sec4-1">
+            <div class="knowledge-card">
+                <h2>4.1 电荷与电流</h2>
+                <ul>
+                    <li><strong>摩擦起电</strong>：用摩擦的方法使物体带电。自然界有两种电荷：正电荷（丝绸摩擦过的玻璃棒）和负电荷（毛皮摩擦过的橡胶棒）。同种电荷相斥，异种电荷相吸。</li>
+                    <li><strong>电流方向</strong>：规定正电荷定向移动的方向为电流方向。在金属导体中，自由电子定向移动方向与电流方向相反。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-2">
+            <div class="knowledge-card">
+                <h2>4.2 电路的组成与连接</h2>
+                <ul>
+                    <li><strong>电路基本组成</strong>：电源、用电器、开关、导线。</li>
+                    <li><strong>电路状态</strong>：通路（闭合回路）、断路（开路）、短路（电源短路会损坏电源）。</li>
+                    <li><strong>串联与并联</strong>：
+                        <ul>
+                            <li>串联：各用电器依次相连，电流只有一条路径，开关控制整个电路。</li>
+                            <li>并联：各用电器并列连接，电流有分支，干路开关控制整个电路，支路开关控制本支路。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-3">
+            <div class="knowledge-card">
+                <h2>4.3 电流的测量</h2>
+                <ul>
+                    <li><strong>电流强度（I）</strong>：单位安培（A），常用毫安（mA）、微安（μA）。</li>
+                    <li><strong>电流表使用</strong>：串联在电路中，“+”进“-”出；不能直接接电源两极；读数时看清量程和分度值。</li>
+                    <li><strong>串并联电路电流规律</strong>：
+                        <ul>
+                            <li>串联电路电流处处相等：\(I = I_1 = I_2 = \cdots\)。</li>
+                            <li>并联电路干路电流等于各支路电流之和：\(I = I_1 + I_2 + \cdots\)。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-4">
+            <div class="knowledge-card">
+                <h2>4.4 电压的测量</h2>
+                <ul>
+                    <li><strong>电压（U）</strong>：使电荷定向移动形成电流的原因，单位伏特（V）。一节干电池1.5V，家庭电路220V。</li>
+                    <li><strong>电压表使用</strong>：并联在被测电路两端，“+”进“-”出；可以直接接电源两极测电源电压。</li>
+                    <li><strong>串并联电路电压规律</strong>：
+                        <ul>
+                            <li>串联电路总电压等于各部分电压之和：\(U = U_1 + U_2 + \cdots\)。</li>
+                            <li>并联电路各支路两端电压相等：\(U = U_1 = U_2 = \cdots\)。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-5">
+            <div class="knowledge-card">
+                <h2>4.5 电阻</h2>
+                <ul>
+                    <li><strong>电阻（R）</strong>：导体对电流的阻碍作用，单位欧姆（Ω）。</li>
+                    <li><strong>影响电阻大小的因素</strong>：材料、长度（越长电阻越大）、横截面积（越粗电阻越小）、温度（金属电阻随温度升高而增大）。</li>
+                    <li><strong>变阻器</strong>：滑动变阻器通过改变接入电路电阻丝的长度来改变电阻。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-6">
+            <div class="knowledge-card">
+                <h2>4.6 欧姆定律</h2>
+                <ul>
+                    <li><strong>欧姆定律</strong>：导体中的电流，跟导体两端的电压成正比，跟导体的电阻成反比。公式：\(I = \frac{U}{R}\)（适用于纯电阻电路）。</li>
+                    <li><strong>伏安法测电阻</strong>：用电压表测电压，电流表测电流，\(R = \frac{U}{I}\)。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-7">
+            <div class="knowledge-card">
+                <h2>4.7 电路分析与应用</h2>
+                <ul>
+                    <li><strong>串联电路</strong>：总电阻 \(R = R_1 + R_2\)，分压原理 \(\frac{U_1}{U_2} = \frac{R_1}{R_2}\)。</li>
+                    <li><strong>并联电路</strong>：总电阻 \(\frac{1}{R} = \frac{1}{R_1} + \frac{1}{R_2}\)，分流原理 \(\frac{I_1}{I_2} = \frac{R_2}{R_1}\)。</li>
+                    <li><strong>实际应用</strong>：家庭电路并联（各用电器独立），电表改装、故障分析等。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particle-container');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.2 + 0.6;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = '#2c7da0';
+                }
+                update(mouse) {
+                    if (mouse.x !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < mouse.radius) {
+                            const force = (mouse.radius - distance) / mouse.radius;
+                            const angle = Math.atan2(dy, dx);
+                            this.speedX += Math.cos(angle) * force * 0.03;
+                            this.speedY += Math.sin(angle) * force * 0.03;
+                        }
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            const mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            
+            const particlesArray = Array.from({ length: 40 }, () => new Particle());
+
+            function connect() {
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a+1; b < particlesArray.length; b++) {
+                        const dx = particlesArray[a].x - particlesArray[b].x;
+                        const dy = particlesArray[a].y - particlesArray[b].y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < 100) {
+                            ctx.strokeStyle = `rgba(44, 125, 160, ${1 - distance/100})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+                connect();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => { requestAnimationFrame(updateActiveNav); });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

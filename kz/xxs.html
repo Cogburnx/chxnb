@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>休闲室 · 猫咪小院</title>
+    <style>
+        :root { --bg: #e6f7ff; }  /* 背景改为淡蓝色 */
+        body {
+            margin: 0; height: 100vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: var(--bg); color: #333;  /* 深色文字以适应淡色背景 */
+            font-family: "Microsoft YaHei", sans-serif; overflow: hidden;
+            /* 移除了径向渐变，保持纯色背景 */
+        }
+
+        /* 粒子背景画布 (完全鼠标穿透) */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        #reward-box {
+            display: none; position: fixed; top: 10%; 
+            background: #f0f0f0; border: 4px solid #333; padding: 20px;
+            text-align: center; box-shadow: 10px 10px 0px #ccc; z-index: 1000;
+            color: #333;
+        }
+        #reward-box img { width: 160px; height: 160px; background: #fff; margin-bottom: 10px; border: 2px solid #333; }
+
+        .donate-btn {
+            background: #ff4757; color: white; border: none;
+            padding: 12px 30px; font-size: 20px; cursor: pointer;
+            box-shadow: -4px -4px 0px #ff6b81 inset, 4px 4px 0px #000;
+            margin-bottom: 50px; z-index: 10;
+        }
+
+        #stage { display: flex; gap: 40px; align-items: flex-end; }
+
+        .cat-wrapper {
+            position: relative; width: 128px; height: 128px;
+            cursor: grab; flex-shrink: 0;
+            user-select: none;
+            -webkit-user-drag: none;
+            /* 设定旋转中心为猫咪中心 */
+            transform-origin: center center;
+            /* 松开时的放正动画 */
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .cat-dragging {
+            z-index: 9999;
+            cursor: grabbing !important;
+            /* 拖拽时取消动画，保证旋转随鼠而动 */
+            transition: none !important;
+        }
+
+        .item-pop { position: absolute; width: 40px; height: 40px; left: 44px; top: -20px; opacity: 0; pointer-events: none; }
+        .anim-pop { animation: pixelPop 0.8s steps(8) forwards; }
+        @keyframes pixelPop {
+            0% { transform: translateY(0); opacity: 0; }
+            20% { opacity: 1; transform: translateY(-20px); }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+
+        .cat-jump { animation: catJumpAnim 0.4s ease; }
+        @keyframes catJumpAnim {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+
+        svg { image-rendering: pixelated; width: 100%; height: 100%; pointer-events: none; }
+        .tip { margin-top: 20px; color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <!-- 粒子背景 canvas (由脚本绘制) -->
+    <canvas id="particle-container"></canvas>
+
+    <!-- ===== 新增：返回首页图标 (完全符合像素风格，不干扰现有代码) ===== -->
+    <a href="/index.html" class="home-link" title="返回首页">
+        <svg viewBox="0 0 32 32" width="44" height="44">
+            <!-- 小房子：深棕墙壁，浅棕门，金色窗户，像素感描边 -->
+            <path d="M4 10 L16 4 L28 10 L28 28 L20 28 L20 18 L12 18 L12 28 L4 28 Z" fill="#3d2b1f" stroke="#2b1d14" stroke-width="2" />
+            <rect x="13" y="20" width="6" height="8" fill="#b2955e" stroke="#6b4f2e" stroke-width="1.5" />
+            <circle cx="20" cy="13" r="2.2" fill="#ffd966" stroke="#b87c10" stroke-width="1.2" />
+        </svg>
+    </a>
+    <!-- ========== 新增部分结束 ========== -->
+
+    <div id="reward-box">
+        <p>小猫很开心咪！</p>
+        <button onclick="document.getElementById('reward-box').style.display='none'">[ 关闭 ]</button>
+    </div>
+
+    <button class="donate-btn" onclick="showReward()">[ 集体互动 ]</button>
+
+    <div id="stage">
+        <div class="cat-wrapper">
+            <svg viewBox="0 0 32 32">
+                <path d="M24 22h4v2h2v4h-2v2h-4v-8z" fill="#3d2b1f"/><path d="M8 16h16v12H8z" fill="#ffffff"/><path d="M18 16h6v6h-6z" fill="#3d2b1f"/><path d="M8 22h6v6H8z" fill="#ff9f43"/><path d="M6 6h20v12H6z" fill="#ffffff"/><path d="M6 2h6v4H6z" fill="#ff9f43"/><path d="M8 4h2v2H8z" fill="#ffb8b8"/><path d="M20 2h6v4h-6z" fill="#333333"/><path d="M22 4h2v2h-2z" fill="#ffb8b8"/><path d="M10 10h3v3h-3z" fill="#000"/><rect x="10" y="10" width="1" height="1" fill="#fff"/><path d="M19 10h3v3h-3z" fill="#000"/><rect x="19" y="10" width="1" height="1" fill="#fff"/><path d="M15 14h2v1h-2z" fill="#ffb8b8"/><path d="M13 16h1v1h1v-1h2v1h1v-1h1v1h-6z" fill="#333" opacity="0.3"/><path d="M9 28h3v2H9z" fill="#eee"/><path d="M20 28h3v2h-3z" fill="#eee"/>
+            </svg>
+        </div>
+        <div class="cat-wrapper">
+            <svg viewBox="0 0 32 32">
+                <path d="M24 22h4v2h2v4h-2v2h-4v-8z" fill="#1a1a1a"/><path d="M8 16h16v12H8z" fill="#2d2d2d"/><path d="M6 6h20v12H6z" fill="#2d2d2d"/><path d="M6 2h6v4H6z" fill="#2d2d2d"/><path d="M20 2h6v4h-6z" fill="#2d2d2d"/><path d="M8 4h2v2H8z" fill="#ffb8b8"/><path d="M22 4h2v2h-2z" fill="#ffb8b8"/><path d="M10 10h3v3h-3z" fill="#ffd32a"/><path d="M19 10h3v3h-3z" fill="#ffd32a"/><path d="M15 14h2v1h-2z" fill="#ffb8b8"/><path d="M9 28h3v2H9z" fill="#1a1a1a"/><path d="M20 28h3v2h-3z" fill="#1a1a1a"/>
+            </svg>
+        </div>
+        <div class="cat-wrapper">
+            <svg viewBox="0 0 32 32">
+                <path d="M24 22h4v2h2v4h-2v2h-4v-8z" fill="#ff9f43"/><path d="M8 16h16v12H8z" fill="#ffffff"/><path d="M8 16h16v4H8z" fill="#ff9f43"/><path d="M6 6h20v12H6z" fill="#ff9f43"/><path d="M9 9h14v6H9z" fill="#ffffff"/><path d="M6 2h6v4H6z" fill="#ff9f43"/><path d="M20 2h6v4h-6z" fill="#ff9f43"/><path d="M10 10h3v3h-3z" fill="#000"/><path d="M19 10h3v3h-3z" fill="#000"/><path d="M15 14h2v1h-2z" fill="#ffb8b8"/><path d="M9 28h3v2H9z" fill="#eee"/><path d="M20 28h3v2h-3z" fill="#eee"/>
+            </svg>
+        </div>
+        <div class="cat-wrapper">
+            <svg viewBox="0 0 32 32">
+                <path d="M24 22h4v2h2v4h-2v2h-4v-8z" fill="#4b3621"/><path d="M8 16h16v12H8z" fill="#d2b48c"/><path d="M6 6h20v12H6z" fill="#d2b48c"/><path d="M10 8h12v8H10z" fill="#4b3621"/><path d="M6 2h6v4H6z" fill="#4b3621"/><path d="M20 2h6v4h-6z" fill="#4b3621"/><path d="M10 10h3v3h-3z" fill="#00d2ff"/><path d="M19 10h3v3h-3z" fill="#00d2ff"/><path d="M15 14h2v1h-2z" fill="#ffb8b8"/><path d="M9 28h3v2H9z" fill="#4b3621"/><path d="M20 28h3v2h-3z" fill="#4b3621"/>
+            </svg>
+        </div>
+    </div>
+
+    <div id="pop-templates" style="display:none">
+        <svg id="pop-fish" viewBox="0 0 16 16"><path d="M1 8l2-2h3l1 1h4l3-3h2v2l-1 1v4l1 1v2h-2l-3-3H7l-1 1H3z" fill="#54a0ff"/></svg>
+        <svg id="pop-star" viewBox="0 0 16 16"><path d="M8 1h1v3h3v1H9v3H8V5H5V4h3z" fill="#ffd700"/></svg>
+        <svg id="pop-heart" viewBox="0 0 16 16"><path d="M3 3h3v2h1v-2h3v2h2v2h1v4h-1v2h-2v2h-2v1h-2v-1h-2v-2h-2v-2h-1v-4h1z" fill="#ff4757"/></svg>
+    </div>
+
+    <script>
+        // ----- 猫咪交互部分：完全保留原版，一字未改 -----
+        let activeCat = null;
+        let offsetX = 0;
+        let offsetY = 0;
+        let isMoving = false;
+        let startX = 0, startY = 0;
+
+        const wrappers = document.querySelectorAll('.cat-wrapper');
+        const popIds = ['pop-fish', 'pop-star', 'pop-heart'];
+
+        function triggerJump(target) {
+            const randomId = popIds[Math.floor(Math.random() * popIds.length)];
+            const newItem = document.getElementById(randomId).cloneNode(true);
+            newItem.classList.add('item-pop', 'anim-pop');
+            target.appendChild(newItem);
+            newItem.addEventListener('animationend', () => newItem.remove());
+            target.classList.add('cat-jump');
+            setTimeout(() => target.classList.remove('cat-jump'), 400);
+        }
+
+        function showReward() {
+            document.getElementById('reward-box').style.display = 'block';
+            wrappers.forEach(w => triggerJump(w));
+        }
+
+        function onDown(e) {
+            const point = e.touches ? e.touches[0] : e;
+            const target = e.currentTarget;
+            const rect = target.getBoundingClientRect();
+            
+            offsetX = point.clientX - rect.left;
+            offsetY = point.clientY - rect.top;
+            startX = point.clientX;
+            startY = point.clientY;
+            activeCat = target;
+            isMoving = false;
+
+            activeCat.style.position = 'fixed';
+            activeCat.style.left = rect.left + 'px';
+            activeCat.style.top = rect.top + 'px';
+            activeCat.style.margin = '0';
+            activeCat.classList.add('cat-dragging');
+        }
+
+        function onMove(e) {
+            if (!activeCat) return;
+            const point = e.touches ? e.touches[0] : e;
+            
+            if (Math.abs(point.clientX - startX) > 5 || Math.abs(point.clientY - startY) > 5) {
+                isMoving = true;
+            }
+
+            activeCat.style.left = (point.clientX - offsetX) + 'px';
+            activeCat.style.top = (point.clientY - offsetY) + 'px';
+
+            // 根据移动方向和速度进行轻微旋转（倾斜）
+            const rotateDeg = (point.clientX - startX) * 0.1;
+            const clampedRotate = Math.max(Math.min(rotateDeg, 15), -15);
+            activeCat.style.transform = `rotate(${clampedRotate}deg)`;
+        }
+
+        function onUp() {
+            if (!activeCat) return;
+            if (!isMoving) triggerJump(activeCat);
+            
+            activeCat.style.transform = `rotate(0deg)`;
+            activeCat.classList.remove('cat-dragging');
+            activeCat = null;
+        }
+
+        wrappers.forEach(w => {
+            w.addEventListener('mousedown', onDown);
+            w.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(e); }, { passive: false });
+        });
+
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('touchmove', (e) => { if (activeCat) { e.preventDefault(); onMove(e); } }, { passive: false });
+        window.addEventListener('mouseup', onUp);
+        window.addEventListener('touchend', onUp);
+
+        // ----- 粒子背景效果：黄色粒子 (在淡蓝色背景上醒目) -----
+        (function initParticles() {
+            const canvas = document.getElementById('particle-container');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 2.5 + 1.2;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = `rgba(255, 215, 0, ${Math.random() * 0.6 + 0.3})`;
+                }
+
+                reset() {
+                    const edge = Math.floor(Math.random() * 4);
+                    switch(edge) {
+                        case 0: this.x = Math.random() * canvas.width; this.y = -15; this.speedY = Math.random() * 0.4 + 0.2; break;
+                        case 1: this.x = canvas.width + 15; this.y = Math.random() * canvas.height; this.speedX = -(Math.random() * 0.4 + 0.2); break;
+                        case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 15; this.speedY = -(Math.random() * 0.4 + 0.2); break;
+                        case 3: this.x = -15; this.y = Math.random() * canvas.height; this.speedX = Math.random() * 0.4 + 0.2; break;
+                    }
+                    this.speedX += (Math.random() - 0.5) * 0.2;
+                    this.speedY += (Math.random() - 0.5) * 0.2;
+                    this.color = `rgba(255, 215, 0, ${Math.random() * 0.6 + 0.3})`;
+                }
+
+                update(mouse) {
+                    if (mouse.x && mouse.y) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist < 200) {
+                            const force = (200 - dist) / 200 * 0.02;
+                            this.speedX += dx * force;
+                            this.speedY += dy * force;
+                        }
+                    }
+                    const sp = Math.hypot(this.speedX, this.speedY);
+                    if (sp > 1.8) {
+                        this.speedX *= 1.8 / sp;
+                        this.speedY *= 1.8 / sp;
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < -50 || this.x > canvas.width+50 || this.y < -50 || this.y > canvas.height+50) this.reset();
+                }
+
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            const mouse = { x: null, y: null };
+            window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+            window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
+
+            const particles = [];
+            for (let i = 0; i < 60; i++) particles.push(new Particle());
+
+            function connect() {
+                for (let a = 0; a < particles.length; a++) {
+                    for (let b = a+1; b < particles.length; b++) {
+                        const dx = particles[a].x - particles[b].x;
+                        const dy = particles[a].y - particles[b].y;
+                        const dist = Math.hypot(dx, dy);
+                        if (dist < 130) {
+                            ctx.strokeStyle = `rgba(255, 215, 0, ${(1 - dist/130) * 0.25})`;
+                            ctx.lineWidth = 0.6;
+                            ctx.beginPath();
+                            ctx.moveTo(particles[a].x, particles[a].y);
+                            ctx.lineTo(particles[b].x, particles[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => p.update(mouse));
+                particles.forEach(p => p.draw());
+                connect();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        })();
+    </script>
+
+    <!-- 新增返回图标的样式 (轻量、像素风，完全独立于原代码) -->
+    <style>
+        .home-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: inline-block;
+            line-height: 0;              /* 去除inline-block多余间隙 */
+            filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.15));
+            transition: transform 0.15s ease;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .home-link:hover {
+            transform: scale(1.08);
+        }
+        .home-link svg {
+            display: block;
+            width: 48px;
+            height: 48px;
+            image-rendering: crisp-edges;   /* 加强像素感 */
+        }
+        /* 可选：增加触摸区域，但保留原尺寸 */
+        @media (max-width: 600px) {
+            .home-link svg {
+                width: 52px;
+                height: 52px;
+            }
+        }
+    </style>
+</body>
+</html>

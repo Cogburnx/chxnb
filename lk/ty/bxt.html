@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>通用必修二</title>
+    
+    <!-- KaTeX 核心库（用于公式） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .knowledge-card h3 {
+            font-size: 1.1em;
+            margin: 15px 0 5px;
+            color: var(--accent-color);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 10px;
+        }
+        .knowledge-card ul {
+            margin: 5px 0 10px 20px;
+            padding-left: 0;
+        }
+        .knowledge-card li {
+            margin-bottom: 5px;
+        }
+        .knowledge-card p {
+            margin: 0 0 10px;
+        }
+
+        .knowledge-card .code {
+            font-family: 'Courier New', monospace;
+            background-color: rgba(0,0,0,0.05);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>通用必修二</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-structure')">✚ 第一单元 结构与设计</div>
+            <div class="category-content" id="cat-structure">
+                <a href="#struct1">一、常见结构的认识</a>
+                <a href="#struct2">二、稳固结构的探析</a>
+                <a href="#struct3">三、简单结构的设计</a>
+                <a href="#struct4">四、经典结构的欣赏</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-process')">✚ 第二单元 流程与设计</div>
+            <div class="category-content" id="cat-process">
+                <a href="#process1">一、生活和生产中的流程</a>
+                <a href="#process2">二、流程的设计</a>
+                <a href="#process3">三、流程的优化</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-system')">✚ 第三单元 系统与设计</div>
+            <div class="category-content" id="cat-system">
+                <a href="#system1">一、系统的结构</a>
+                <a href="#system2">二、系统的分析</a>
+                <a href="#system3">三、系统的设计</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-control')">✚ 第四单元 控制与设计</div>
+            <div class="category-content" id="cat-control">
+                <a href="#control1">一、控制的手段与应用</a>
+                <a href="#control2">二、控制系统的工作过程与方式</a>
+                <a href="#control3">三、闭环控制系统的干扰与反馈</a>
+                <a href="#control4">四、控制系统的设计与实施</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <main>
+        <!-- 第一单元 结构与设计 -->
+        <h1>第一单元 结构与设计</h1>
+        
+        <section id="struct1">
+            <div class="knowledge-card">
+                <h2>一、常见结构的认识</h2>
+                <h3>结构的含义</h3>
+                <ul>
+                    <li>结构是指事物的各个组成部分之间的有序搭配和排列。</li>
+                    <li>从力学角度说，结构是指可承受一定力的架构形态，它可以抵抗能引起形状和大小改变的力。</li>
+                </ul>
+                <h3>结构的受力</h3>
+                <ul>
+                    <li><b>拉力</b>：物体承受的沿轴线方向的拉伸力。</li>
+                    <li><b>压力</b>：物体承受的沿轴线方向的压缩力。</li>
+                    <li><b>剪切力</b>：两个距离很近、大小相等、方向相反的平行力。</li>
+                    <li><b>扭转力</b>：反方向向物体两端均匀施力，使物体发生扭转变形。</li>
+                    <li><b>弯曲力</b>：使物体产生弯曲效果的力。</li>
+                </ul>
+                <h3>结构的类型</h3>
+                <ul>
+                    <li><b>实体结构</b>：结构体本身是实心的结构。受力特点：外力分布在整个体积中。如：实心墙、大坝。</li>
+                    <li><b>框架结构</b>：由细长的构件组成的结构。特点：支撑空间而不充满空间。如：铁架塔、建筑用脚手架。</li>
+                    <li><b>壳体结构</b>：层状的结构。受力特点：外力作用在结构体的表面上。如：头盔、飞机外壳、贝壳。</li>
+                </ul>
+                <h3>内力与应力</h3>
+                <ul>
+                    <li><b>内力</b>：当一个结构受到外力作用时，内部各质点之间的相互作用会发生改变，产生一种抵抗的力。</li>
+                    <li><b>应力</b>：构件的单位面积横截面上所产生的内力，公式 σ = F/S（F为内力，S为受力面积）。当应力达到某一极限时，结构就会被破坏。</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="struct2">
+            <div class="knowledge-card">
+                <h2>二、稳固结构的探析</h2>
+                <h3>结构的稳定性</h3>
+                <ul>
+                    <li><b>定义</b>：结构在负载的作用下维持其原有平衡状态的能力。</li>
+                    <li><b>影响因素</b>：
+                        <ul>
+                            <li><b>重心位置的高低</b>：重心越低，稳定性越好。</li>
+                            <li><b>结构与地面接触所形成的支撑面的大小</b>：支撑面越大，稳定性越好。</li>
+                            <li><b>结构的形状</b>：三角形是框架结构中最基本的稳定形状。</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>结构的强度</h3>
+                <ul>
+                    <li><b>定义</b>：结构具有的抵抗被外力破坏的能力。</li>
+                    <li><b>影响因素</b>：
+                        <ul>
+                            <li><b>结构的形状</b>：不同的形状抗变形能力不同。</li>
+                            <li><b>使用的材料</b>：材料的性质影响强度。</li>
+                            <li><b>构件之间的连接方式</b>：刚连接（不可相对移动）和铰连接（可相对转动）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="struct3">
+            <div class="knowledge-card">
+                <h2>三、简单结构的设计</h2>
+                <h3>结构设计考虑的主要因素</h3>
+                <ul>
+                    <li>稳定性和强度的要求。</li>
+                    <li>安全因素。</li>
+                    <li>公众和使用者的审美需求。</li>
+                    <li>使用者的个性化需求。</li>
+                    <li>对设计对象的成本控制要求和一定的使用寿命。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="struct4">
+            <div class="knowledge-card">
+                <h2>四、经典结构的欣赏</h2>
+                <h3>欣赏角度</h3>
+                <ul>
+                    <li><b>技术角度</b>：结构功能、稳固性、材料使用、工艺制造水平等。</li>
+                    <li><b>文化角度</b>：文化寓意、美学价值、风格特征、时代特色等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二单元 流程与设计 -->
+        <h1>第二单元 流程与设计</h1>
+
+        <section id="process1">
+            <div class="knowledge-card">
+                <h2>一、生活和生产中的流程</h2>
+                <h3>流程的含义</h3>
+                <ul>
+                    <li>流程是一项活动或一系列连续有规律的事项或行为进行的程序。</li>
+                    <li>为了一定的目的去做事情的顺序即为流程。</li>
+                </ul>
+                <h3>时序和环节</h3>
+                <ul>
+                    <li><b>时序</b>：过程的经历中，各环节按照一定的时间顺序先后出现、完成。这种时间顺序关系，称为时序。
+                        <ul>
+                            <li>有些时序是不可颠倒的（反映内在规律或机理）。</li>
+                            <li>有些时序是可以颠倒的（根据目的和条件适当安排）。</li>
+                        </ul>
+                    </li>
+                    <li><b>环节</b>：活动或事件在其发展的过程中，依据某种特征或方式，可将该过程分解为若干个小过程，称这些小过程为环节。
+                        <ul>
+                            <li>上一道工序完成之后才能进入下一道工序称为“串行工序”。</li>
+                            <li>几项工作同时进行称为“并行工序”。</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>流程对生产、生活和工作的意义</h3>
+                <ul>
+                    <li><b>生活中的意义</b>：提高生活质量、提高工作效率、节约时间、保护身体安全等。</li>
+                    <li><b>生产活动中的意义</b>：保证产品质量、提高生产效率、节约资源、安全生产、提高经济效益、提高管理水平等。</li>
+                </ul>
+                <h3>常见的流程表达方式</h3>
+                <ul>
+                    <li>文字表达、表格表达、图示表达（流程图）、动画演示、模型表达等。</li>
+                    <li>流程图中，用序号或方框表示环节，单向箭头表示时序关系。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="process2">
+            <div class="knowledge-card">
+                <h2>二、流程的设计</h2>
+                <h3>流程设计应考虑的基本因素</h3>
+                <ul>
+                    <li>总体上：流程设计应该要研究内在属性与规律。</li>
+                    <li>基本因素：材料、工艺、设备、人员和资金、环境等。</li>
+                    <li>不同行业的流程特点不同，如农业生产中还要考虑气候、季节、自然灾害、生态平衡等。</li>
+                </ul>
+                <h3>流程设计的基本步骤</h3>
+                <ul>
+                    <li>确定目标，明确任务。</li>
+                    <li>分析基本因素。</li>
+                    <li>明确主要事项。</li>
+                    <li>确定时序，划分环节。</li>
+                    <li>画出流程图。</li>
+                    <li>判断是否符合要求，不符合则返回调整。</li>
+                </ul>
+                <h3>简单流程设计的方法</h3>
+                <ul>
+                    <li>根据对事物的内在属性和规律的分析，分解为若干环节，并用方框表示环节。</li>
+                    <li>按照每个小过程应该经历的时间顺序，将各环节依次排开，并用箭头连接。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="process3">
+            <div class="knowledge-card">
+                <h2>三、流程的优化</h2>
+                <h3>流程优化的含义</h3>
+                <ul>
+                    <li>在流程的设计和实施过程中，要对流程进行不断的改进，以期取得最佳的效果，这一过程称为流程的优化。</li>
+                </ul>
+                <h3>流程优化的目的</h3>
+                <ul>
+                    <li>提高工作效率、降低成本、降低劳动强度、节约能耗、减少环境污染、保证生产安全等。</li>
+                </ul>
+                <h3>流程优化的类型</h3>
+                <ul>
+                    <li><b>工期优化</b>：将某些环节的串行改为并行，同时考虑增加的人力和物力成本。</li>
+                    <li><b>工艺优化</b>：通过加工方法的改变即工艺的改变。</li>
+                    <li><b>成本优化</b>：通过优化达到降低成本等目的。</li>
+                    <li><b>技术优化</b>：技术条件进步，从而使流程得以优化。</li>
+                    <li><b>质量优化</b>：提高产品质量。</li>
+                </ul>
+                <h3>流程优化应考虑的主要问题</h3>
+                <ul>
+                    <li>内部条件：对流程内在机理的深入了解。</li>
+                    <li>外部条件：流程优化要建立在“设备”、“材料”、“工艺”水平提高的基础上。</li>
+                    <li>人员技术水平的提高。</li>
+                    <li>可以是整体的全面优化，也可以是对某一个指标进行优化，要综合平衡。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三单元 系统与设计 -->
+        <h1>第三单元 系统与设计</h1>
+
+        <section id="system1">
+            <div class="knowledge-card">
+                <h2>一、系统的结构</h2>
+                <h3>系统的含义</h3>
+                <ul>
+                    <li>系统是由相互联系、相互作用、相互依赖和相互制约的若干要素或部分组成的具有特定功能的有机整体。</li>
+                </ul>
+                <h3>构成系统的条件</h3>
+                <ul>
+                    <li>至少要有两个或两个以上的要素（部分）才能组成系统。</li>
+                    <li>要素（部分）之间相互联系、相互作用，按照一定方式形成一个整体。</li>
+                    <li>整体具有的功能是各个要素（部分）的功能中所没有的。</li>
+                </ul>
+                <h3>系统的分类</h3>
+                <ul>
+                    <li>自然系统/人造系统。</li>
+                    <li>实体系统/抽象系统。</li>
+                    <li>可划分为若干子系统。</li>
+                </ul>
+                <h3>系统的基本特性</h3>
+                <ul>
+                    <li><b>整体性</b>（最基本的特征）：不是各个要素的简单相加，系统的整体功能大于各个部分的功能之和。</li>
+                    <li><b>相关性</b>：组成系统各要素之间或系统整体与部分之间的相互作用、相互联系。</li>
+                    <li><b>目的性</b>：任何系统都具有某种目的，都要实现一定的功能。</li>
+                    <li><b>动态性</b>：任何系统都是动态变化发展着的。</li>
+                    <li><b>环境适应性</b>：系统具有适应环境变化的能力。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="system2">
+            <div class="knowledge-card">
+                <h2>二、系统的分析</h2>
+                <h3>系统分析的含义</h3>
+                <ul>
+                    <li>为了发挥系统的功能，实现系统的目标，运用科学的方法对系统加以周详的考察、分析、比较、试验，并在此基础上拟定一套有效的处理步骤和程序或对原有的系统提出改进的过程。</li>
+                </ul>
+                <h3>系统分析的主要原则</h3>
+                <ul>
+                    <li><b>整体性原则</b>：先看整体，再看部分。</li>
+                    <li><b>科学性原则</b>：运用科学方法和数学工具进行分析。</li>
+                    <li><b>综合性原则</b>：综合考虑各种因素，综合分析。</li>
+                </ul>
+                <h3>系统分析的一般步骤</h3>
+                <ul>
+                    <li>明确问题，设定目标。</li>
+                    <li>收集资料，制定方案。</li>
+                    <li>分析计算，评价比较。</li>
+                    <li>检验核实，作出决策。</li>
+                </ul>
+                <h3>影响系统优化的因素</h3>
+                <ul>
+                    <li>系统优化是指在给定条件（约束条件）下，根据系统的优化目标，采取一定的方法和手段，使系统目标值达到最大化（或最小化）。</li>
+                    <li>约束条件包括内部条件和外部环境。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="system3">
+            <div class="knowledge-card">
+                <h2>三、系统的设计</h2>
+                <h3>系统设计的基本步骤</h3>
+                <ul>
+                    <li>将系统分解成若干子系统。</li>
+                    <li>确定各子系统的目标、功能及其相互关系。</li>
+                    <li>对各级系统进行技术设计和评价。</li>
+                    <li>对系统进行总体技术设计和评价。</li>
+                </ul>
+                <h3>简单系统设计的方法</h3>
+                <ul>
+                    <li>立足整体，综合考虑横向问题与纵向问题。</li>
+                    <li>注意系统优化并完善子系统的设计。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四单元 控制与设计 -->
+        <h1>第四单元 控制与设计</h1>
+
+        <section id="control1">
+            <div class="knowledge-card">
+                <h2>一、控制的手段与应用</h2>
+                <h3>控制的含义</h3>
+                <ul>
+                    <li>人们按照自己的意愿或目的，通过一定的手段，使事物向期望的目标发展。</li>
+                    <li>控制需要明确控制对象、控制目的和控制手段。</li>
+                </ul>
+                <h3>控制的分类</h3>
+                <ul>
+                    <li>人工控制/自动控制。</li>
+                    <li>机械控制、气动控制、液压控制、电子控制等。</li>
+                </ul>
+                <h3>控制的应用</h3>
+                <ul>
+                    <li>生活、生产、军事国防等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="control2">
+            <div class="knowledge-card">
+                <h2>二、控制系统的工作过程与方式</h2>
+                <h3>开环控制系统</h3>
+                <ul>
+                    <li><b>概念</b>：控制系统的输出量不对系统的控制产生任何影响的系统。</li>
+                    <li><b>特征</b>：输出量仅受输入量控制，信号单向传递。</li>
+                    <li><b>示例</b>：自动门、红绿灯定时控制等。</li>
+                </ul>
+                <h3>闭环控制系统</h3>
+                <ul>
+                    <li><b>概念</b>：系统的输出量返回到输入端并对控制过程产生影响的系统。</li>
+                    <li><b>特征</b>：有反馈环节。</li>
+                    <li><b>示例</b>：恒温箱、水箱水位自动控制系统等。</li>
+                </ul>
+                <h3>控制系统的基本组成</h3>
+                <ul>
+                    <li><b>输入量</b>（给定量）：控制系统的输入信号。</li>
+                    <li><b>控制器</b>：对输入信号进行处理并发出控制命令。</li>
+                    <li><b>执行器</b>：直接对被控对象进行控制。</li>
+                    <li><b>控制量</b>：执行器的输出信号。</li>
+                    <li><b>被控对象</b>：控制系统中所要控制的装置或生产过程。</li>
+                    <li><b>输出量</b>（被控量）：被控对象的输出。</li>
+                    <li><b>检测装置</b>（闭环）：测量被控量并返回到系统输入端。</li>
+                    <li><b>比较器</b>（闭环）：将所检测的被控量与给定量进行比较并求出差值。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="control3">
+            <div class="knowledge-card">
+                <h2>三、闭环控制系统的干扰与反馈</h2>
+                <h3>干扰因素</h3>
+                <ul>
+                    <li><b>定义</b>：在控制系统中，除输入量以外，引起被控量变化的各种因素。</li>
+                    <li><b>来源</b>：系统内部或外部。</li>
+                </ul>
+                <h3>反馈</h3>
+                <ul>
+                    <li><b>含义</b>：将输出量通过适当的检测装置返回到输入端并与输入量进行比较的过程。</li>
+                    <li><b>反馈方法</b>：利用反馈来分析和处理被控对象，通过系统的输出来调整系统的行为，使系统沿着预期的目标方向运行。</li>
+                </ul>
+                <h3>功能模拟法与黑箱方法</h3>
+                <ul>
+                    <li><b>功能模拟法</b>：用行为相似的模型模拟原型行为。</li>
+                    <li><b>黑箱方法</b>：通过研究系统输入与输出关系推断内部结构与功能。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="control4">
+            <div class="knowledge-card">
+                <h2>四、控制系统的设计与实施</h2>
+                <h3>控制系统设计的基本要求</h3>
+                <ul>
+                    <li>系统必须是稳定的。</li>
+                    <li>控制精确度必须符合要求，即系统的输出量与给定值之差应控制在允许范围之内。</li>
+                    <li>具有较好的抗干扰性能。</li>
+                </ul>
+                <h3>控制系统设计的基本步骤</h3>
+                <ul>
+                    <li>明确控制目标。</li>
+                    <li>选择控制方案（开环/闭环）。</li>
+                    <li>确定被控对象、执行器、控制器等。</li>
+                    <li>设计电路或控制程序。</li>
+                    <li>安装调试。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

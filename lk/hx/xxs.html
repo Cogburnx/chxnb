@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+    <title>化学选修三</title>
+    
+    <!-- KaTeX 核心库 + 自动渲染 + mhchem 扩展 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/mhchem.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2563eb;
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+        }
+        .category-title:hover { background: rgba(0,0,0,0.05); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #555;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮蓝色 */
+        .category-content a.active {
+            color: var(--accent-color);
+            font-weight: 600;
+            background-color: rgba(37, 99, 235, 0.12);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #555;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff8e1;
+            border: 2px dashed #ffc107;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        /* 子标题和列表样式 */
+        .knowledge-card h3 {
+            font-size: 1.1em;
+            margin: 15px 0 5px;
+            color: var(--accent-color);
+            border-left: 3px solid var(--accent-color);
+            padding-left: 10px;
+        }
+        .knowledge-card ul {
+            margin: 5px 0 10px 20px;
+            padding-left: 0;
+        }
+        .knowledge-card li {
+            margin-bottom: 5px;
+        }
+        .knowledge-card p {
+            margin: 0 0 10px;
+        }
+
+        /* 化学方程式单独样式 */
+        .knowledge-card .chem {
+            font-family: 'KaTeX_Main', 'Times New Roman', serif;
+            white-space: nowrap;
+            background-color: rgba(255,255,255,0.3);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (化学选修三/有机化学基础分类) 根据人教版2019目录整理  -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>化学选修三</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-org-struct')">✚ 有机化合物的结构特点与研究方法</div>
+            <div class="category-content" id="cat-org-struct">
+                <a href="#struct-feature">结构特点与分类</a>
+                <a href="#isomer">同分异构现象</a>
+                <a href="#research-method">研究有机化合物的一般方法</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-hydrocarbon')">✚ 烃</div>
+            <div class="category-content" id="cat-hydrocarbon">
+                <a href="#alkane">烷烃</a>
+                <a href="#alkene">烯烃</a>
+                <a href="#alkyne">炔烃</a>
+                <a href="#aromatic">芳香烃</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-derivative')">✚ 烃的衍生物</div>
+            <div class="category-content" id="cat-derivative">
+                <a href="#halohydrocarbon">卤代烃</a>
+                <a href="#alcohol-phenol">醇 酚</a>
+                <a href="#aldehyde-ketone">醛 酮</a>
+                <a href="#carboxylic-acid">羧酸 酯</a>
+                <a href="#organic-synthesis">有机合成</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-biomolecule')">✚ 生物大分子</div>
+            <div class="category-content" id="cat-biomolecule">
+                <a href="#carbohydrate">糖类</a>
+                <a href="#protein">蛋白质</a>
+                <a href="#nucleic-acid">核酸</a>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-polymer')">✚ 合成高分子</div>
+            <div class="category-content" id="cat-polymer">
+                <a href="#polymer-method">合成高分子的基本方法</a>
+                <a href="#polymer-material">高分子材料</a>
+            </div>
+        </div>
+        
+        <a href="/index.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 -->
+        <div class="ad-space">暂无</div>
+    </nav>
+    
+    <!-- 主要内容：化学选修三知识点卡片（有机化学基础） -->
+    <main>
+        <!-- 第一章 有机化合物的结构特点与研究方法 -->
+        <h1>第一章 有机化合物的结构特点与研究方法</h1>
+        
+        <section id="struct-feature">
+            <div class="knowledge-card">
+                <h2>结构特点与分类</h2>
+                <h3>有机化合物的分类 </h3>
+                <ul>
+                    <li><b>按碳骨架分类</b>：
+                        <ul>
+                            <li>链状化合物（脂肪族化合物）：如烷烃、烯烃、炔烃</li>
+                            <li>环状化合物：
+                                <ul>
+                                    <li>脂环化合物：如环己烷、环己烯</li>
+                                    <li>芳香化合物：含有苯环的化合物，如苯、萘</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><b>按官能团分类</b>：官能团是决定有机化合物特性的原子或原子团。
+                        <ul>
+                            <li>碳碳双键（<span class="chem">\(\ce{C=C}\)</span>）：烯烃</li>
+                            <li>碳碳三键（<span class="chem">\(\ce{C≡C}\)</span>）：炔烃</li>
+                            <li>卤素原子（<span class="chem">\(\ce{-X}\)</span>）：卤代烃</li>
+                            <li>羟基（<span class="chem">\(\ce{-OH}\)</span>）：醇、酚</li>
+                            <li>醚键（<span class="chem">\(\ce{-O-}\)</span>）：醚</li>
+                            <li>醛基（<span class="chem">\(\ce{-CHO}\)</span>）：醛</li>
+                            <li>酮羰基（<span class="chem">\(\ce{-CO-}\)</span>）：酮</li>
+                            <li>羧基（<span class="chem">\(\ce{-COOH}\)</span>）：羧酸</li>
+                            <li>酯基（<span class="chem">\(\ce{-COOR}\)</span>）：酯</li>
+                            <li>氨基（<span class="chem">\(\ce{-NH2}\)</span>）：胺</li>
+                            <li>酰胺基（<span class="chem">\(\ce{-CONH2}\)</span>）：酰胺</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>有机化合物中的共价键 </h3>
+                <ul>
+                    <li><b>碳原子的成键特点</b>：碳原子最外层有4个电子，易形成4个共价键，可以形成单键、双键、三键，碳原子间可连接成链状或环状，导致有机物种类繁多。</li>
+                    <li><b>共价键的类型</b>：
+                        <ul>
+                            <li>σ键：电子云“头碰头”重叠，可绕键轴旋转，稳定</li>
+                            <li>π键：电子云“肩并肩”重叠，不能绕键轴旋转，较活泼</li>
+                        </ul>
+                    </li>
+                    <li><b>共价键的极性</b>：不同原子形成的共价键有极性，极性越强越易断裂。</li>
+                    <li><b>推电子基团与吸电子基团</b>：
+                        <ul>
+                            <li>推电子基团（如烷基）使电子云密度增大</li>
+                            <li>吸电子基团（如卤素、硝基）使电子云密度减小</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="isomer">
+            <div class="knowledge-card">
+                <h2>同分异构现象</h2>
+                <h3>同分异构体的类型 </h3>
+                <ul>
+                    <li><b>构造异构</b>：
+                        <ul>
+                            <li>碳架异构：碳链骨架不同，如正丁烷和异丁烷</li>
+                            <li>位置异构：官能团位置不同，如1-丁烯和2-丁烯</li>
+                            <li>官能团异构：官能团种类不同，如乙醇和甲醚</li>
+                        </ul>
+                    </li>
+                    <li><b>立体异构</b>：
+                        <ul>
+                            <li>顺反异构：因双键不能旋转引起的异构，如顺-2-丁烯和反-2-丁烯</li>
+                            <li>对映异构（手性异构）：分子与它的镜像不能重合，如乳酸</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>同分异构体的书写与判断 </h3>
+                <ul>
+                    <li><b>书写步骤</b>：先写碳架异构 → 再写位置异构 → 最后考虑官能团异构</li>
+                    <li><b>等效氢法</b>：判断同分异构体数目时，处于相同环境的氢原子为等效氢。</li>
+                    <li><b>常见官能团的异构数目</b>：如戊烷有3种同分异构体，己烷有5种。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="research-method">
+            <div class="knowledge-card">
+                <h2>研究有机化合物的一般方法 </h2>
+                <h3>分离提纯方法</h3>
+                <ul>
+                    <li><b>蒸馏</b>：分离沸点相差较大的互溶液体混合物</li>
+                    <li><b>萃取</b>：利用溶质在两种互不相溶的溶剂中溶解度不同进行分离</li>
+                    <li><b>重结晶</b>：提纯固体有机物的常用方法，利用溶解度随温度变化差异</li>
+                    <li><b>色谱法</b>：利用各组分在固定相和流动相中的吸附能力不同进行分离</li>
+                </ul>
+                <h3>元素分析与分子式确定</h3>
+                <ul>
+                    <li><b>元素分析</b>（李比希法）：测定有机物中各元素的质量分数，确定实验式</li>
+                    <li><b>质谱法</b>：测定有机物的相对分子质量</li>
+                </ul>
+                <h3>分子结构确定</h3>
+                <ul>
+                    <li><b>红外光谱</b>：测定有机物中含有的官能团或化学键</li>
+                    <li><b>核磁共振氢谱</b>：测定有机物中氢原子的种类和数目（峰的面积比等于氢原子数之比）</li>
+                    <li><b>X射线衍射</b>：测定有机物中键长、键角等空间结构信息</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 烃 -->
+        <h1>第二章 烃</h1>
+
+        <section id="alkane">
+            <div class="knowledge-card">
+                <h2>烷烃 </h2>
+                <h3>结构与通式</h3>
+                <ul>
+                    <li>碳原子均为 <span class="chem">\(sp^3\)</span> 杂化，全部以单键相连</li>
+                    <li>通式：<span class="chem">\(\ce{C_nH_{2n+2}}\)</span>（n≥1）</li>
+                </ul>
+                <h3>物理性质</h3>
+                <ul>
+                    <li>熔沸点：随碳原子数增加而升高，支链越多熔沸点越低</li>
+                    <li>n≤4时为气态，5≤n≤16为液态，n≥17为固态</li>
+                    <li>密度均小于水，不溶于水，易溶于有机溶剂</li>
+                </ul>
+                <h3>化学性质</h3>
+                <ul>
+                    <li><b>氧化反应（燃烧）</b>：<span class="chem">\(\ce{C_nH_{2n+2} + \frac{3n+1}{2}O2 ->[\text{点燃}] nCO2 + (n+1)H2O}\)</span></li>
+                    <li><b>取代反应</b>：在光照条件下与卤素单质发生自由基取代反应，如 <span class="chem">\(\ce{CH4 + Cl2 ->[\text{光}] CH3Cl + HCl}\)</span></li>
+                    <li><b>热分解反应</b>：高温下发生裂化、裂解</li>
+                </ul>
+                <h3>烷烃的命名 </h3>
+                <ul>
+                    <li><b>选主链</b>：选最长碳链作为主链</li>
+                    <li><b>编号</b>：从离取代基最近的一端开始编号</li>
+                    <li><b>写名称</b>：取代基位置号+取代基名称+主链名称</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="alkene">
+            <div class="knowledge-card">
+                <h2>烯烃 </h2>
+                <h3>结构与通式</h3>
+                <ul>
+                    <li>含碳碳双键（<span class="chem">\(\ce{C=C}\)</span>），双键碳为 <span class="chem">\(sp^2\)</span> 杂化，键角120°</li>
+                    <li>通式：<span class="chem">\(\ce{C_nH_{2n}}\)</span>（n≥2）</li>
+                    <li><b>顺反异构</b>：当双键碳上连接两个不同的原子或基团时，存在顺反异构</li>
+                </ul>
+                <h3>物理性质</h3>
+                <ul>
+                    <li>2~4个碳为气体，5个碳以上为液体或固体</li>
+                    <li>熔沸点随碳原子数增加而升高</li>
+                    <li>不溶于水，密度比水小</li>
+                </ul>
+                <h3>化学性质</h3>
+                <ul>
+                    <li><b>氧化反应</b>：
+                        <ul>
+                            <li>燃烧：火焰明亮，伴有黑烟</li>
+                            <li>被酸性 <span class="chem">\(\ce{KMnO4}\)</span> 氧化：使高锰酸钾溶液褪色（鉴别烯烃）</li>
+                        </ul>
+                    </li>
+                    <li><b>加成反应</b>（双键的特征反应）：
+                        <ul>
+                            <li>与 <span class="chem">\(\ce{Br2}\)</span> 加成：<span class="chem">\(\ce{CH2=CH2 + Br2 -> CH2BrCH2Br}\)</span>（使溴水或溴的四氯化碳褪色）</li>
+                            <li>与 <span class="chem">\(\ce{H2}\)</span> 加成：<span class="chem">\(\ce{CH2=CH2 + H2 ->[Ni][\text{加热}] CH3CH3}\)</span></li>
+                            <li>与 <span class="chem">\(\ce{HX}\)</span> 加成（马氏规则）：氢加到含氢较多的双键碳上</li>
+                            <li>与 <span class="chem">\(\ce{H2O}\)</span> 加成：<span class="chem">\(\ce{CH2=CH2 + H2O ->[H+][\text{加热}] CH3CH2OH}\)</span></li>
+                        </ul>
+                    </li>
+                    <li><b>加聚反应</b>：<span class="chem">\(\ce{nCH2=CH2 ->[催化剂] [-CH2-CH2-]_n}\)</span></li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="alkyne">
+            <div class="knowledge-card">
+                <h2>炔烃 </h2>
+                <h3>结构与通式</h3>
+                <ul>
+                    <li>含碳碳三键（<span class="chem">\(\ce{C≡C}\)</span>），三键碳为 <span class="chem">\(sp\)</span> 杂化，键角180°</li>
+                    <li>通式：<span class="chem">\(\ce{C_nH_{2n-2}}\)</span>（n≥2）</li>
+                </ul>
+                <h3>乙炔的物理性质</h3>
+                <ul>
+                    <li>无色无味气体，微溶于水，易溶于有机溶剂</li>
+                </ul>
+                <h3>乙炔的实验室制法 </h3>
+                <ul>
+                    <li><b>原理</b>：<span class="chem">\(\ce{CaC2 + 2H2O -> C2H2 ^ + Ca(OH)2}\)</span></li>
+                    <li><b>装置</b>：固液不加热装置，常用饱和食盐水代替水以减缓反应速率</li>
+                    <li><b>净化</b>：通过 <span class="chem">\(\ce{CuSO4}\)</span> 溶液除去 <span class="chem">\(\ce{H2S}\)</span>、<span class="chem">\(\ce{PH3}\)</span> 等杂质</li>
+                </ul>
+                <h3>化学性质</h3>
+                <ul>
+                    <li><b>氧化反应</b>：
+                        <ul>
+                            <li>燃烧：火焰明亮，伴有浓烈黑烟</li>
+                            <li>被酸性 <span class="chem">\(\ce{KMnO4}\)</span> 氧化：使高锰酸钾溶液褪色</li>
+                        </ul>
+                    </li>
+                    <li><b>加成反应</b>：
+                        <ul>
+                            <li>与 <span class="chem">\(\ce{Br2}\)</span> 加成：<span class="chem">\(\ce{CH≡CH + Br2 -> CHBr=CHBr}\)</span>（1,2-加成），可继续加成</li>
+                            <li>与 <span class="chem">\(\ce{HCl}\)</span> 加成：<span class="chem">\(\ce{CH≡CH + HCl ->[\text{催化剂}] CH2=CHCl}\)</span>（氯乙烯）</li>
+                            <li>与水加成：<span class="chem">\(\ce{CH≡CH + H2O ->[Hg^{2+}, H+] CH3CHO}\)</span></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="aromatic">
+            <div class="knowledge-card">
+                <h2>芳香烃 </h2>
+                <h3>苯的结构</h3>
+                <ul>
+                    <li>分子式 <span class="chem">\(\ce{C6H6}\)</span>，平面正六边形结构，键角120°</li>
+                    <li>碳碳键是一种介于单键和双键之间的特殊共价键（大π键）</li>
+                </ul>
+                <h3>苯的物理性质</h3>
+                <ul>
+                    <li>无色有特殊气味的液体，密度比水小，不溶于水，易挥发，有毒</li>
+                </ul>
+                <h3>苯的化学性质</h3>
+                <ul>
+                    <li><b>氧化反应</b>：燃烧火焰明亮有浓烟；不能使酸性 <span class="chem">\(\ce{KMnO4}\)</span> 褪色</li>
+                    <li><b>取代反应</b>（苯的特征反应）：
+                        <ul>
+                            <li>卤代：<span class="chem">\(\ce{C6H6 + Br2 ->[FeBr3] C6H5Br + HBr}\)</span>（溴苯）</li>
+                            <li>硝化：<span class="chem">\(\ce{C6H6 + HNO3(浓) ->[浓H2SO4][50-60℃] C6H5NO2 + H2O}\)</span>（硝基苯）</li>
+                            <li>磺化：<span class="chem">\(\ce{C6H6 + H2SO4(浓) ->[微热] C6H5SO3H + H2O}\)</span>（苯磺酸）</li>
+                        </ul>
+                    </li>
+                    <li><b>加成反应</b>：<span class="chem">\(\ce{C6H6 + 3H2 ->[Ni][\text{加热}] C6H12}\)</span>（环己烷）</li>
+                </ul>
+                <h3>苯的同系物 </h3>
+                <ul>
+                    <li>通式：<span class="chem">\(\ce{C_nH_{2n-6}}\)</span>（n≥6）</li>
+                    <li>苯环活化了侧链，使侧链能被酸性 <span class="chem">\(\ce{KMnO4}\)</span> 氧化（如甲苯氧化成苯甲酸）</li>
+                    <li>侧链上的烷基是邻对位定位基，使苯环上的取代更易发生在邻对位</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 烃的衍生物 -->
+        <h1>第三章 烃的衍生物</h1>
+
+        <section id="halohydrocarbon">
+            <div class="knowledge-card">
+                <h2>卤代烃 </h2>
+                <h3>定义与分类</h3>
+                <ul>
+                    <li>烃分子中的氢原子被卤素原子取代后的化合物，通式 <span class="chem">\(\ce{R-X}\)</span></li>
+                </ul>
+                <h3>物理性质</h3>
+                <ul>
+                    <li>不溶于水，易溶于有机溶剂</li>
+                    <li>沸点高于相应的烃，密度一般大于水</li>
+                </ul>
+                <h3>化学性质</h3>
+                <ul>
+                    <li><b>取代反应（水解反应）</b>：<span class="chem">\(\ce{R-X + NaOH ->[H2O][\text{加热}] R-OH + NaX}\)</span></li>
+                    <li><b>消去反应</b>：<span class="chem">\(\ce{R-CH2-CH2X + NaOH ->[C2H5OH][\text{加热}] R-CH=CH2 + NaX + H2O}\)</span></li>
+                </ul>
+                <h3>卤素原子的检验 </h3>
+                <ul>
+                    <li>先加 <span class="chem">\(\ce{NaOH}\)</span> 溶液加热水解，再加稀硝酸中和至酸性，最后加 <span class="chem">\(\ce{AgNO3}\)</span> 溶液，观察沉淀颜色（<span class="chem">\(\ce{AgCl}\)</span>白色，<span class="chem">\(\ce{AgBr}\)</span>淡黄色，<span class="chem">\(\ce{AgI}\)</span>黄色）</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="alcohol-phenol">
+            <div class="knowledge-card">
+                <h2>醇 酚 </h2>
+                <h3>醇的物理性质</h3>
+                <ul>
+                    <li>低级醇易溶于水（与水形成氢键），随碳链增长溶解度减小</li>
+                    <li>沸点远高于相对分子质量相近的烃（分子间氢键）</li>
+                </ul>
+                <h3>醇的化学性质（以乙醇为例）</h3>
+                <ul>
+                    <li><b>与活泼金属反应</b>：<span class="chem">\(\ce{2C2H5OH + 2Na -> 2C2H5ONa + H2 ^}\)</span></li>
+                    <li><b>消去反应</b>：<span class="chem">\(\ce{C2H5OH ->[浓H2SO4][170℃] CH2=CH2 ^ + H2O}\)</span></li>
+                    <li><b>取代反应</b>：<span class="chem">\(\ce{C2H5OH + HBr ->[加热] C2H5Br + H2O}\)</span></li>
+                    <li><b>氧化反应</b>：
+                        <ul>
+                            <li>燃烧：<span class="chem">\(\ce{C2H5OH + 3O2 ->[\text{点燃}] 2CO2 + 3H2O}\)</span></li>
+                            <li>催化氧化：<span class="chem">\(\ce{2C2H5OH + O2 ->[Cu或Ag][\text{加热}] 2CH3CHO + 2H2O}\)</span></li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>酚（苯酚）的结构与性质 </h3>
+                <ul>
+                    <li>羟基直接连在苯环上，通式 <span class="chem">\(\ce{Ar-OH}\)</span></li>
+                    <li><b>弱酸性</b>：<span class="chem">\(\ce{C6H5OH + NaOH -> C6H5ONa + H2O}\)</span>（俗称石炭酸，但酸性比碳酸弱）</li>
+                    <li><b>取代反应</b>：苯环上的氢被活化，与浓溴水反应生成白色沉淀 <span class="chem">\(\ce{C6H5OH + 3Br2 -> C6H2Br3OH v + 3HBr}\)</span></li>
+                    <li><b>显色反应</b>：遇 <span class="chem">\(\ce{FeCl3}\)</span> 溶液显紫色</li>
+                    <li><b>氧化反应</b>：在空气中易被氧化呈粉红色</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="aldehyde-ketone">
+            <div class="knowledge-card">
+                <h2>醛 酮 </h2>
+                <h3>醛的结构与性质</h3>
+                <ul>
+                    <li>官能团为醛基（<span class="chem">\(\ce{-CHO}\)</span>），通式 <span class="chem">\(\ce{R-CHO}\)</span></li>
+                    <li><b>乙醛的物理性质</b>：无色有刺激性气味的液体，易挥发，能与水互溶</li>
+                </ul>
+                <h3>醛的化学性质</h3>
+                <ul>
+                    <li><b>加成反应</b>：<span class="chem">\(\ce{CH3CHO + H2 ->[Ni][\text{加热}] CH3CH2OH}\)</span>（还原反应）</li>
+                    <li><b>氧化反应</b>：
+                        <ul>
+                            <li><b>银镜反应</b>：<span class="chem">\(\ce{CH3CHO + 2[Ag(NH3)2]OH ->[水浴加热] CH3COONH4 + 2Ag v + 3NH3 + H2O}\)</span></li>
+                            <li><b>与新制氢氧化铜反应</b>：<span class="chem">\(\ce{CH3CHO + 2Cu(OH)2 + NaOH ->[\text{加热}] CH3COONa + Cu2O v + 3H2O}\)</span>（砖红色沉淀）</li>
+                            <li>催化氧化：<span class="chem">\(\ce{2CH3CHO + O2 ->[催化剂] 2CH3COOH}\)</span></li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>酮的结构与性质 </h3>
+                <ul>
+                    <li>官能团为酮羰基（<span class="chem">\(\ce{-CO-}\)</span>），通式 <span class="chem">\(\ce{R-CO-R'}\)</span></li>
+                    <li>丙酮：最简单的酮，无色液体，易挥发，能与水互溶</li>
+                    <li>酮不能发生银镜反应，不与新制氢氧化铜反应</li>
+                    <li>可发生加成反应：<span class="chem">\(\ce{CH3COCH3 + H2 ->[Ni][\text{加热}] CH3CH(OH)CH3}\)</span></li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="carboxylic-acid">
+            <div class="knowledge-card">
+                <h2>羧酸 酯 </h2>
+                <h3>羧酸的结构与性质</h3>
+                <ul>
+                    <li>官能团为羧基（<span class="chem">\(\ce{-COOH}\)</span>），通式 <span class="chem">\(\ce{R-COOH}\)</span></li>
+                    <li><b>乙酸的物理性质</b>：有强烈刺激性气味的液体，易溶于水</li>
+                </ul>
+                <h3>羧酸的化学性质</h3>
+                <ul>
+                    <li><b>酸性</b>：<span class="chem">\(\ce{CH3COOH <=> CH3COO- + H+}\)</span>，具有酸的通性</li>
+                    <li><b>酯化反应</b>：<span class="chem">\(\ce{CH3COOH + C2H5OH <=>[浓H2SO4][\text{加热}] CH3COOC2H5 + H2O}\)</span>（可逆反应，酸脱羟基醇脱氢）</li>
+                </ul>
+                <h3>酯的结构与性质 </h3>
+                <ul>
+                    <li>官能团为酯基（<span class="chem">\(\ce{-COOR}\)</span>），通式 <span class="chem">\(\ce{R-COOR'}\)</span></li>
+                    <li><b>物理性质</b>：低级酯有果香味，不溶于水，密度比水小</li>
+                    <li><b>水解反应</b>：
+                        <ul>
+                            <li>酸性水解：<span class="chem">\(\ce{CH3COOC2H5 + H2O <=>[H+][\text{加热}] CH3COOH + C2H5OH}\)</span></li>
+                            <li>碱性水解（皂化反应）：<span class="chem">\(\ce{CH3COOC2H5 + NaOH ->[\text{加热}] CH3COONa + C2H5OH}\)</span></li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>油脂 </h3>
+                <ul>
+                    <li>高级脂肪酸甘油酯，可发生皂化反应制肥皂</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="organic-synthesis">
+            <div class="knowledge-card">
+                <h2>有机合成 </h2>
+                <h3>碳链的构建</h3>
+                <ul>
+                    <li><b>增长碳链</b>：卤代烃与 <span class="chem">\(\ce{NaCN}\)</span> 反应、羟醛缩合、格氏反应等</li>
+                    <li><b>缩短碳链</b>：烯烃的氧化裂解、脱羧反应等</li>
+                </ul>
+                <h3>官能团的引入与转化</h3>
+                <ul>
+                    <li><b>引入碳碳双键</b>：醇的消去、卤代烃的消去</li>
+                    <li><b>引入卤原子</b>：烃的卤代、不饱和烃的加成</li>
+                    <li><b>引入羟基</b>：卤代烃水解、烯烃与水加成、醛酮还原</li>
+                    <li><b>引入醛基</b>：醇的氧化、烯烃的氧化裂解</li>
+                    <li><b>引入羧基</b>：醛的氧化、酯的水解</li>
+                </ul>
+                <h3>官能团的保护 </h3>
+                <ul>
+                    <li>在有机合成中，某些官能团易被反应条件破坏，需要暂时保护，如醛基可形成缩醛保护</li>
+                </ul>
+                <h3>有机合成路线设计 </h3>
+                <ul>
+                    <li>正向合成分析：从原料出发，逐步推导目标产物</li>
+                    <li>逆向合成分析：从目标产物出发，逆推出合成路线（切断法）</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 生物大分子 -->
+        <h1>第四章 生物大分子</h1>
+
+        <section id="carbohydrate">
+            <div class="knowledge-card">
+                <h2>糖类 </h2>
+                <h3>分类与通式</h3>
+                <ul>
+                    <li>单糖：不能再水解的糖，如葡萄糖、果糖，分子式 <span class="chem">\(\ce{C6H12O6}\)</span></li>
+                    <li>二糖：水解生成两分子单糖，如蔗糖、麦芽糖，分子式 <span class="chem">\(\ce{C12H22O11}\)</span></li>
+                    <li>多糖：水解生成多分子单糖，如淀粉、纤维素，分子式 <span class="chem">\(\ce{(C6H10O5)_n}\)</span></li>
+                </ul>
+                <h3>葡萄糖的化学性质</h3>
+                <ul>
+                    <li>含有醛基和羟基，能发生银镜反应、与新制氢氧化铜反应</li>
+                    <li><b>银镜反应</b>：<span class="chem">\(\ce{CH2OH(CHOH)4CHO + 2[Ag(NH3)2]OH ->[\text{水浴加热}] CH2OH(CHOH)4COONH4 + 2Ag v + 3NH3 + H2O}\)</span></li>
+                </ul>
+                <h3>淀粉与纤维素 </h3>
+                <ul>
+                    <li>淀粉遇碘变蓝色，可用于检验淀粉</li>
+                    <li>淀粉和纤维素都能水解生成葡萄糖：<span class="chem">\(\ce{(C6H10O5)_n + nH2O ->[催化剂] nC6H12O6}\)</span></li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="protein">
+            <div class="knowledge-card">
+                <h2>蛋白质 </h2>
+                <h3>氨基酸</h3>
+                <ul>
+                    <li>结构通式：<span class="chem">\(\ce{H2N-CHR-COOH}\)</span>，既有氨基又有羧基</li>
+                    <li><b>两性</b>：既能与酸反应又能与碱反应</li>
+                    <li><b>成肽反应</b>：氨基酸之间脱水缩合形成肽键（<span class="chem">\(\ce{-CONH-}\)</span>）</li>
+                </ul>
+                <h3>蛋白质的性质</h3>
+                <ul>
+                    <li><b>盐析</b>：加入轻金属盐，蛋白质析出，加水可溶解（可逆）</li>
+                    <li><b>变性</b>：加热、紫外线、重金属盐等使蛋白质变性（不可逆）</li>
+                    <li><b>水解</b>：最终产物为氨基酸</li>
+                    <li><b>颜色反应</b>：含苯环的蛋白质遇浓硝酸变黄</li>
+                    <li><b>灼烧</b>：有烧焦羽毛气味（鉴别蛋白质）</li>
+                </ul>
+                <h3>酶 </h3>
+                <ul>
+                    <li>具有催化作用的蛋白质，具有高效性、专一性、反应条件温和</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="nucleic-acid">
+            <div class="knowledge-card">
+                <h2>核酸 </h2>
+                <h3>组成</h3>
+                <ul>
+                    <li><b>核酸</b>：DNA（脱氧核糖核酸）和 RNA（核糖核酸）</li>
+                    <li>基本结构单元：核苷酸（由磷酸、戊糖、碱基组成）</li>
+                </ul>
+                <h3>结构</h3>
+                <ul>
+                    <li>DNA为双螺旋结构，RNA一般为单链</li>
+                    <li>碱基有腺嘌呤（A）、鸟嘌呤（G）、胞嘧啶（C）、胸腺嘧啶（T，DNA特有）、尿嘧啶（U，RNA特有）</li>
+                </ul>
+                <h3>功能</h3>
+                <ul>
+                    <li>DNA携带遗传信息，RNA参与蛋白质合成</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五章 合成高分子 -->
+        <h1>第五章 合成高分子</h1>
+
+        <section id="polymer-method">
+            <div class="knowledge-card">
+                <h2>合成高分子的基本方法 </h2>
+                <h3>加聚反应</h3>
+                <ul>
+                    <li>不饱和单体通过加成反应聚合</li>
+                    <li>单体通常是含有双键的化合物（如乙烯、氯乙烯）</li>
+                    <li>加聚产物链节与单体组成相同</li>
+                    <li>示例：聚乙烯 <span class="chem">\(\ce{nCH2=CH2 ->[催化剂] [-CH2-CH2-]_n}\)</span></li>
+                </ul>
+                <h3>缩聚反应</h3>
+                <ul>
+                    <li>单体间通过缩合反应生成高分子，同时有小分子副产物（如水、氨）生成</li>
+                    <li>单体通常含有两个或两个以上的官能团（如二元酸与二元醇、氨基酸）</li>
+                    <li>示例：聚酯 <span class="chem">\(\ce{nHOOC-R-COOH + nHO-R'-OH -> [-OC-R-COO-R'-O-]_n + 2nH2O}\)</span></li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="polymer-material">
+            <div class="knowledge-card">
+                <h2>高分子材料 </h2>
+                <h3>常见高分子材料</h3>
+                <ul>
+                    <li><b>塑料</b>：聚乙烯、聚氯乙烯、聚苯乙烯、酚醛树脂等</li>
+                    <li><b>合成纤维</b>：涤纶（聚酯纤维）、锦纶（聚酰胺纤维）、腈纶（聚丙烯腈纤维）</li>
+                    <li><b>合成橡胶</b>：丁苯橡胶、顺丁橡胶、氯丁橡胶</li>
+                </ul>
+                <h3>功能高分子材料</h3>
+                <ul>
+                    <li><b>高吸水性树脂</b>：如聚丙烯酸钠，可吸收自身质量数百倍的水</li>
+                    <li><b>高分子分离膜</b>：用于海水淡化、污水处理等</li>
+                    <li><b>导电高分子</b>：如聚乙炔（掺杂后导电）</li>
+                </ul>
+                <h3>绿色化学与高分子 </h3>
+                <ul>
+                    <li>可降解塑料：如聚乳酸（PLA），可在自然环境中降解</li>
+                    <li>原子经济性：理想的加聚反应原子利用率为100%</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ],
+                trust: true
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 3. 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

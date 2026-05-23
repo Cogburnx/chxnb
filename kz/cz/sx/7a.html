@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
+  <title>初中数学·七年级上册</title>
+    
+    <!-- KaTeX 渲染 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #1e6f5c;      /* 数学绿色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e8f5e9;     /* 浅绿色背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #1e6f5c;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #1e6f5c;
+        }
+        .category-title:hover { background: rgba(30, 111, 92, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #2d5a4c;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+        .category-content a.active {
+            color: #1e6f5c;
+            font-weight: 600;
+            background-color: rgba(30, 111, 92, 0.12);
+            border-left: 3px solid #1e6f5c;
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #2d5a4c;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e0f2e9;
+            border: 2px dashed #80cbc4;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #1e6f5c;
+        }
+
+        body.collapsed nav { padding: 20px 5px; }
+        body.collapsed .sidebar-header h2 { opacity: 0; width: 0; margin: 0; pointer-events: none; }
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home { display: none !important; }
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e6f5c;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #80cbc4;
+            color: #1e6f5c;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #c8e6c9;
+            padding-bottom: 10px;
+            color: #1e6f5c;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 170px 1fr; }
+            body.collapsed { grid-template-columns: 55px 1fr; }
+            nav { padding: 15px 8px; }
+            .sidebar-header h2 { font-size: 16px; }
+            #toggleSidebar { font-size: 22px; width: 28px; height: 28px; }
+            .category-title { font-size: 14px; padding: 6px 4px; }
+            .category-content a { font-size: 12px; padding: 4px 0; }
+            main { padding: 15px 15px; }
+            h1 { font-size: 22px; margin: 20px 0; }
+            body.collapsed .category-title::before { font-size: 18px; }
+        }
+        @media (max-width: 480px) {
+            body { grid-template-columns: 140px 1fr; }
+            body.collapsed { grid-template-columns: 48px 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>数学·七年级上册</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch1')">✚ 第一章 有理数</div>
+            <div class="category-content" id="cat-ch1">
+                <a href="#sec1-1">1.1 正数和负数</a>
+                <a href="#sec1-2">1.2 有理数</a>
+                <a href="#sec1-3">1.3 有理数的加减法</a>
+                <a href="#sec1-4">1.4 有理数的乘除法</a>
+                <a href="#sec1-5">1.5 有理数的乘方</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch2')">✚ 第二章 整式的加减</div>
+            <div class="category-content" id="cat-ch2">
+                <a href="#sec2-1">2.1 整式</a>
+                <a href="#sec2-2">2.2 整式的加减</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch3')">✚ 第三章 一元一次方程</div>
+            <div class="category-content" id="cat-ch3">
+                <a href="#sec3-1">3.1 从算式到方程</a>
+                <a href="#sec3-2">3.2 解一元一次方程（一）——合并同类项与移项</a>
+                <a href="#sec3-3">3.3 解一元一次方程（二）——去括号与去分母</a>
+                <a href="#sec3-4">3.4 实际问题与一元一次方程</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch4')">✚ 第四章 几何图形初步</div>
+            <div class="category-content" id="cat-ch4">
+                <a href="#sec4-1">4.1 几何图形</a>
+                <a href="#sec4-2">4.2 直线、射线、线段</a>
+                <a href="#sec4-3">4.3 角</a>
+                <a href="#sec4-4">4.4 课题学习 设计制作长方体形状的包装纸盒</a>
+            </div>
+        </div>
+        
+        <a href="/kz/cz/cz.html" class="back-home">返回首页</a>
+        <div class="ad-space">数学 · 思维的体操</div>
+    </nav>
+    
+    <main>
+        <!-- 第一章 有理数 -->
+        <h1>第一章 有理数</h1>
+        <section id="sec1-1">
+            <div class="knowledge-card">
+                <h2>1.1 正数和负数</h2>
+                <ul>
+                    <li><strong>正数</strong>：像3、1.8%、3.5这样大于0的数叫做正数。正数前面有时也可加上“+”（正号），例如+3、+1.8%。</li>
+                    <li><strong>负数</strong>：在正数前面加上“－”（负号）的数叫做负数，例如－3、－2.7%、－0.4。负数小于0。</li>
+                    <li><strong>0</strong>：0既不是正数，也不是负数。0是正数与负数的分界。</li>
+                    <li><strong>意义</strong>：用正负数表示具有相反意义的量。如收入与支出、零上温度与零下温度等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-2">
+            <div class="knowledge-card">
+                <h2>1.2 有理数</h2>
+                <ul>
+                    <li><strong>有理数</strong>：整数和分数统称有理数。
+                        <ul>
+                            <li>整数：正整数、0、负整数。</li>
+                            <li>分数：正分数、负分数。</li>
+                        </ul>
+                    </li>
+                    <li><strong>数轴</strong>：规定了原点、正方向和单位长度的直线叫做数轴。任何一个有理数都可以用数轴上的一个点来表示。</li>
+                    <li><strong>相反数</strong>：只有符号不同的两个数叫做互为相反数。0的相反数是0。数轴上表示相反数的两个点关于原点对称。</li>
+                    <li><strong>绝对值</strong>：一般地，数轴上表示数a的点与原点的距离叫做数a的绝对值，记作|a|。一个正数的绝对值是它本身；一个负数的绝对值是它的相反数；0的绝对值是0。正数大于0，0大于负数，正数大于负数；两个负数，绝对值大的反而小。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-3">
+            <div class="knowledge-card">
+                <h2>1.3 有理数的加减法</h2>
+                <ul>
+                    <li><strong>加法法则</strong>：
+                        <ul>
+                            <li>同号两数相加，取相同的符号，并把绝对值相加。</li>
+                            <li>异号两数相加，取绝对值较大的加数的符号，并用较大的绝对值减去较小的绝对值；互为相反数的两个数相加得0。</li>
+                            <li>一个数同0相加，仍得这个数。</li>
+                        </ul>
+                    </li>
+                    <li><strong>加法运算律</strong>：交换律 \(a+b=b+a\)；结合律 \((a+b)+c=a+(b+c)\)。</li>
+                    <li><strong>减法法则</strong>：减去一个数，等于加上这个数的相反数。即 \(a-b=a+(-b)\)。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-4">
+            <div class="knowledge-card">
+                <h2>1.4 有理数的乘除法</h2>
+                <ul>
+                    <li><strong>乘法法则</strong>：
+                        <ul>
+                            <li>两数相乘，同号得正，异号得负，并把绝对值相乘。</li>
+                            <li>任何数与0相乘，都得0。</li>
+                            <li>乘积是1的两个数互为倒数。</li>
+                        </ul>
+                    </li>
+                    <li><strong>乘法运算律</strong>：交换律 \(ab=ba\)；结合律 \((ab)c=a(bc)\)；分配律 \(a(b+c)=ab+ac\)。</li>
+                    <li><strong>除法法则</strong>：除以一个不等于0的数，等于乘这个数的倒数。即 \(a \div b = a \cdot \frac{1}{b} (b \neq 0)\)。两数相除，同号得正，异号得负，并把绝对值相除。0除以任何非0数都得0。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-5">
+            <div class="knowledge-card">
+                <h2>1.5 有理数的乘方</h2>
+                <ul>
+                    <li><strong>乘方</strong>：求n个相同因数的积的运算，叫做乘方，乘方的结果叫做幂。\(a^n\) 读作a的n次方，其中a是底数，n是指数。</li>
+                    <li><strong>正数的任何次幂都是正数；负数的奇次幂是负数，负数的偶次幂是正数。</strong></li>
+                    <li><strong>科学记数法</strong>：把一个大于10的数表示成 \(a \times 10^n\) 的形式（其中 \(1 \le a < 10\)，n是正整数），这种记数法叫做科学记数法。</li>
+                    <li><strong>近似数</strong>：与实际接近的数叫做近似数。精确度表示近似数与准确数的接近程度。通常用四舍五入法取近似数。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 整式的加减 -->
+        <h1>第二章 整式的加减</h1>
+        <section id="sec2-1">
+            <div class="knowledge-card">
+                <h2>2.1 整式</h2>
+                <ul>
+                    <li><strong>单项式</strong>：表示数或字母的积的式子叫做单项式。单独的一个数或一个字母也是单项式。单项式中的数字因数叫做这个单项式的系数。一个单项式中，所有字母的指数的和叫做这个单项式的次数。</li>
+                    <li><strong>多项式</strong>：几个单项式的和叫做多项式。每个单项式叫做多项式的项，不含字母的项叫做常数项。多项式里，次数最高项的次数，叫做这个多项式的次数。</li>
+                    <li><strong>整式</strong>：单项式与多项式统称整式。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-2">
+            <div class="knowledge-card">
+                <h2>2.2 整式的加减</h2>
+                <ul>
+                    <li><strong>同类项</strong>：所含字母相同，并且相同字母的指数也相同的项叫做同类项。几个常数项也是同类项。</li>
+                    <li><strong>合并同类项</strong>：把多项式中的同类项合并成一项，叫做合并同类项。合并同类项后，所得项的系数是合并前各同类项的系数的和，且字母连同它的指数不变。</li>
+                    <li><strong>去括号法则</strong>：
+                        <ul>
+                            <li>如果括号外的因数是正数，去括号后原括号内各项的符号与原来的符号相同。</li>
+                            <li>如果括号外的因数是负数，去括号后原括号内各项的符号与原来的符号相反。</li>
+                        </ul>
+                    </li>
+                    <li><strong>整式加减</strong>：一般地，几个整式相加减，如果有括号就先去括号，然后再合并同类项。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 一元一次方程 -->
+        <h1>第三章 一元一次方程</h1>
+        <section id="sec3-1">
+            <div class="knowledge-card">
+                <h2>3.1 从算式到方程</h2>
+                <ul>
+                    <li><strong>方程</strong>：含有未知数的等式叫做方程。</li>
+                    <li><strong>一元一次方程</strong>：只含有一个未知数（元），未知数的次数都是1，等号两边都是整式的方程叫做一元一次方程。</li>
+                    <li><strong>方程的解</strong>：使方程左右两边相等的未知数的值叫做方程的解。解方程就是求出方程的解的过程。</li>
+                    <li><strong>等式的性质</strong>：
+                        <ul>
+                            <li>性质1：等式两边加（或减）同一个数（或式子），结果仍相等。即如果 \(a=b\)，那么 \(a \pm c = b \pm c\)。</li>
+                            <li>性质2：等式两边乘同一个数，或除以同一个不为0的数，结果仍相等。即如果 \(a=b\)，那么 \(ac=bc\)；如果 \(a=b\)，\(c \neq 0\)，那么 \(\frac{a}{c}=\frac{b}{c}\)。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-2">
+            <div class="knowledge-card">
+                <h2>3.2 解一元一次方程（一）——合并同类项与移项</h2>
+                <ul>
+                    <li><strong>合并同类项</strong>：把方程中含未知数的项合并成一项，常数项合并成一项，使方程化为 \(ax=b\) 的形式。</li>
+                    <li><strong>移项</strong>：把等式一边的某项变号后移到另一边，叫做移项。移项的依据是等式的性质1。</li>
+                    <li><strong>解方程步骤</strong>：移项 → 合并同类项 → 系数化为1。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-3">
+            <div class="knowledge-card">
+                <h2>3.3 解一元一次方程（二）——去括号与去分母</h2>
+                <ul>
+                    <li><strong>去括号</strong>：依据去括号法则，将方程中的括号去掉。</li>
+                    <li><strong>去分母</strong>：方程两边同乘各分母的最小公倍数，将分母去掉。去分母时要注意不要漏乘不含分母的项，分数线有括号作用，去掉分母后要加括号。</li>
+                    <li><strong>解一元一次方程的一般步骤</strong>：去分母、去括号、移项、合并同类项、系数化为1。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-4">
+            <div class="knowledge-card">
+                <h2>3.4 实际问题与一元一次方程</h2>
+                <ul>
+                    <li><strong>列方程解应用题的一般步骤</strong>：
+                        <ol>
+                            <li>审：审清题意，找出已知量和未知量，明确等量关系。</li>
+                            <li>设：设出未知数，通常用字母表示。</li>
+                            <li>列：根据等量关系列出方程。</li>
+                            <li>解：解方程，求出未知数的值。</li>
+                            <li>验：检验解是否符合实际意义。</li>
+                            <li>答：写出答案。</li>
+                        </ol>
+                    </li>
+                    <li><strong>常见类型</strong>：行程问题（速度×时间=路程）、工程问题（工作效率×工作时间=工作量）、销售问题（利润=售价-进价，利润率=利润÷进价×100%）、数字问题、配套问题等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 几何图形初步 -->
+        <h1>第四章 几何图形初步</h1>
+        <section id="sec4-1">
+            <div class="knowledge-card">
+                <h2>4.1 几何图形</h2>
+                <ul>
+                    <li><strong>几何图形</strong>：从实物中抽象出的各种图形统称几何图形。包括立体图形（各部分不都在同一平面内）和平面图形（各部分都在同一平面内）。</li>
+                    <li><strong>点、线、面、体</strong>：体由面围成，面与面相交成线，线与线相交成点。点动成线，线动成面，面动成体。</li>
+                    <li><strong>展开图</strong>：有些立体图形是由一些平面图形围成的，将它们的表面适当剪开，可以展开成平面图形，这样的平面图形称为相应立体图形的展开图。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-2">
+            <div class="knowledge-card">
+                <h2>4.2 直线、射线、线段</h2>
+                <ul>
+                    <li><strong>直线</strong>：没有端点，向两方无限延伸，不可度量。经过两点有一条直线，并且只有一条直线（两点确定一条直线）。</li>
+                    <li><strong>射线</strong>：一个端点，向一方无限延伸，不可度量。</li>
+                    <li><strong>线段</strong>：两个端点，不延伸，可度量。两点之间，线段最短。连接两点间的线段的长度叫做这两点的距离。</li>
+                    <li><strong>中点</strong>：点M把线段AB分成相等的两条线段AM与MB，点M叫做线段AB的中点。</li>
+                    <li><strong>尺规作图</strong>：用无刻度的直尺和圆规作图。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-3">
+            <div class="knowledge-card">
+                <h2>4.3 角</h2>
+                <ul>
+                    <li><strong>角</strong>：有公共端点的两条射线组成的图形叫做角，这个公共端点是角的顶点，这两条射线是角的两条边。角也可以看作由一条射线绕着它的端点旋转而形成的图形。</li>
+                    <li><strong>角的度量</strong>：1°=60′，1′=60″。角的大小与边的长短无关，与两边张开的角度有关。</li>
+                    <li><strong>角平分线</strong>：从一个角的顶点出发，把这个角分成两个相等的角的射线，叫做这个角的平分线。</li>
+                    <li><strong>余角和补角</strong>：
+                        <ul>
+                            <li>如果两个角的和等于90°（直角），就说这两个角互为余角。同角（等角）的余角相等。</li>
+                            <li>如果两个角的和等于180°（平角），就说这两个角互为补角。同角（等角）的补角相等。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-4">
+            <div class="knowledge-card">
+                <h2>4.4 课题学习 设计制作长方体形状的包装纸盒</h2>
+                <ul>
+                    <li><strong>步骤</strong>：
+                        <ol>
+                            <li>观察长方体包装盒，测量棱长，了解结构。</li>
+                            <li>在硬纸板上画出展开图，注意预留粘合处。</li>
+                            <li>剪下展开图，折叠粘合，制作包装盒。</li>
+                        </ol>
+                    </li>
+                    <li><strong>长方体展开图特点</strong>：相对的面不相邻，各面之间通过棱连接。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particle-container');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.2 + 0.6;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = '#1e6f5c';
+                }
+                update(mouse) {
+                    if (mouse.x !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < mouse.radius) {
+                            const force = (mouse.radius - distance) / mouse.radius;
+                            const angle = Math.atan2(dy, dx);
+                            this.speedX += Math.cos(angle) * force * 0.03;
+                            this.speedY += Math.sin(angle) * force * 0.03;
+                        }
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            const mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            
+            const particlesArray = Array.from({ length: 40 }, () => new Particle());
+
+            function connect() {
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a+1; b < particlesArray.length; b++) {
+                        const dx = particlesArray[a].x - particlesArray[b].x;
+                        const dy = particlesArray[a].y - particlesArray[b].y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < 100) {
+                            ctx.strokeStyle = `rgba(30, 111, 92, ${1 - distance/100})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+                connect();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => { requestAnimationFrame(updateActiveNav); });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

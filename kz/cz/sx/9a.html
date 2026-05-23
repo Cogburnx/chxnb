@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>初中数学·九年级上册（详细版）</title>
+    
+    <!-- KaTeX 渲染 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #b85c1a;      /* 橙色，象征数学活力 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fff3e6;     /* 浅米色背景 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #b85c1a;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #b85c1a;
+        }
+        .category-title:hover { background: rgba(184, 92, 26, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #5a3e2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+        .category-content a.active {
+            color: #b85c1a;
+            font-weight: 600;
+            background-color: rgba(184, 92, 26, 0.12);
+            border-left: 3px solid #b85c1a;
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #5a3e2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fae6d1;
+            border: 2px dashed #e3a56d;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #b85c1a;
+        }
+
+        body.collapsed nav { padding: 20px 5px; }
+        body.collapsed .sidebar-header h2 { opacity: 0; width: 0; margin: 0; pointer-events: none; }
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home { display: none !important; }
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #b85c1a;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e3a56d;
+            color: #b85c1a;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #fad4bc;
+            padding-bottom: 10px;
+            color: #b85c1a;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 170px 1fr; }
+            body.collapsed { grid-template-columns: 55px 1fr; }
+            nav { padding: 15px 8px; }
+            .sidebar-header h2 { font-size: 16px; }
+            #toggleSidebar { font-size: 22px; width: 28px; height: 28px; }
+            .category-title { font-size: 14px; padding: 6px 4px; }
+            .category-content a { font-size: 12px; padding: 4px 0; }
+            main { padding: 15px 15px; }
+            h1 { font-size: 22px; margin: 20px 0; }
+            body.collapsed .category-title::before { font-size: 18px; }
+        }
+        @media (max-width: 480px) {
+            body { grid-template-columns: 140px 1fr; }
+            body.collapsed { grid-template-columns: 48px 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>数学·九年级上册</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch21')">✚ 第二十一章 一元二次方程</div>
+            <div class="category-content" id="cat-ch21">
+                <a href="#sec21-1">21.1 一元二次方程</a>
+                <a href="#sec21-2">21.2 解一元二次方程</a>
+                <a href="#sec21-3">21.3 实际问题与一元二次方程</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch22')">✚ 第二十二章 二次函数</div>
+            <div class="category-content" id="cat-ch22">
+                <a href="#sec22-1">22.1 二次函数的图象和性质</a>
+                <a href="#sec22-2">22.2 二次函数与一元二次方程</a>
+                <a href="#sec22-3">22.3 实际问题与二次函数</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch23')">✚ 第二十三章 旋转</div>
+            <div class="category-content" id="cat-ch23">
+                <a href="#sec23-1">23.1 图形的旋转</a>
+                <a href="#sec23-2">23.2 中心对称</a>
+                <a href="#sec23-3">23.3 课题学习 图案设计</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch24')">✚ 第二十四章 圆</div>
+            <div class="category-content" id="cat-ch24">
+                <a href="#sec24-1">24.1 圆的有关性质</a>
+                <a href="#sec24-2">24.2 点和圆、直线和圆的位置关系</a>
+                <a href="#sec24-3">24.3 正多边形和圆</a>
+                <a href="#sec24-4">24.4 弧长和扇形面积</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch25')">✚ 第二十五章 概率初步</div>
+            <div class="category-content" id="cat-ch25">
+                <a href="#sec25-1">25.1 随机事件与概率</a>
+                <a href="#sec25-2">25.2 用列举法求概率</a>
+                <a href="#sec25-3">25.3 用频率估计概率</a>
+            </div>
+        </div>
+        
+        <a href="/kz/cz/cz.html" class="back-home">返回首页</a>
+        <div class="ad-space">数学 · 思维攀登</div>
+    </nav>
+    
+    <main>
+        <!-- 第二十一章 一元二次方程 -->
+        <h1>第二十一章 一元二次方程</h1>
+        <section id="sec21-1">
+            <div class="knowledge-card">
+                <h2>21.1 一元二次方程</h2>
+                <ul>
+                    <li><strong>定义</strong>：等号两边都是整式，只含有一个未知数（一元），并且未知数的最高次数是2（二次）的方程，叫做一元二次方程。一般形式：\(ax^2+bx+c=0\)（\(a,b,c\)是常数，\(a\neq0\)）。其中\(ax^2\)是二次项，\(a\)是二次项系数；\(bx\)是一次项，\(b\)是一次项系数；\(c\)是常数项。</li>
+                    <li><strong>一元二次方程的解（根）</strong>：使方程左右两边相等的未知数的值，就是这个一元二次方程的解。一元二次方程的解也叫做一元二次方程的根。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec21-2">
+            <div class="knowledge-card">
+                <h2>21.2 解一元二次方程</h2>
+                <ul>
+                    <li><strong>直接开平方法</strong>：形如\(x^2=p\)或\((mx+n)^2=p\)（\(p\ge0\)）的方程，利用平方根的定义直接开平方求解。</li>
+                    <li><strong>配方法</strong>：通过配成完全平方式的方法得到一元二次方程的根。步骤：①移项；②二次项系数化为1；③配方（方程两边加上一次项系数一半的平方）；④写成\((x+h)^2=k\)的形式；⑤直接开平方求解。</li>
+                    <li><strong>公式法</strong>：一元二次方程\(ax^2+bx+c=0\)（\(a\neq0\)）的求根公式为：\(x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}\)（\(b^2-4ac\ge0\)）。根的判别式\(\Delta=b^2-4ac\)：
+                        <ul>
+                            <li>\(\Delta>0\)时，方程有两个不相等的实数根；</li>
+                            <li>\(\Delta=0\)时，方程有两个相等的实数根；</li>
+                            <li>\(\Delta<0\)时，方程无实数根。</li>
+                        </ul>
+                    </li>
+                    <li><strong>因式分解法</strong>：将方程左边因式分解，化为两个一次因式的乘积等于0的形式，再使每个一次因式等于0，从而求解。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec21-3">
+            <div class="knowledge-card">
+                <h2>21.3 实际问题与一元二次方程</h2>
+                <ul>
+                    <li><strong>常见模型</strong>：传播问题（如流感传播）、增长率问题、面积问题、利润问题等。关键：找准等量关系，正确列方程，并检验解的合理性。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二十二章 二次函数 -->
+        <h1>第二十二章 二次函数</h1>
+        <section id="sec22-1">
+            <div class="knowledge-card">
+                <h2>22.1 二次函数的图象和性质</h2>
+                <ul>
+                    <li><strong>定义</strong>：一般地，形如\(y=ax^2+bx+c\)（\(a,b,c\)是常数，\(a\neq0\)）的函数叫做二次函数。其中\(x\)是自变量，\(y\)是\(x\)的函数。</li>
+                    <li><strong>\(y=ax^2\)的图象与性质</strong>：抛物线，顶点在原点，对称轴为y轴。\(a>0\)时，开口向上，顶点是最低点；\(a<0\)时，开口向下，顶点是最高点。\(|a|\)越大，开口越小。</li>
+                    <li><strong>\(y=a(x-h)^2+k\)的图象</strong>：可由\(y=ax^2\)平移得到。顶点坐标为\((h,k)\)，对称轴为直线\(x=h\)。</li>
+                    <li><strong>\(y=ax^2+bx+c\)的图象</strong>：通过配方化为\(y=a(x-h)^2+k\)，顶点坐标\(\left(-\frac{b}{2a},\frac{4ac-b^2}{4a}\right)\)，对称轴直线\(x=-\frac{b}{2a}\)。性质：当\(a>0\)时，开口向上，在对称轴左侧y随x增大而减小，右侧增大；当\(a<0\)时相反。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec22-2">
+            <div class="knowledge-card">
+                <h2>22.2 二次函数与一元二次方程</h2>
+                <ul>
+                    <li><strong>关系</strong>：二次函数\(y=ax^2+bx+c\)的图象与x轴的交点横坐标，就是一元二次方程\(ax^2+bx+c=0\)的根。判别式\(\Delta=b^2-4ac\)决定交点个数：
+                        <ul>
+                            <li>\(\Delta>0\)，两个不相等的实数根 → 图象与x轴有两个交点；</li>
+                            <li>\(\Delta=0\)，两个相等的实数根 → 图象与x轴有一个交点；</li>
+                            <li>\(\Delta<0\)，无实数根 → 图象与x轴没有交点。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec22-3">
+            <div class="knowledge-card">
+                <h2>22.3 实际问题与二次函数</h2>
+                <ul>
+                    <li><strong>应用</strong>：利用二次函数解决最值问题（如最大利润、最大面积、最佳方案等）。一般步骤：建立函数模型，确定自变量取值范围，利用顶点公式求最值。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二十三章 旋转 -->
+        <h1>第二十三章 旋转</h1>
+        <section id="sec23-1">
+            <div class="knowledge-card">
+                <h2>23.1 图形的旋转</h2>
+                <ul>
+                    <li><strong>旋转的定义</strong>：把一个平面图形绕着平面内某一点O转动一个角度，叫做图形的旋转。点O叫做旋转中心，转动的角叫做旋转角。如果图形上的点P经过旋转变为点P'，那么这两个点叫做这个旋转的对应点。</li>
+                    <li><strong>旋转的性质</strong>：
+                        <ul>
+                            <li>对应点到旋转中心的距离相等。</li>
+                            <li>对应点与旋转中心所连线段的夹角等于旋转角。</li>
+                            <li>旋转前、后的图形全等。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec23-2">
+            <div class="knowledge-card">
+                <h2>23.2 中心对称</h2>
+                <ul>
+                    <li><strong>中心对称的定义</strong>：把一个图形绕着某一点旋转180°，如果它能够与另一个图形重合，那么就说这两个图形关于这个点对称或中心对称，这个点叫做对称中心。这两个图形中的对应点叫做关于中心的对称点。</li>
+                    <li><strong>中心对称的性质</strong>：
+                        <ul>
+                            <li>中心对称的两个图形，对称点所连线段都经过对称中心，而且被对称中心所平分。</li>
+                            <li>中心对称的两个图形是全等图形。</li>
+                        </ul>
+                    </li>
+                    <li><strong>中心对称图形</strong>：把一个图形绕着某一点旋转180°，如果旋转后的图形能够与原来的图形重合，那么这个图形叫做中心对称图形，这个点就是它的对称中心。如平行四边形、圆等。</li>
+                    <li><strong>关于原点对称的点的坐标</strong>：两个点关于原点对称时，它们的坐标符号相反，即点\(P(x,y)\)关于原点的对称点为\(P'(-x,-y)\)。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec23-3">
+            <div class="knowledge-card">
+                <h2>23.3 课题学习 图案设计</h2>
+                <ul>
+                    <li>利用平移、轴对称、旋转等图形变换设计图案。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二十四章 圆 -->
+        <h1>第二十四章 圆</h1>
+        <section id="sec24-1">
+            <div class="knowledge-card">
+                <h2>24.1 圆的有关性质</h2>
+                <ul>
+                    <li><strong>圆的概念</strong>：在一个平面内，线段OA绕它固定的一个端点O旋转一周，另一个端点A所形成的图形叫做圆。固定的端点O叫做圆心，线段OA叫做半径。以点O为圆心的圆，记作“⊙O”。</li>
+                    <li><strong>弦、直径、弧、半圆、等圆、等弧</strong>：连接圆上任意两点的线段叫做弦；经过圆心的弦叫做直径；圆上任意两点间的部分叫做圆弧，简称弧；圆的任意一条直径的两个端点把圆分成两条弧，每一条弧都叫做半圆。能够重合的两个圆叫做等圆；在同圆或等圆中，能够互相重合的弧叫做等弧。</li>
+                    <li><strong>垂径定理</strong>：垂直于弦的直径平分弦，并且平分弦所对的两条弧。推论：平分弦（不是直径）的直径垂直于弦，并且平分弦所对的两条弧。</li>
+                    <li><strong>弧、弦、圆心角的关系</strong>：在同圆或等圆中，相等的圆心角所对的弧相等，所对的弦也相等。反之，相等的弧或弦所对的圆心角也相等。</li>
+                    <li><strong>圆周角定理</strong>：一条弧所对的圆周角等于它所对的圆心角的一半。推论：
+                        <ul>
+                            <li>同弧或等弧所对的圆周角相等；</li>
+                            <li>半圆（或直径）所对的圆周角是直角，90°的圆周角所对的弦是直径。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec24-2">
+            <div class="knowledge-card">
+                <h2>24.2 点和圆、直线和圆的位置关系</h2>
+                <ul>
+                    <li><strong>点与圆的位置关系</strong>：设⊙O的半径为r，点P到圆心的距离为d，则
+                        <ul>
+                            <li>点P在圆外 ⇔ d > r；</li>
+                            <li>点P在圆上 ⇔ d = r；</li>
+                            <li>点P在圆内 ⇔ d < r。</li>
+                        </ul>
+                    </li>
+                    <li><strong>确定圆的条件</strong>：不在同一直线上的三个点确定一个圆。</li>
+                    <li><strong>直线与圆的位置关系</strong>：设⊙O的半径为r，圆心到直线的距离为d，则
+                        <ul>
+                            <li>相离 ⇔ d > r；</li>
+                            <li>相切 ⇔ d = r；</li>
+                            <li>相交 ⇔ d < r。</li>
+                        </ul>
+                    </li>
+                    <li><strong>切线的判定与性质</strong>：
+                        <ul>
+                            <li>判定：经过半径的外端并且垂直于这条半径的直线是圆的切线。</li>
+                            <li>性质：圆的切线垂直于过切点的半径。</li>
+                        </ul>
+                    </li>
+                    <li><strong>切线长定理</strong>：从圆外一点可以引圆的两条切线，它们的切线长相等，这一点和圆心的连线平分两条切线的夹角。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec24-3">
+            <div class="knowledge-card">
+                <h2>24.3 正多边形和圆</h2>
+                <ul>
+                    <li><strong>正多边形与圆的关系</strong>：把一个圆分成相等的一些弧，就可以得到这个圆的内接正多边形。正多边形的外接圆的圆心叫做正多边形的中心，外接圆的半径叫做正多边形的半径。正多边形每一边所对的圆心角叫做正多边形的中心角。中心到正多边形的一边的距离叫做正多边形的边心距。</li>
+                    <li><strong>正n边形的有关计算</strong>：中心角 = \(\frac{360°}{n}\)，边长、半径、边心距之间满足勾股定理。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec24-4">
+            <div class="knowledge-card">
+                <h2>24.4 弧长和扇形面积</h2>
+                <ul>
+                    <li><strong>弧长公式</strong>：\(l = \frac{n\pi R}{180}\)（n为圆心角的度数，R为半径）。</li>
+                    <li><strong>扇形面积公式</strong>：\(S_{扇} = \frac{n\pi R^2}{360}\) 或 \(S_{扇} = \frac{1}{2}lR\)（l为弧长）。</li>
+                    <li><strong>圆锥的侧面积和全面积</strong>：圆锥的侧面展开图是一个扇形，设圆锥的底面半径为r，母线长为l，则圆锥的侧面积为\(\pi r l\)，全面积为\(\pi r l + \pi r^2\)。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二十五章 概率初步 -->
+        <h1>第二十五章 概率初步</h1>
+        <section id="sec25-1">
+            <div class="knowledge-card">
+                <h2>25.1 随机事件与概率</h2>
+                <ul>
+                    <li><strong>事件类型</strong>：
+                        <ul>
+                            <li>必然事件：在一定条件下，必然会发生的事件。</li>
+                            <li>不可能事件：在一定条件下，必然不会发生的事件。</li>
+                            <li>随机事件：在一定条件下，可能发生也可能不发生的事件。</li>
+                        </ul>
+                    </li>
+                    <li><strong>概率</strong>：一般地，对于一个随机事件A，我们把刻画其发生可能性大小的数值，称为随机事件A发生的概率，记作\(P(A)\)。一般地，如果在一次试验中，有n种可能的结果，并且它们发生的可能性都相等，事件A包含其中的m种结果，那么事件A发生的概率\(P(A)=\frac{m}{n}\)。概率的范围：\(0\le P(A)\le 1\)。必然事件的概率为1，不可能事件的概率为0。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec25-2">
+            <div class="knowledge-card">
+                <h2>25.2 用列举法求概率</h2>
+                <ul>
+                    <li><strong>列举法</strong>：当一次试验涉及两个因素且可能出现的结果数目较多时，常用列表法；当一次试验涉及三个或更多因素时，常用画树状图法。关键是保证结果等可能且不重不漏。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec25-3">
+            <div class="knowledge-card">
+                <h2>25.3 用频率估计概率</h2>
+                <ul>
+                    <li><strong>原理</strong>：在大量重复试验中，事件发生的频率稳定于某个常数，这个常数就是该事件的概率。通过大量重复试验，用频率估计概率。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particle-container');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.2 + 0.6;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = '#b85c1a';
+                }
+                update(mouse) {
+                    if (mouse.x !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < mouse.radius) {
+                            const force = (mouse.radius - distance) / mouse.radius;
+                            const angle = Math.atan2(dy, dx);
+                            this.speedX += Math.cos(angle) * force * 0.03;
+                            this.speedY += Math.sin(angle) * force * 0.03;
+                        }
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            const mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            
+            const particlesArray = Array.from({ length: 40 }, () => new Particle());
+
+            function connect() {
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a+1; b < particlesArray.length; b++) {
+                        const dx = particlesArray[a].x - particlesArray[b].x;
+                        const dy = particlesArray[a].y - particlesArray[b].y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < 100) {
+                            ctx.strokeStyle = `rgba(184, 92, 26, ${1 - distance/100})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+                connect();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => { requestAnimationFrame(updateActiveNav); });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>历史选修一</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #b8860b;      /* 历史暗金色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fcf8e8;     /* 浅黄底色 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #b8860b;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #b8860b;
+        }
+        .category-title:hover { background: rgba(184, 134, 11, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #5a3e2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮暗金色 */
+        .category-content a.active {
+            color: #b8860b;
+            font-weight: 600;
+            background-color: rgba(184, 134, 11, 0.12);
+            border-left: 3px solid #b8860b;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #5a3e2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f7f0d6;
+            border: 2px dashed #e5b73b;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #b8860b;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #b8860b;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5b73b;
+            color: #b8860b;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #f0d9b5;
+            padding-bottom: 10px;
+            color: #b8860b;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 年代强调 */
+        .year {
+            font-weight: 600;
+            color: #a0522d;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (浅黄背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (历史选修一分类) 依据统编版选修1《历史上重大改革回眸》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>历史选修一</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一单元 古代历史上的改革（上） -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit1')">✚ 第一单元 古代历史上的改革（上）</div>
+            <div class="category-content" id="cat-unit1">
+                <a href="#lesson1">第1课 梭伦改革</a>
+                <a href="#lesson2">第2课 商鞅变法</a>
+            </div>
+        </div>
+        
+        <!-- 第二单元 古代历史上的改革（下） -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit2')">✚ 第二单元 古代历史上的改革（下）</div>
+            <div class="category-content" id="cat-unit2">
+                <a href="#lesson3">第3课 北魏孝文帝改革</a>
+                <a href="#lesson4">第4课 王安石变法</a>
+            </div>
+        </div>
+        
+        <!-- 第三单元 欧洲宗教改革 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit3')">✚ 第三单元 欧洲宗教改革</div>
+            <div class="category-content" id="cat-unit3">
+                <a href="#lesson5">第5课 宗教改革的历史背景</a>
+                <a href="#lesson6">第6课 马丁·路德与德国宗教改革</a>
+                <a href="#lesson7">第7课 加尔文与英国宗教改革</a>
+            </div>
+        </div>
+        
+        <!-- 第四单元 俄国农奴制改革 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit4')">✚ 第四单元 俄国农奴制改革</div>
+            <div class="category-content" id="cat-unit4">
+                <a href="#lesson8">第8课 1861年俄国农奴制改革</a>
+            </div>
+        </div>
+        
+        <!-- 第五单元 日本明治维新 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit5')">✚ 第五单元 日本明治维新</div>
+            <div class="category-content" id="cat-unit5">
+                <a href="#lesson9">第9课 明治维新的背景</a>
+                <a href="#lesson10">第10课 明治维新的主要内容</a>
+                <a href="#lesson11">第11课 明治维新的影响</a>
+            </div>
+        </div>
+        
+        <!-- 第六单元 戊戌变法 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-unit6')">✚ 第六单元 戊戌变法</div>
+            <div class="category-content" id="cat-unit6">
+                <a href="#lesson12">第12课 戊戌变法的背景</a>
+                <a href="#lesson13">第13课 百日维新</a>
+                <a href="#lesson14">第14课 戊戌变法的失败与影响</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">以史为鉴 · 革故鼎新</div>
+    </nav>
+    
+    <!-- 主要内容：详细版历史选修一知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一单元 古代历史上的改革（上） -->
+        <h1>第一单元 古代历史上的改革（上）</h1>
+        <section id="lesson1">
+            <div class="knowledge-card">
+                <h2>第1课 梭伦改革</h2>
+                <ul>
+                    <li><strong>改革背景</strong>：
+                        <ul>
+                            <li>公元前8—6世纪，雅典城邦平民与贵族矛盾尖锐。贵族在政治上把持国家权力，经济上通过放高利贷、土地兼并等方式剥削平民，许多平民沦为债务奴隶。</li>
+                            <li>工商业奴隶主阶层兴起，他们要求打破贵族专权，分享政治权利。</li>
+                            <li>公元前594年，梭伦当选为执政官，被授予“仲裁者”和“立法者”全权，进行改革。</li>
+                        </ul>
+                    </li>
+                    <li><strong>改革内容</strong>：
+                        <ul>
+                            <li><strong>经济措施</strong>：
+                                <ul>
+                                    <li>颁布“解负令”：废除所有债务，解放债务奴隶，禁止以人身作抵。</li>
+                                    <li>鼓励发展农业和工商业，如提倡种植经济作物，奖励外地工匠移居雅典。</li>
+                                </ul>
+                            </li>
+                            <li><strong>政治措施</strong>：
+                                <ul>
+                                    <li>按财产多寡将公民分为四个等级（五百斗级、骑士级、双牛级、日佣级），财产越多，政治权利越大。</li>
+                                    <li>创立四百人议事会，作为公民大会的常设机构，前三等级公民均可当选。</li>
+                                    <li>设立公民陪审法庭，打破贵族对司法审判的垄断。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>改革特点</strong>：
+                        <ul>
+                            <li>“中立”政策，既不偏袒贵族，也不讨好平民。</li>
+                            <li>带有“折中”色彩，一定程度上改善平民处境，但贵族仍有优势。</li>
+                        </ul>
+                    </li>
+                    <li><strong>改革影响</strong>：
+                        <ul>
+                            <li>积极：动摇了贵族专制统治，奠定了雅典民主政治的基础；促进工商业发展，壮大了工商业奴隶主阶层。</li>
+                            <li>局限：未能完全满足平民要求，贵族与平民的矛盾依旧存在。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson2">
+            <div class="knowledge-card">
+                <h2>第2课 商鞅变法</h2>
+                <ul>
+                    <li><strong>变法背景</strong>：
+                        <ul>
+                            <li>战国时期，诸侯争霸，秦国落后于东方六国，秦孝公决心变法图强。</li>
+                            <li>法家思想传播，商鞅携《法经》入秦，得到孝公重用。</li>
+                            <li>公元前356年和公元前350年，商鞅先后两次进行变法。</li>
+                        </ul>
+                    </li>
+                    <li><strong>变法内容</strong>：
+                        <ul>
+                            <li><strong>经济</strong>：
+                                <ul>
+                                    <li>废井田，开阡陌：承认土地私有，允许买卖。</li>
+                                    <li>重农抑商，奖励耕织：生产粟帛多者可免除徭役。</li>
+                                    <li>统一度量衡。</li>
+                                </ul>
+                            </li>
+                            <li><strong>政治</strong>：
+                                <ul>
+                                    <li>奖励军功，废除世卿世禄制：按军功授爵，打击贵族特权。</li>
+                                    <li>推行县制：全国设三十一县，县官由国君任免。</li>
+                                    <li>编制户籍，什伍连坐。</li>
+                                </ul>
+                            </li>
+                            <li><strong>文化</strong>：
+                                <ul>
+                                    <li>燔诗书而明法令，加强思想控制。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>变法特点</strong>：
+                        <ul>
+                            <li>以富国强兵为核心，彻底废除旧制度，是战国最彻底的变法。</li>
+                            <li>厉行法治，严刑峻法。</li>
+                        </ul>
+                    </li>
+                    <li><strong>变法影响</strong>：
+                        <ul>
+                            <li>积极：秦国国力大增，军队战斗力增强，为统一全国奠定基础。</li>
+                            <li>局限：轻视教化，加重对人民剥削；严刑峻法激化社会矛盾，商鞅虽死，其法未败。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二单元 古代历史上的改革（下） -->
+        <h1>第二单元 古代历史上的改革（下）</h1>
+        <section id="lesson3">
+            <div class="knowledge-card">
+                <h2>第3课 北魏孝文帝改革</h2>
+                <ul>
+                    <li><strong>改革背景</strong>：
+                        <ul>
+                            <li>北魏统一黄河流域后，民族融合趋势加强。</li>
+                            <li>鲜卑贵族保守落后，民族矛盾、阶级矛盾尖锐。</li>
+                            <li>冯太后和孝文帝深受汉族文化影响，决心学习汉族先进制度。</li>
+                        </ul>
+                    </li>
+                    <li><strong>改革内容</strong>：
+                        <ul>
+                            <li><strong>前期（冯太后主持）</strong>：
+                                <ul>
+                                    <li>制定官吏俸禄制，整顿吏治。</li>
+                                    <li>推行均田制：国家授田给农民，农民承担赋役。</li>
+                                    <li>建立三长制（邻长、里长、党长），清查户口，加强基层控制。</li>
+                                    <li>推行租调制：一夫一妇纳帛一匹、粟二石。</li>
+                                </ul>
+                            </li>
+                            <li><strong>后期（孝文帝亲政）</strong>：
+                                <ul>
+                                    <li>迁都洛阳（493年），便于学习汉文化。</li>
+                                    <li>推行汉化政策：穿汉服、说汉话、改汉姓（如拓跋→元）、鼓励与汉族通婚、改用汉制等。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>改革影响</strong>：
+                        <ul>
+                            <li>促进了北方民族大融合，加速北魏封建化进程。</li>
+                            <li>缓和了社会矛盾，促进了经济发展。</li>
+                            <li>鲜卑贵族腐化堕落，后期六镇起义，但改革仍为隋唐大一统奠定基础。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson4">
+            <div class="knowledge-card">
+                <h2>第4课 王安石变法</h2>
+                <ul>
+                    <li><strong>变法背景</strong>：
+                        <ul>
+                            <li>北宋中期出现“三冗”问题（冗官、冗兵、冗费），财政危机严重。</li>
+                            <li>阶级矛盾尖锐，农民起义频发（王小波、李顺起义）。</li>
+                            <li>辽、西夏威胁，边防危机。</li>
+                            <li>宋神宗任用王安石主持变法，以“富国强兵”。</li>
+                        </ul>
+                    </li>
+                    <li><strong>变法内容</strong>：
+                        <ul>
+                            <li><strong>富国</strong>：
+                                <ul>
+                                    <li>青苗法：政府低息贷款给农民。</li>
+                                    <li>募役法（免役法）：交钱代役，官府雇人充役。</li>
+                                    <li>农田水利法：鼓励兴修水利。</li>
+                                    <li>方田均税法：丈量土地，按土地等级收税。</li>
+                                    <li>市易法：政府平抑物价，防止商人垄断。</li>
+                                </ul>
+                            </li>
+                            <li><strong>强兵</strong>：
+                                <ul>
+                                    <li>保甲法：十家为保，农闲军训，维持地方治安。</li>
+                                    <li>将兵法：精简军队，选拔将领，提高战斗力。</li>
+                                    <li>保马法：鼓励民间养马。</li>
+                                </ul>
+                            </li>
+                            <li><strong>取士</strong>：
+                                <ul>
+                                    <li>改革科举，废明经科，专考经义和策论。</li>
+                                    <li>整顿太学，培养实用人才。</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>变法结果</strong>：
+                        <ul>
+                            <li>一定程度上改善财政状况，增强军事力量，但触动大官僚、大地主利益，遭强烈反对。</li>
+                            <li>宋神宗死后，司马光任宰相，新法几乎全废。</li>
+                        </ul>
+                    </li>
+                    <li><strong>变法评价</strong>：
+                        <ul>
+                            <li>进步性：增加政府收入，提高军事实力，促进农业发展。</li>
+                            <li>局限性：用人不当，加重民众负担，最终失败。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三单元 欧洲宗教改革 -->
+        <h1>第三单元 欧洲宗教改革</h1>
+        <section id="lesson5">
+            <div class="knowledge-card">
+                <h2>第5课 宗教改革的历史背景</h2>
+                <ul>
+                    <li><strong>天主教会的统治</strong>：
+                        <ul>
+                            <li>中世纪，天主教会是西欧最大的封建主，拥有大量庄园和土地，并向信徒征收什一税。</li>
+                            <li>教会控制着人们的精神生活，宣传禁欲主义，束缚人性的发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>资本主义萌芽的冲击</strong>：
+                        <ul>
+                            <li>14—15世纪，西欧资本主义萌芽产生和发展，新兴资产阶级要求摆脱天主教会的束缚。</li>
+                        </ul>
+                    </li>
+                    <li><strong>民族国家的发展</strong>：
+                        <ul>
+                            <li>随着民族意识的觉醒，各国君主希望摆脱罗马教廷的控制，建立统一的民族国家。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson6">
+            <div class="knowledge-card">
+                <h2>第6课 马丁·路德与德国宗教改革</h2>
+                <ul>
+                    <li><strong>导火索</strong>：
+                        <ul>
+                            <li>1517年，罗马教皇派人到德意志出售赎罪券，马丁·路德发表《九十五条论纲》，抨击教皇的贪婪，拉开了宗教改革的序幕。</li>
+                        </ul>
+                    </li>
+                    <li><strong>路德的主张</strong>：
+                        <ul>
+                            <li>“因信称义”：认为信仰即可得救，上帝面前人人平等，不需要通过教会和教士的中介。</li>
+                            <li>主张简化宗教仪式，废除教阶制度，神职人员可以结婚。</li>
+                            <li>认为《圣经》是信仰的唯一权威，人人可以阅读和解释《圣经》。</li>
+                        </ul>
+                    </li>
+                    <li><strong>改革的影响</strong>：
+                        <ul>
+                            <li>路德将《圣经》翻译成德文，促进了德意志民族语言的发展。</li>
+                            <li>德意志北部诸侯支持路德，形成了新教（路德宗），与南部信奉旧教的诸侯对峙，引发了宗教战争。</li>
+                            <li>1555年，奥格斯堡和约确立“教随国定”原则，路德教取得合法地位。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson7">
+            <div class="knowledge-card">
+                <h2>第7课 加尔文与英国宗教改革</h2>
+                <ul>
+                    <li><strong>加尔文改革</strong>：
+                        <ul>
+                            <li>加尔文在瑞士日内瓦进行改革，提出“先定论”，认为人的得救与否由上帝预定，信徒应努力经营，以证明自己是上帝的选民。</li>
+                            <li>主张建立民主、廉价的教会，日内瓦被称为“新教的罗马”。</li>
+                            <li>加尔文教为早期资产阶级革命提供了思想武器。</li>
+                        </ul>
+                    </li>
+                    <li><strong>英国宗教改革</strong>：
+                        <ul>
+                            <li>1534年，英国国王亨利八世通过《至尊法案》，宣布国王为英国教会最高首脑，英国国教（安立甘宗）建立。</li>
+                            <li>改革旨在加强王权，基本保留了天主教的教义和仪式。</li>
+                            <li>后来出现清教徒运动，要求清除国教中的天主教残余，成为英国资产阶级革命的思想旗帜。</li>
+                        </ul>
+                    </li>
+                    <li><strong>宗教改革的影响</strong>：
+                        <ul>
+                            <li>打破了天主教会的垄断，形成新教三大主流教派（路德宗、加尔文宗、安立甘宗）。</li>
+                            <li>促进了欧洲民族国家的形成和发展。</li>
+                            <li>推动了思想解放，为后来的启蒙运动奠定了基础。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四单元 俄国农奴制改革 -->
+        <h1>第四单元 俄国农奴制改革</h1>
+        <section id="lesson8">
+            <div class="knowledge-card">
+                <h2>第8课 1861年俄国农奴制改革</h2>
+                <ul>
+                    <li><strong>改革背景</strong>：
+                        <ul>
+                            <li>19世纪上半期，俄国资本主义有所发展，但农奴制严重阻碍了俄国经济的发展。</li>
+                            <li>农奴制导致农业生产落后，农奴生活贫困，购买力低下，国内市场狭小。</li>
+                            <li>1853—1856年克里米亚战争的失败，暴露了农奴制俄国的落后，加剧了社会矛盾。</li>
+                            <li>亚历山大二世即位后，认识到废除农奴制的必要性，决定自上而下进行改革。</li>
+                        </ul>
+                    </li>
+                    <li><strong>改革内容</strong>：
+                        <ul>
+                            <li>1861年3月3日（俄历2月19日），亚历山大二世签署废除农奴制的法令和宣言。</li>
+                            <li><strong>政治</strong>：农奴获得人身自由，享有公民权利，可以自由经营工商业，订立契约，拥有财产。</li>
+                            <li><strong>经济</strong>：农奴可以通过赎买获得份地，但赎金大大高于当时的地价，农民实际上为获得自由付出了高昂代价。</li>
+                            <li><strong>组织</strong>：由村社负责农民份地的赎金缴纳和劳役分配，农民仍被束缚在村社中。</li>
+                        </ul>
+                    </li>
+                    <li><strong>改革影响</strong>：
+                        <ul>
+                            <li>进步性：俄国走上资本主义发展道路，是俄国历史上的一个重要转折点。</li>
+                            <li>局限性：改革不彻底，保留了大量农奴制残余，社会矛盾依然存在。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五单元 日本明治维新 -->
+        <h1>第五单元 日本明治维新</h1>
+        <section id="lesson9">
+            <div class="knowledge-card">
+                <h2>第9课 明治维新的背景</h2>
+                <ul>
+                    <li><strong>德川幕府的统治</strong>：
+                        <ul>
+                            <li>17世纪初，德川幕府建立，实行封建专制统治，天皇是名义上的国家元首，但无实权。</li>
+                            <li>推行严格的等级制度，分为士、农、工、商四等级，社会矛盾尖锐。</li>
+                            <li>实行锁国政策，仅允许中国、荷兰在长崎一地进行贸易，隔绝了日本与世界的联系。</li>
+                        </ul>
+                    </li>
+                    <li><strong>西方列强的入侵</strong>：
+                        <ul>
+                            <li>1853年，美国海军准将佩里率舰队抵达日本，要求开国。次年，日本签订《日美亲善条约》，被迫开港通商。</li>
+                            <li>列强相继入侵，日本面临沦为半殖民地的民族危机。</li>
+                        </ul>
+                    </li>
+                    <li><strong>倒幕运动</strong>：
+                        <ul>
+                            <li>西南诸藩的下级武士主张改革，提出“尊王攘夷”口号，后来发展为倒幕运动。</li>
+                            <li>1868年，倒幕派发动政变，宣布“王政复古”，废除幕府，建立明治政府。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson10">
+            <div class="knowledge-card">
+                <h2>第10课 明治维新的主要内容</h2>
+                <ul>
+                    <li><strong>政治改革</strong>：
+                        <ul>
+                            <li>废除藩国，实行废藩置县，加强中央集权。</li>
+                            <li>废除封建等级制度，实行四民平等，取消武士特权。</li>
+                            <li>1889年颁布《大日本帝国宪法》，确立君主立宪政体，天皇拥有极大权力。</li>
+                        </ul>
+                    </li>
+                    <li><strong>经济改革</strong>：
+                        <ul>
+                            <li>进行土地改革，确认土地私有，允许土地买卖。</li>
+                            <li>推行“殖产兴业”政策，大力引进西方先进技术，兴办官营企业，后转为民营。</li>
+                            <li>统一货币，设立银行，建立近代财政体系。</li>
+                        </ul>
+                    </li>
+                    <li><strong>军事改革</strong>：
+                        <ul>
+                            <li>实行义务兵役制，建立常备军，称为“皇军”。</li>
+                            <li>引进西方军事技术，建立近代化军队。</li>
+                        </ul>
+                    </li>
+                    <li><strong>文教改革</strong>：
+                        <ul>
+                            <li>推行“文明开化”政策，学习西方文化。</li>
+                            <li>建立近代教育体系，颁布《学制》，普及小学教育，创办大学。</li>
+                            <li>提倡西式生活方式。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson11">
+            <div class="knowledge-card">
+                <h2>第11课 明治维新的影响</h2>
+                <ul>
+                    <li><strong>积极影响</strong>：
+                        <ul>
+                            <li>日本迅速走上了发展资本主义的道路，实现了富国强兵，成为亚洲强国。</li>
+                            <li>废除了不平等条约，摆脱了沦为殖民地的危机，维护了国家独立。</li>
+                            <li>推动了日本社会的进步，促进了教育、文化的发展。</li>
+                        </ul>
+                    </li>
+                    <li><strong>消极影响</strong>：
+                        <ul>
+                            <li>保留了大量的封建残余，如天皇制、军国主义传统。</li>
+                            <li>对外推行侵略扩张政策，给亚洲邻国带来了灾难。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第六单元 戊戌变法 -->
+        <h1>第六单元 戊戌变法</h1>
+        <section id="lesson12">
+            <div class="knowledge-card">
+                <h2>第12课 戊戌变法的背景</h2>
+                <ul>
+                    <li><strong>民族危机加剧</strong>：
+                        <ul>
+                            <li>甲午战争后，清政府被迫签订《马关条约》，割地赔款，列强掀起瓜分中国的狂潮，民族危机空前严重。</li>
+                        </ul>
+                    </li>
+                    <li><strong>民族资本主义初步发展</strong>：
+                        <ul>
+                            <li>甲午战后，清政府放宽民间设厂限制，民族资本主义获得初步发展，民族资产阶级力量壮大。</li>
+                        </ul>
+                    </li>
+                    <li><strong>维新思想的传播</strong>：
+                        <ul>
+                            <li>早期维新思想（如郑观应）提出改良主张。康有为、梁启超在甲午战后进一步传播维新思想，康有为著《新学伪经考》《孔子改制考》，为变法提供理论依据。</li>
+                            <li>1895年，康有为、梁启超联合各省举人发动“公车上书”，提出拒和、迁都、变法，揭开了维新变法的序幕。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson13">
+            <div class="knowledge-card">
+                <h2>第13课 百日维新</h2>
+                <ul>
+                    <li><strong>开始</strong>：
+                        <ul>
+                            <li>1898年6月11日，光绪帝颁布“明定国是”诏书，宣布变法。到9月21日慈禧太后发动政变为止，共103天，史称“百日维新”。</li>
+                        </ul>
+                    </li>
+                    <li><strong>主要内容</strong>：
+                        <ul>
+                            <li><strong>政治</strong>：允许官民上书言事，裁撤冗员，澄清吏治。</li>
+                            <li><strong>经济</strong>：设立农工商总局，提倡实业，奖励发明，改革财政，编制国家预算。</li>
+                            <li><strong>文化教育</strong>：废八股，改试策论，兴办学堂（如京师大学堂），设立译书局，派遣留学生。</li>
+                            <li><strong>军事</strong>：裁汰旧军，改用西法训练新式海陆军。</li>
+                        </ul>
+                    </li>
+                    <li><strong>失败原因</strong>：
+                        <ul>
+                            <li>维新派缺乏正确的政治策略，依靠无实权的皇帝，脱离广大人民群众。</li>
+                            <li>变法触动了以慈禧太后为首的顽固派的利益，遭到强烈反对。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="lesson14">
+            <div class="knowledge-card">
+                <h2>第14课 戊戌变法的失败与影响</h2>
+                <ul>
+                    <li><strong>失败经过</strong>：
+                        <ul>
+                            <li>1898年9月21日，慈禧太后发动政变，囚禁光绪帝，宣布“临朝训政”。</li>
+                            <li>康有为、梁启超逃亡海外，谭嗣同等“戊戌六君子”被杀。</li>
+                            <li>除京师大学堂外，变法措施全部废除。</li>
+                        </ul>
+                    </li>
+                    <li><strong>历史影响</strong>：
+                        <ul>
+                            <li>是一次爱国救亡的政治运动，激发了人们的爱国意识和民族意识。</li>
+                            <li>是一次资产阶级改良运动，推动了民族资本主义的发展。</li>
+                            <li>是一次思想解放运动，维新思想的传播促进了人民的觉醒，为辛亥革命奠定了思想基础。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

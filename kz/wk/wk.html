@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>文科 · 山火</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    #particle-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f0f0f0;
+      z-index: -1;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      position: relative;
+    }
+    
+    h1 {
+      text-align: center;
+      font-size: 2.5em;
+      margin-bottom: 30px;
+      width: 100%;
+      color: #333;
+    }
+    
+    .main-content {
+      flex: 3;
+      min-width: 300px;
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .ad-sidebar {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .category {
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .category:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .category-title {
+      cursor: pointer;
+      padding: 10px 15px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #e9e9e9;
+      transition: background-color 0.3s ease;
+    }
+    
+    .category-title:hover {
+      background-color: #d9d9d9;
+    }
+    
+    .category-content {
+      padding: 10px;
+      padding-left: 30px;
+      border-top: 1px solid #ccc;
+      display: none;
+    }
+    
+    ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    li {
+      margin-bottom: 5px;
+    }
+    
+    .ad-space {
+      border: 1px dashed #ccc;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      min-height: 150px;
+      background-color: rgba(255, 255, 255, 0.85);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .footer-links {
+      width: 100%;
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 20px;
+      border-radius: 8px;
+    }
+    
+    .footer-links span {
+      margin: 0 15px;
+    }
+    
+    a {
+      color: #0066cc;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    
+    a:hover {
+      color: #004080;
+      text-decoration: underline;
+    }
+
+    /* ----- 左上角导航图案 (初中+理科) ----- */
+    .corner-nav {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      gap: 15px;
+      z-index: 10;
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 40px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 10px 25px -8px rgba(0, 0, 0, 0.2);
+      color: #2d3e50;
+      font-weight: 600;
+      font-size: 1.05rem;
+      letter-spacing: 0.3px;
+      transition: all 0.25s ease;
+      text-decoration: none;
+    }
+
+    .nav-btn i {
+      font-size: 1.3rem;
+      transition: transform 0.2s ease;
+    }
+
+    /* 初中按钮：自然绿色调 (但已被注释掉，保留样式以备后续) */
+    .nav-btn:first-child {
+      background: linear-gradient(145deg, rgba(230, 245, 230, 0.85), rgba(210, 235, 210, 0.75));
+      border-color: rgba(100, 160, 100, 0.3);
+    }
+    .nav-btn:first-child i {
+      color: #2e7d32;
+    }
+
+    /* 理科按钮：科技蓝色调 */
+    .nav-btn:last-child {
+      background: linear-gradient(145deg, rgba(210, 230, 250, 0.85), rgba(180, 210, 240, 0.75));
+      border-color: rgba(70, 130, 200, 0.3);
+    }
+    .nav-btn:last-child i {
+      color: #1e6f9f;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 30px -10px rgba(0, 0, 0, 0.3);
+      background: rgba(255, 255, 255, 0.95);
+      border-color: rgba(255, 255, 255, 0.6);
+    }
+
+    .nav-btn:hover i {
+      transform: scale(1.1);
+    }
+
+    /* ---------- 手机和平板优化 (增强版，参考首页优化) ---------- */
+    @media (max-width: 700px) {
+      body {
+        padding: 15px;
+        gap: 15px;
+      }
+
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+        margin-top: 10px; /* 为左上导航留出安全距离 */
+      }
+
+      .main-content,
+      .ad-sidebar {
+        padding: 15px;
+      }
+
+      .category-title {
+        padding: 14px 16px;        /* 增大触摸区域 */
+        font-size: 1.15rem;
+      }
+
+      .category-content {
+        padding-left: 20px;
+        padding-top: 12px;
+        padding-bottom: 12px;
+      }
+
+      .category-content li {
+        margin-bottom: 10px;        /* 增加列表间距 */
+      }
+
+      .category-content a {
+        display: inline-block;
+        padding: 6px 0;             /* 扩大链接热区 */
+        font-size: 1.05rem;
+      }
+
+      .expand-icon {
+        font-size: 1.6rem;          /* 加大折叠图标 */
+        line-height: 1;
+      }
+
+      .ad-space {
+        min-height: 100px;
+        padding: 15px;
+        font-size: 0.95rem;
+      }
+
+      .footer-links {
+        padding: 16px 10px;
+        font-size: 0.95rem;
+      }
+
+      .footer-links span {
+        margin: 0 6px;
+        display: inline-block;
+        line-height: 1.8;
+      }
+
+      .corner-nav {
+        top: 10px;
+        left: 10px;
+        gap: 10px;
+      }
+
+      .nav-btn {
+        padding: 8px 18px;
+        font-size: 1rem;
+      }
+
+      .nav-btn i {
+        font-size: 1.2rem;
+      }
+    }
+
+    /* 更小屏幕 (小于450px) 额外调整 */
+    @media (max-width: 450px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .category-title {
+        padding: 14px 14px;
+        font-size: 1.1rem;
+      }
+
+      .footer-links span {
+        margin: 0 4px;
+        font-size: 0.85rem;
+      }
+
+      .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px 8px;
+      }
+
+      .footer-links span {
+        margin: 0;                  /* 取消外边距，用gap代替 */
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-container"></canvas>
+  
+  <!-- 左上角两个导航按钮：初中 + 理科（初中已注释掉，不可见） -->
+  <div class="corner-nav">
+    <a href="/kz/cz/cz.html" class="nav-btn" title="初中知识点">
+      <i class="fas fa-graduation-cap"></i> 初中
+    </a>
+    <a href="/index.html" class="nav-btn" title="理科知识点">
+      <i class="fas fa-flask"></i> 理科
+    </a>
+  </div>
+
+  <!-- 标题微调，体现文科专题 -->
+  <h1>文科 · 山火</h1>
+  
+  <div class="main-content">
+    <!-- 语文分类 -->
+    <div class="category">
+      <div class="category-title" onclick="toggleCategory('chinese')">
+        语文
+        <span class="expand-icon">+</span>
+      </div>
+      <div class="category-content" id="chinese">
+        <ul>
+          <li><a href="/kz/wk/yw/bsnr.html">必背内容</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- 英语分类 -->
+    <div class="category">
+      <div class="category-title" onclick="toggleCategory('english')">
+        英语
+        <span class="expand-icon">+</span>
+      </div>
+      <div class="category-content" id="english">
+        <ul>
+          <li><a href="/kz/wk/yy/dc.html">单词</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- 历史分类 -->
+    <div class="category">
+      <div class="category-title" onclick="toggleCategory('history')">
+        历史
+        <span class="expand-icon">+</span>
+      </div>
+      <div class="category-content" id="history">
+        <ul>
+          <li><a href="/kz/wk/ls/bxs.html">必修上</a></li>
+          <li><a href="/kz/wk/ls/bxx.html">必修下</a></li>
+          <li><a href="/kz/wk/ls/xxy.html">选修一</a></li>
+          <li><a href="/kz/wk/ls/xxt.html">选修二</a></li>
+          <li><a href="/kz/wk/ls/xxs.html">选修三</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- 政治分类 -->
+    <div class="category">
+      <div class="category-title" onclick="toggleCategory('politics')">
+        政治
+        <span class="expand-icon">+</span>
+      </div>
+      <div class="category-content" id="politics">
+        <ul>
+          <li><a href="/kz/wk/zz/bxy.html">必修一</a></li>
+          <li><a href="/kz/wk/zz/bxt.html">必修二</a></li>
+          <li><a href="/kz/wk/zz/bxs.html">必修三</a></li>
+          <li><a href="/kz/wk/zz/bxf.html">必修四</a></li>
+          <li><a href="/kz/wk/zz/xxy.html">选修一</a></li>
+          <li><a href="/kz/wk/zz/xxt.html">选修二</a></li>
+          <li><a href="/kz/wk/zz/xxs.html">选修三</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 地理分类 -->
+    <div class="category">
+      <div class="category-title" onclick="toggleCategory('geography')">
+        地理
+        <span class="expand-icon">+</span>
+      </div>
+      <div class="category-content" id="geography">
+        <ul>
+          <li><a href="/kz/wk/dl/bxy.html">必修一</a></li>
+          <li><a href="/kz/wk/dl/bxt.html">必修二</a></li>
+          <li><a href="/kz/wk/dl/xxy.html">选修一</a></li>
+          <li><a href="/kz/wk/dl/xxt.html">选修二</a></li>
+          <li><a href="/kz/wk/dl/xxs.html">选修三</a></li>
+        </ul>
+      </div>
+    </div>
+
+  </div>  <!-- main-content 结束 -->
+  
+  <div class="ad-sidebar">
+    <div class="ad-space">
+      <p>暂无</p>
+    </div>
+  </div>
+
+  <!-- 底部只保留“休闲室”一个链接 -->
+  <div class="footer-links">
+    <span><a href="/kz/xxs.html">休闲室</a></span>
+  </div>
+
+  <script>
+    // 分类展开/折叠功能
+    function toggleCategory(categoryId) {
+      const content = document.getElementById(categoryId);
+      const icon = content.previousElementSibling.querySelector('.expand-icon');
+      
+      if (content.style.display === 'block') {
+        content.style.display = 'none';
+        icon.textContent = '+';
+      } else {
+        content.style.display = 'block';
+        icon.textContent = '-';
+      }
+    }
+    
+    // 粒子效果 (手机端自动禁用)
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.innerWidth < 768) return; 
+
+      const canvas = document.getElementById('particle-container');
+      const ctx = canvas.getContext('2d');
+      
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      
+      class Particle {
+        constructor() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.size = Math.random() * 1.5 + 0.8;
+          this.speedX = Math.random() * 0.4 - 0.2;
+          this.speedY = Math.random() * 0.4 - 0.2;
+          this.color = '#555';
+        }
+        
+        reset() {
+          const edge = Math.floor(Math.random() * 4);
+          switch(edge) {
+            case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+            case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+            case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+            case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+          }
+        }
+        
+        update(mouse) {
+          if (mouse.x !== null && mouse.y !== null) {
+            const dx = mouse.x - this.x;
+            const dy = mouse.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < mouse.radius) {
+              const attraction = 0.02;
+              const angle = Math.atan2(dy, dx);
+              this.speedX += Math.cos(angle) * attraction;
+              this.speedY += Math.sin(angle) * attraction;
+            }
+          }
+          this.x += this.speedX;
+          this.y += this.speedY;
+          if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+          ctx.fillStyle = this.color;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      
+      const mouse = { x: null, y: null, radius: 150 };
+      window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+      
+      const particlesArray = [];
+      const particleCount = 25; 
+      
+      function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+      }
+      
+      function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+          for (let b = a + 1; b < particlesArray.length; b++) {
+            const dx = particlesArray[a].x - particlesArray[b].x;
+            const dy = particlesArray[a].y - particlesArray[b].y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < 100) {
+              const opacity = 1 - (distance / 100);
+              ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+              ctx.lineWidth = 0.3;
+              ctx.beginPath();
+              ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+              ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+      
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+      }
+      init();
+      animate();
+    });
+  </script>
+</body>
+</html>

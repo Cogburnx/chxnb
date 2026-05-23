@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0"><title>地理选修三</title>
+    
+    <!-- KaTeX 渲染 (备用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #d97706;      /* 旅游地理橙色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fef3c7;     /* 浅黄色背景，象征阳光旅游 */
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;  /* 默认左侧展开宽度 */
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* 收缩状态 */
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* 侧边栏磨砂玻璃 */
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        /* 侧边栏头部：标题和收缩按钮 */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #d97706;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* 分类折叠样式 */
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #d97706;
+        }
+        .category-title:hover { background: rgba(217, 119, 6, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #7c4d2b;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+
+        /* 导航高亮橙色 */
+        .category-content a.active {
+            color: #d97706;
+            font-weight: 600;
+            background-color: rgba(217, 119, 6, 0.12);
+            border-left: 3px solid #d97706;
+            padding-left: 8px;
+        }
+
+        /* 返回首页链接 */
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #7c4d2b;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fef3c7;
+            border: 2px dashed #fbbf24;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #d97706;
+        }
+
+        /* ---------- 收缩状态下的侧边栏样式 ---------- */
+        body.collapsed nav {
+            padding: 20px 5px;
+        }
+
+        body.collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home {
+            display: none !important;
+        }
+
+        /* 分类标题收缩时只显示加号符号，隐藏文字 */
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;           /* 隐藏文字 */
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";           /* 统一显示加号 */
+            font-size: 20px;
+            font-weight: bold;
+            color: #d97706;
+        }
+
+        /* 主内容区 */
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #fbbf24;
+            color: #d97706;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #fde68a;
+            padding-bottom: 10px;
+            color: #d97706;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+
+        /* 嵌套列表样式 */
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        /* 案例强调 */
+        .case {
+            font-weight: 500;
+            color: #b45309;
+        }
+
+        /* ========== 移动端优化：侧边栏固定左侧 ========== */
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 170px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 55px 1fr;
+            }
+            nav {
+                padding: 15px 8px;
+            }
+            .sidebar-header h2 {
+                font-size: 16px;
+            }
+            #toggleSidebar {
+                font-size: 22px;
+                width: 28px;
+                height: 28px;
+            }
+            .category-title {
+                font-size: 14px;
+                padding: 6px 4px;
+            }
+            .category-content a {
+                font-size: 12px;
+                padding: 4px 0;
+            }
+            main {
+                padding: 15px 15px;
+            }
+            h1 {
+                font-size: 22px;
+                margin: 20px 0;
+            }
+            body.collapsed .category-title::before {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                grid-template-columns: 140px 1fr;
+            }
+            body.collapsed {
+                grid-template-columns: 48px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 粒子画布 (暖黄色背景) -->
+    <canvas id="particle-container"></canvas>
+    
+    <!-- 侧边栏 (地理选修三分类) 基于人教版选修3《旅游地理》结构 -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>地理选修三</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <!-- 第一章 旅游资源 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-resource')">✚ 旅游资源</div>
+            <div class="category-content" id="cat-resource">
+                <a href="#tour-resource-def">旅游资源的定义与内涵</a>
+                <a href="#tour-resource-class">旅游资源的分类</a>
+                <a href="#tour-resource-feature">旅游资源的特点</a>
+                <a href="#tour-resource-value">旅游资源的价值</a>
+            </div>
+        </div>
+        
+        <!-- 第二章 旅游资源开发条件的评价 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-evaluation')">✚ 旅游资源开发评价</div>
+            <div class="category-content" id="cat-evaluation">
+                <a href="#resource-value">资源价值</a>
+                <a href="#location-traffic">地理位置与交通</a>
+                <a href="#market">客源市场</a>
+                <a href="#infrastructure">基础设施</a>
+                <a href="#capacity">环境承载力</a>
+            </div>
+        </div>
+        
+        <!-- 第三章 旅游景观的欣赏 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-appreciation')">✚ 旅游景观的欣赏</div>
+            <div class="category-content" id="cat-appreciation">
+                <a href="#view-position">选择观赏位置</a>
+                <a href="#view-time">把握观赏时机</a>
+                <a href="#view-feature">抓住景观特点</a>
+                <a href="#view-harmony">领悟自然与人文的和谐</a>
+                <a href="#view-emotion">以情观景</a>
+            </div>
+        </div>
+        
+        <!-- 第四章 旅游规划与旅游活动设计 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-planning')">✚ 旅游规划与活动设计</div>
+            <div class="category-content" id="cat-planning">
+                <a href="#plan-content">旅游规划的基本内容</a>
+                <a href="#scenic-design">旅游景区规划设计</a>
+                <a href="#route-design">旅游活动设计（旅游线路）</a>
+                <a href="#safety">旅游安全</a>
+            </div>
+        </div>
+        
+        <!-- 第五章 旅游对区域发展的影响 -->
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-impact')">✚ 旅游对区域发展的影响</div>
+            <div class="category-content" id="cat-impact">
+                <a href="#economic-impact">旅游业对经济发展的影响</a>
+                <a href="#socio-cultural">旅游业对社会文化的影响</a>
+                <a href="#env-impact">旅游业对环境的影响</a>
+                <a href="#protection">旅游环境保护措施</a>
+            </div>
+        </div>
+        
+        <!-- 返回首页链接 -->
+        <a href="/kz/wk/wk.html" class="back-home">返回首页</a>
+        
+        <!-- 广告位 (无图片) -->
+        <div class="ad-space">畅游天下 · 理性规划</div>
+    </nav>
+    
+    <!-- 主要内容：详细版地理选修三知识点卡片 (无图片, 无citation) -->
+    <main>
+        <!-- 第一章 旅游资源 (详细) -->
+        <h1>第一章 旅游资源</h1>
+        <section id="tour-resource-def">
+            <div class="knowledge-card">
+                <h2>旅游资源的定义与内涵</h2>
+                <ul>
+                    <li><strong>定义</strong>：自然界和人类社会中，凡能对旅游者产生吸引力，可以为旅游业开发利用，并可产生经济效益、社会效益和环境效益的各种事物和因素。</li>
+                    <li><strong>核心</strong>：对旅游者的吸引力（是旅游资源的本质特征）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="tour-resource-class">
+            <div class="knowledge-card">
+                <h2>旅游资源的分类</h2>
+                <ul>
+                    <li><strong>自然景观旅游资源</strong>：
+                        <ul>
+                            <li>地质地貌景观（如泰山、张家界、科罗拉多大峡谷）。</li>
+                            <li>水域风光（如西湖、黄果树瀑布、死海）。</li>
+                            <li>生物景观（如卧龙大熊猫栖息地、香山红叶）。</li>
+                            <li>天象与气候景观（如黄山云海、吉林雾凇）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>人文景观旅游资源</strong>：
+                        <ul>
+                            <li>遗址遗迹（如周口店北京人遗址、长城）。</li>
+                            <li>建筑与设施（如故宫、苏州园林、埃菲尔铁塔）。</li>
+                            <li>旅游商品（如特色美食、工艺品）。</li>
+                            <li>人文活动（如傣族泼水节、汉族端午节）。</li>
+                        </ul>
+                    </li>
+                    <li>按存在形式：<strong>物质性旅游资源</strong>（实体）和<strong>非物质性旅游资源</strong>（民俗、传说）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="tour-resource-feature">
+            <div class="knowledge-card">
+                <h2>旅游资源的特点</h2>
+                <ul>
+                    <li><strong>多样性</strong>：内容丰富，类型多样。</li>
+                    <li><strong>非凡性</strong>：与同类事物相比具有独特性，如世界遗产。</li>
+                    <li><strong>可创造性</strong>：人文景观是人类创造出来的，如深圳世界之窗。</li>
+                    <li><strong>永续性</strong>：在适度开发和保护下，旅游资源可长久利用。</li>
+                    <li><strong>季节性和地域性</strong>：自然景观随季节变化，人文景观具有地域文化特色。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="tour-resource-value">
+            <div class="knowledge-card">
+                <h2>旅游资源的价值</h2>
+                <ul>
+                    <li><strong>美学价值</strong>：自然景观的形象美、色彩美、动态美、听觉美等；人文景观的建筑美、艺术美。</li>
+                    <li><strong>科学价值</strong>：在地质、生物、水文等方面的研究价值，如典型地质剖面、古生物化石。</li>
+                    <li><strong>历史文化价值</strong>：文物古迹的历史意义、文化内涵、民族特性，如故宫、敦煌莫高窟。</li>
+                    <li><strong>经济价值</strong>：旅游开发带来的经济效益，促进地区经济发展。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 旅游资源开发条件的评价 (详细) -->
+        <h1>第二章 旅游资源开发条件的评价</h1>
+        <section id="resource-value">
+            <div class="knowledge-card">
+                <h2>资源价值</h2>
+                <ul>
+                    <li><strong>美学价值、科学价值、历史文化价值</strong>（见第一章）。</li>
+                    <li><strong>集群状况</strong>：旅游资源是否集中分布。集群状况好，开发价值高（如杭州西湖周边景点密集）。</li>
+                    <li><strong>地域组合</strong>：与邻近资源的互补或替代关系。特色互补（如山水与古迹结合）可提高吸引力；同质资源（如邻近多个溶洞）可能产生竞争。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="location-traffic">
+            <div class="knowledge-card">
+                <h2>地理位置与交通</h2>
+                <ul>
+                    <li><strong>地理位置</strong>：优越的地理位置（靠近经济发达地区、主要客源地）利于开发。</li>
+                    <li><strong>交通通达性</strong>：是否方便游客进入（机场、高铁、公路等）。交通便捷程度直接影响游客数量和旅游体验。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="market">
+            <div class="knowledge-card">
+                <h2>客源市场</h2>
+                <ul>
+                    <li><strong>客源地</strong>：经济发达地区（如京津冀、长三角、珠三角）是主要客源地。</li>
+                    <li><strong>距离</strong>：旅游地距客源地的距离。一般旅游者倾向于近距离旅游（经济距离、时间距离）。</li>
+                    <li><strong>游客流量</strong>：市场潜力、消费能力、季节性等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="infrastructure">
+            <div class="knowledge-card">
+                <h2>基础设施</h2>
+                <ul>
+                    <li><strong>旅游服务设施</strong>：住宿、餐饮、购物、娱乐等条件。</li>
+                    <li><strong>公共设施</strong>：水电、通信、医疗、安全等。</li>
+                    <li>基础设施完善程度影响游客满意度和旅游容量。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="capacity">
+            <div class="knowledge-card">
+                <h2>环境承载力</h2>
+                <ul>
+                    <li><strong>定义</strong>：在保证旅游活动质量和环境可持续发展的前提下，某一旅游地所能容纳的最大游客数量。</li>
+                    <li><strong>影响因素</strong>：生态环境容量（自然恢复能力）、社会文化容量（居民接受度）、经济容量（设施供给）、心理容量（游客体验）。</li>
+                    <li><strong>意义</strong>：合理控制游客规模，避免过度开发破坏环境。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 旅游景观的欣赏 (详细) -->
+        <h1>第三章 旅游景观的欣赏</h1>
+        <section id="view-position">
+            <div class="knowledge-card">
+                <h2>选择观赏位置</h2>
+                <ul>
+                    <li><strong>距离</strong>：
+                        <ul>
+                            <li>远眺（如观赏山峰整体形态，如远眺庐山）。</li>
+                            <li>近观（如欣赏峡谷、洞穴细节，如近观钟乳石）。</li>
+                            <li>适当距离（如观赏瀑布，既见全景又感气势）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>角度</strong>：
+                        <ul>
+                            <li>正面、侧面、仰视、俯视等（如张家界天子山需俯视）。</li>
+                            <li>特定角度（如黄山“石猴观海”）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>动态</strong>：乘船、乘车等动态观赏（如长江三峡）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="view-time">
+            <div class="knowledge-card">
+                <h2>把握观赏时机</h2>
+                <ul>
+                    <li><strong>季节</strong>：如香山红叶（秋季）、哈尔滨冰灯（冬季）。</li>
+                    <li><strong>时刻</strong>：日出、日落、潮汐（如钱塘江大潮）。</li>
+                    <li><strong>特定气象条件</strong>：云海、佛光（如峨眉山佛光）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="view-feature">
+            <div class="knowledge-card">
+                <h2>抓住景观特点</h2>
+                <ul>
+                    <li><strong>主配有序</strong>：主景突出，配景烘托（如故宫太和殿）。</li>
+                    <li><strong>层次感</strong>：远近、高低、明暗对比（如桂林山水）。</li>
+                    <li><strong>框景、借景</strong>：通过门窗、桥洞等框取美景，或借园外之景（如苏州园林）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="view-harmony">
+            <div class="knowledge-card">
+                <h2>领悟自然与人文的和谐</h2>
+                <ul>
+                    <li><strong>自然景观中的人文建筑</strong>：以自然为本，人文点缀（如五岳寺庙）。</li>
+                    <li><strong>人文景观与自然协调</strong>：如傣家竹楼与热带雨林环境。</li>
+                    <li><strong>风俗民情</strong>：体验当地文化，感受人地和谐。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="view-emotion">
+            <div class="knowledge-card">
+                <h2>以情观景</h2>
+                <ul>
+                    <li><strong>综合感受</strong>：调动视觉、听觉、嗅觉等全方位体验。</li>
+                    <li><strong>发挥想象</strong>：联想神话传说、诗词歌赋，深化美感。</li>
+                    <li><strong>移情于景</strong>：情景交融，产生情感共鸣。</li>
+                    <li><strong>登山涉水，求质求真</strong>：在欣赏中领悟人生哲理。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 旅游规划与旅游活动设计 (详细) -->
+        <h1>第四章 旅游规划与旅游活动设计</h1>
+        <section id="plan-content">
+            <div class="knowledge-card">
+                <h2>旅游规划的基本内容</h2>
+                <ul>
+                    <li><strong>分析旅游发展条件</strong>：旅游资源、区位、市场、基础设施等。</li>
+                    <li><strong>确定旅游发展目标</strong>：经济效益、社会效益、环境效益。</li>
+                    <li><strong>具体规划</strong>：
+                        <ul>
+                            <li>景区建设规划（功能区划分、景点设计）。</li>
+                            <li>旅游服务设施规划（住宿、餐饮、购物）。</li>
+                            <li>交通规划（外部交通、内部游览线路）。</li>
+                            <li>环境保护规划（生态保护、污染防治）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>实施与保障措施</strong>：政策、资金、管理。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="scenic-design">
+            <div class="knowledge-card">
+                <h2>旅游景区规划设计</h2>
+                <ul>
+                    <li><strong>景区形象设计</strong>：主题定位，如“童话世界”九寨沟。</li>
+                    <li><strong>功能分区</strong>：
+                        <ul>
+                            <li>核心区（严格保护，限制游客）。</li>
+                            <li>缓冲区（适度开发，科普教育）。</li>
+                            <li>服务区（餐饮、住宿、娱乐）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>游览线路设计</strong>：避免重复，步移景异，满足不同游客需求。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="route-design">
+            <div class="knowledge-card">
+                <h2>旅游活动设计（旅游线路）</h2>
+                <ul>
+                    <li><strong>原则</strong>：
+                        <ul>
+                            <li>突出特色，选择最有代表性的景点。</li>
+                            <li>避免重复，合理安排时间和顺序。</li>
+                            <li>考虑游客体力和兴趣，张弛有度。</li>
+                            <li>确保安全，避免危险区域。</li>
+                        </ul>
+                    </li>
+                    <li><strong>步骤</strong>：
+                        <ol>
+                            <li>收集旅游信息（景点、交通、食宿）。</li>
+                            <li>确定旅游目的地和线路。</li>
+                            <li>选择交通方式（经济、快捷、舒适）。</li>
+                            <li>准备相关物品（衣物、药品、证件）。</li>
+                            <li>注意旅游安全（防范自然灾害、疾病、治安）。</li>
+                        </ol>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="safety">
+            <div class="knowledge-card">
+                <h2>旅游安全</h2>
+                <ul>
+                    <li><strong>主要风险</strong>：
+                        <ul>
+                            <li>自然灾害（滑坡、泥石流、洪水、台风）。</li>
+                            <li>意外事故（交通事故、溺水、摔伤）。</li>
+                            <li>社会治安（盗窃、诈骗）。</li>
+                            <li>疾病（高原反应、食物中毒）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>防范措施</strong>：
+                        <ul>
+                            <li>行前了解目的地安全信息，购买保险。</li>
+                            <li>遵守景区规定，不擅自进入危险区。</li>
+                            <li>注意饮食卫生，携带常用药品。</li>
+                            <li>保持通讯畅通，及时求助。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第五章 旅游对区域发展的影响 (详细) -->
+        <h1>第五章 旅游对区域发展的影响</h1>
+        <section id="economic-impact">
+            <div class="knowledge-card">
+                <h2>旅游业对经济发展的影响</h2>
+                <ul>
+                    <li><strong>积极影响</strong>：
+                        <ul>
+                            <li>增加外汇收入（国际旅游）。</li>
+                            <li>回笼货币，加速资金周转（国内旅游）。</li>
+                            <li>带动相关产业（交通、餐饮、住宿、购物）。</li>
+                            <li>促进区域经济发展，缩小地区差距。</li>
+                            <li>增加就业机会（直接和间接就业）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>消极影响</strong>：
+                        <ul>
+                            <li>物价上涨，影响当地居民生活。</li>
+                            <li>旅游业过度依赖，经济脆弱（如疫情冲击）。</li>
+                            <li>旅游季节性导致就业不稳定。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="socio-cultural">
+            <div class="knowledge-card">
+                <h2>旅游业对社会文化的影响</h2>
+                <ul>
+                    <li><strong>积极影响</strong>：
+                        <ul>
+                            <li>促进文化交流，增进理解。</li>
+                            <li>推动传统文化保护与复兴（如民俗、手工艺）。</li>
+                            <li>提高地方知名度，增强居民自豪感。</li>
+                        </ul>
+                    </li>
+                    <li><strong>消极影响</strong>：
+                        <ul>
+                            <li>传统文化被同化、庸俗化（过度商业化）。</li>
+                            <li>社会道德水平下降（如色情、赌博）。</li>
+                            <li>居民生活受干扰，与游客产生冲突。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="env-impact">
+            <div class="knowledge-card">
+                <h2>旅游业对环境的影响</h2>
+                <ul>
+                    <li><strong>积极影响</strong>：
+                        <ul>
+                            <li>促进环境美化与治理。</li>
+                            <li>推动自然保护区、历史遗迹的保护。</li>
+                            <li>提高公众环保意识。</li>
+                        </ul>
+                    </li>
+                    <li><strong>消极影响</strong>：
+                        <ul>
+                            <li>环境污染（废水、废气、垃圾、噪声）。</li>
+                            <li>生态破坏（植被破坏、动物栖息地干扰）。</li>
+                            <li>文物古迹破坏（触摸、涂鸦、踩踏）。</li>
+                            <li>视觉污染（不合理建筑）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="protection">
+            <div class="knowledge-card">
+                <h2>旅游环境保护措施</h2>
+                <ul>
+                    <li><strong>规划先行</strong>：科学规划，合理分区，控制游客容量。</li>
+                    <li><strong>工程措施</strong>：建设污水处理厂、垃圾回收站、生态厕所。</li>
+                    <li><strong>管理措施</strong>：
+                        <ul>
+                            <li>制定法规，限制破坏行为（如禁止乱扔垃圾）。</li>
+                            <li>加强监测，预警环境问题。</li>
+                            <li>推行生态旅游，提倡绿色消费。</li>
+                        </ul>
+                    </li>
+                    <li><strong>宣传教育</strong>：提高游客和从业者环保意识，倡导文明旅游。</li>
+                    <li><strong>技术措施</strong>：数字化管理，虚拟旅游分流。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. KaTeX 自动渲染 (备用)
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        // 2. 侧边栏分类折叠
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // 粒子效果 (移植自第一个网页)
+document.addEventListener('DOMContentLoaded', function() {
+    // 如果手机访问，直接关掉粒子
+    if (window.innerWidth < 768) return; 
+
+    const canvas = document.getElementById('particle-container');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    class Particle {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 1.5 + 0.8;      // 0.8 ~ 2.3
+            this.speedX = Math.random() * 0.4 - 0.2;    // -0.2 ~ 0.2
+            this.speedY = Math.random() * 0.4 - 0.2;
+            this.color = '#555';
+        }
+        
+        reset() {
+            const edge = Math.floor(Math.random() * 4);
+            switch(edge) {
+                case 0: this.x = Math.random() * canvas.width; this.y = -10; break;
+                case 1: this.x = canvas.width + 10; this.y = Math.random() * canvas.height; break;
+                case 2: this.x = Math.random() * canvas.width; this.y = canvas.height + 10; break;
+                case 3: this.x = -10; this.y = Math.random() * canvas.height; break;
+            }
+        }
+        
+        update(mouse) {
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < mouse.radius) {
+                    const attraction = 0.02;
+                    const angle = Math.atan2(dy, dx);
+                    this.speedX += Math.cos(angle) * attraction;
+                    this.speedY += Math.sin(angle) * attraction;
+                }
+            }
+            this.x += this.speedX;
+            this.y += this.speedY;
+            if (this.x < -50 || this.x > canvas.width + 50 || this.y < -50 || this.y > canvas.height + 50) this.reset();
+        }
+        
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    const mouse = { x: null, y: null, radius: 150 };
+    window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+    
+    const particlesArray = [];
+    const particleCount = 25; 
+    
+    function init() {
+        for (let i = 0; i < particleCount; i++) particlesArray.push(new Particle());
+    }
+    
+    function connectParticles() {
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a + 1; b < particlesArray.length; b++) {
+                const dx = particlesArray[a].x - particlesArray[b].x;
+                const dy = particlesArray[a].y - particlesArray[b].y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 100) {
+                    const opacity = 1 - (distance / 100);
+                    ctx.strokeStyle = `rgba(80, 80, 80, ${opacity * 0.4})`;
+                    ctx.lineWidth = 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+        connectParticles();
+        requestAnimationFrame(animate);
+    }
+    init();
+    animate();
+});
+
+        // 4. 侧边栏收缩按钮 + 滚动高亮联动
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            // 滚动高亮左侧导航
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => {
+                window.requestAnimationFrame(updateActiveNav);
+            });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            // 点击锚点时展开父级（如果折叠）
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

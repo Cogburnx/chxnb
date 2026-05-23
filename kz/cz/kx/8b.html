@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>初中科学·八年级下册（详细版）</title>
+    
+    <!-- KaTeX 渲染 (用于公式) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #333;
+            --accent-color: #2c7da0;      /* 科学蓝色 */
+            --sidebar-bg: rgba(240, 240, 240, 0.8);
+            --card-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        /* 粒子背景 */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #e6f4ff;
+            z-index: -1;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            transition: grid-template-columns 0.3s ease;
+            min-height: 100vh;
+        }
+
+        body.collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding: 20px 15px;
+            height: 100vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 0;
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            transition: padding 0.2s;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            white-space: nowrap;
+        }
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin: 0;
+            transition: opacity 0.2s;
+            color: #2c7da0;
+        }
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        #toggleSidebar:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            font-size: 16px;
+            color: #2c7da0;
+        }
+        .category-title:hover { background: rgba(44, 125, 160, 0.1); }
+
+        .category-content { 
+            display: none; 
+            padding-left: 15px; 
+        }
+
+        .category-content a {
+            text-decoration: none;
+            color: #1e5a73;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .category-content a:hover { color: var(--accent-color); }
+        .category-content a.active {
+            color: #2c7da0;
+            font-weight: 600;
+            background-color: rgba(44, 125, 160, 0.12);
+            border-left: 3px solid #2c7da0;
+            padding-left: 8px;
+        }
+
+        .back-home {
+            display: block;
+            margin-top: 20px;
+            color: #1e5a73;
+            padding: 8px;
+            text-decoration: none;
+        }
+        .back-home:hover { background: rgba(0,0,0,0.05); }
+
+        .ad-space {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e0f0f5;
+            border: 2px dashed #7fb4c4;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2c7da0;
+        }
+
+        body.collapsed nav { padding: 20px 5px; }
+        body.collapsed .sidebar-header h2 { opacity: 0; width: 0; margin: 0; pointer-events: none; }
+        body.collapsed .category-content,
+        body.collapsed .ad-space,
+        body.collapsed .back-home { display: none !important; }
+        body.collapsed .category-title {
+            width: 100%;
+            padding: 8px 0;
+            justify-content: center;
+            font-size: 0;
+            white-space: nowrap;
+        }
+        body.collapsed .category-title::before {
+            content: "✚";
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c7da0;
+        }
+
+        main {
+            padding: 20px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #7fb4c4;
+            color: #2c7da0;
+        }
+
+        section { margin-bottom: 30px; scroll-margin-top: 20px; }
+
+        .knowledge-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.6);
+            line-height: 1.8;
+        }
+
+        .knowledge-card h2 {
+            margin-top: 0;
+            font-size: 20px;
+            border-bottom: 1px solid #c2dfe9;
+            padding-bottom: 10px;
+            color: #2c7da0;
+        }
+
+        .knowledge-card ul {
+            padding-left: 20px;
+        }
+        .knowledge-card li {
+            margin: 8px 0;
+        }
+        .knowledge-card p {
+            margin: 8px 0;
+        }
+        .knowledge-card ul ul {
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 170px 1fr; }
+            body.collapsed { grid-template-columns: 55px 1fr; }
+            nav { padding: 15px 8px; }
+            .sidebar-header h2 { font-size: 16px; }
+            #toggleSidebar { font-size: 22px; width: 28px; height: 28px; }
+            .category-title { font-size: 14px; padding: 6px 4px; }
+            .category-content a { font-size: 12px; padding: 4px 0; }
+            main { padding: 15px 15px; }
+            h1 { font-size: 22px; margin: 20px 0; }
+            body.collapsed .category-title::before { font-size: 18px; }
+        }
+        @media (max-width: 480px) {
+            body { grid-template-columns: 140px 1fr; }
+            body.collapsed { grid-template-columns: 48px 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-container"></canvas>
+    
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2>科学·八年级下册</h2>
+            <button id="toggleSidebar" title="收缩/展开侧边栏">◀</button>
+        </div>
+        
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch1')">✚ 第一章 电与磁</div>
+            <div class="category-content" id="cat-ch1">
+                <a href="#sec1-1">1.1 磁现象</a>
+                <a href="#sec1-2">1.2 电流的磁效应</a>
+                <a href="#sec1-3">1.3 电磁铁的应用</a>
+                <a href="#sec1-4">1.4 电动机</a>
+                <a href="#sec1-5">1.5 电磁感应</a>
+                <a href="#sec1-6">1.6 发电机</a>
+                <a href="#sec1-7">1.7 家庭电路与安全用电</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch2')">✚ 第二章 微粒的模型与符号</div>
+            <div class="category-content" id="cat-ch2">
+                <a href="#sec2-1">2.1 模型与符号</a>
+                <a href="#sec2-2">2.2 物质的微观粒子模型</a>
+                <a href="#sec2-3">2.3 原子结构的模型</a>
+                <a href="#sec2-4">2.4 组成物质的元素</a>
+                <a href="#sec2-5">2.5 表示元素的符号</a>
+                <a href="#sec2-6">2.6 表示物质的符号</a>
+                <a href="#sec2-7">2.7 元素符号表示的量</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch3')">✚ 第三章 空气与生命</div>
+            <div class="category-content" id="cat-ch3">
+                <a href="#sec3-1">3.1 空气</a>
+                <a href="#sec3-2">3.2 氧气与氧化</a>
+                <a href="#sec3-3">3.3 二氧化碳</a>
+                <a href="#sec3-4">3.4 燃烧与灭火</a>
+                <a href="#sec3-5">3.5 化学方程式</a>
+                <a href="#sec3-6">3.6 光合作用</a>
+                <a href="#sec3-7">3.7 呼吸作用</a>
+                <a href="#sec3-8">3.8 自然界中的碳循环和氧循环</a>
+            </div>
+        </div>
+        <div class="category">
+            <div class="category-title" onclick="toggleCategory('cat-ch4')">✚ 第四章 植物与土壤</div>
+            <div class="category-content" id="cat-ch4">
+                <a href="#sec4-1">4.1 土壤的成分</a>
+                <a href="#sec4-2">4.2 土壤与植物</a>
+                <a href="#sec4-3">4.3 植物的根与物质吸收</a>
+                <a href="#sec4-4">4.4 植物的茎与物质运输</a>
+                <a href="#sec4-5">4.5 植物的叶与蒸腾作用</a>
+                <a href="#sec4-6">4.6 保护土壤</a>
+            </div>
+        </div>
+        
+        <a href="/kz/cz/cz.html" class="back-home">返回首页</a>
+        <div class="ad-space">探索科学 · 实践创新</div>
+    </nav>
+    
+    <main>
+        <!-- 第一章 电与磁 -->
+        <h1>第一章 电与磁</h1>
+        <section id="sec1-1">
+            <div class="knowledge-card">
+                <h2>1.1 磁现象</h2>
+                <ul>
+                    <li><strong>磁性</strong>：物体能够吸引铁、钴、镍等物质的性质。磁体上磁性最强的部位叫磁极（南极S、北极N）。</li>
+                    <li><strong>磁极间的相互作用</strong>：同名磁极相互排斥，异名磁极相互吸引。</li>
+                    <li><strong>磁场</strong>：磁体周围存在磁场，对放入其中的磁体有力的作用。磁场方向：小磁针静止时北极所指方向。磁感线：描述磁场的假想曲线，从N极出发回到S极，磁感线密集处磁场强。</li>
+                    <li><strong>地磁场</strong>：地球周围存在的磁场，地磁北极在地理南极附近，地磁南极在地理北极附近。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-2">
+            <div class="knowledge-card">
+                <h2>1.2 电流的磁效应</h2>
+                <ul>
+                    <li><strong>奥斯特实验</strong>：通电导线周围存在磁场，磁场方向与电流方向有关。首次揭示电与磁的联系。</li>
+                    <li><strong>通电螺线管的磁场</strong>：与条形磁铁相似，极性可用安培定则（右手螺旋定则）判断：右手握住螺线管，四指指向电流方向，拇指指向螺线管N极。</li>
+                    <li><strong>电磁铁</strong>：带铁芯的通电螺线管。磁性强弱与电流大小、线圈匝数、有无铁芯有关。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-3">
+            <div class="knowledge-card">
+                <h2>1.3 电磁铁的应用</h2>
+                <ul>
+                    <li><strong>电磁继电器</strong>：利用电磁铁控制工作电路通断的开关，实现低电压、弱电流控制高电压、强电流。</li>
+                    <li><strong>磁悬浮列车</strong>：利用同名磁极相斥或异名磁极相吸原理，使列车悬浮减小摩擦。</li>
+                    <li><strong>电磁选矿机</strong>：利用磁铁将铁磁性物质与非铁磁性物质分离。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-4">
+            <div class="knowledge-card">
+                <h2>1.4 电动机</h2>
+                <ul>
+                    <li><strong>磁场对通电导线的作用</strong>：通电导线在磁场中受到力的作用，力的方向与电流方向、磁场方向有关。</li>
+                    <li><strong>直流电动机</strong>：利用通电线圈在磁场中受力转动的原理工作。换向器的作用是改变线圈中电流方向，使线圈持续转动。</li>
+                    <li><strong>电动机的能量转化</strong>：电能转化为机械能。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-5">
+            <div class="knowledge-card">
+                <h2>1.5 电磁感应</h2>
+                <ul>
+                    <li><strong>电磁感应现象</strong>：闭合电路的一部分导体在磁场中做切割磁感线运动时，导体中产生感应电流的现象。由法拉第发现。</li>
+                    <li><strong>感应电流方向</strong>：与导体切割方向、磁场方向有关。</li>
+                    <li><strong>影响感应电流大小的因素</strong>：切割速度、磁场强度、线圈匝数等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-6">
+            <div class="knowledge-card">
+                <h2>1.6 发电机</h2>
+                <ul>
+                    <li><strong>发电机原理</strong>：电磁感应。将机械能转化为电能。交流发电机产生周期性变化的电流（交流电）。</li>
+                    <li><strong>交流电与直流电</strong>：交流电方向周期性改变，我国交流电频率50Hz（每秒50个周期）。直流电方向不变。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec1-7">
+            <div class="knowledge-card">
+                <h2>1.7 家庭电路与安全用电</h2>
+                <ul>
+                    <li><strong>家庭电路组成</strong>：进户线（火线、零线）、电能表、总开关、保险装置、插座、用电器。火线与零线间电压220V。</li>
+                    <li><strong>测电笔</strong>：辨别火线和零线，氖管发光为火线。</li>
+                    <li><strong>安全用电原则</strong>：不接触低压带电体，不靠近高压带电体；电器金属外壳接地；不用湿手触摸电器；保险丝用铅锑合金，不能用铁丝、铜丝代替。</li>
+                    <li><strong>触电急救</strong>：切断电源，用干燥木棒挑开电线，进行急救。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第二章 微粒的模型与符号 -->
+        <h1>第二章 微粒的模型与符号</h1>
+        <section id="sec2-1">
+            <div class="knowledge-card">
+                <h2>2.1 模型与符号</h2>
+                <ul>
+                    <li><strong>模型</strong>：为了便于理解，对事物进行简化的描述、模拟。如原子结构模型、DNA双螺旋模型等。</li>
+                    <li><strong>符号</strong>：用特定图形或文字表示事物，简洁直观。如元素符号、化学式、电路符号等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-2">
+            <div class="knowledge-card">
+                <h2>2.2 物质的微观粒子模型</h2>
+                <ul>
+                    <li><strong>分子</strong>：保持物质化学性质的最小粒子。由原子构成。如O₂、H₂O等。</li>
+                    <li><strong>原子</strong>：化学变化中的最小粒子。分子由原子构成，金属由原子直接构成。</li>
+                    <li><strong>离子</strong>：带电的原子或原子团。如Na⁺、Cl⁻、SO₄²⁻等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-3">
+            <div class="knowledge-card">
+                <h2>2.3 原子结构的模型</h2>
+                <ul>
+                    <li><strong>原子结构模型发展</strong>：道尔顿（实心球）→汤姆生（西瓜模型）→卢瑟福（行星模型）→玻尔（电子分层）→现代量子力学模型。</li>
+                    <li><strong>原子的构成</strong>：原子由原子核（质子+中子）和核外电子构成。质子数=核电荷数=核外电子数（原子电中性）。</li>
+                    <li><strong>核素与同位素</strong>：质子数相同而中子数不同的原子互称同位素。如¹H、²H、³H。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-4">
+            <div class="knowledge-card">
+                <h2>2.4 组成物质的元素</h2>
+                <ul>
+                    <li><strong>元素</strong>：具有相同核电荷数（质子数）的同一类原子的总称。目前已知100多种。</li>
+                    <li><strong>元素分类</strong>：金属元素（Na、Fe等）、非金属元素（O、C等）、稀有气体（He、Ne等）。</li>
+                    <li><strong>元素在地壳中的含量</strong>：氧（O）最多，其次硅（Si）、铝（Al）、铁（Fe）等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-5">
+            <div class="knowledge-card">
+                <h2>2.5 表示元素的符号</h2>
+                <ul>
+                    <li><strong>元素符号</strong>：国际上用拉丁文名称的第一个字母（大写）表示，如H、O；若第一个字母相同，则加第二个小写字母，如He、C、Ca等。</li>
+                    <li><strong>元素符号的意义</strong>：①表示一种元素；②表示该元素的一个原子；③有些还能表示该单质（如Fe、He）。</li>
+                    <li><strong>常见元素符号</strong>：氢H、氦He、碳C、氮N、氧O、钠Na、镁Mg、铝Al、硅Si、磷P、硫S、氯Cl、钾K、钙Ca、铁Fe、铜Cu、锌Zn、银Ag、钡Ba、汞Hg、金Au、铅Pb等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-6">
+            <div class="knowledge-card">
+                <h2>2.6 表示物质的符号</h2>
+                <ul>
+                    <li><strong>化学式</strong>：用元素符号表示物质组成的式子。如H₂O、CO₂、NaCl等。</li>
+                    <li><strong>化学式的书写规则</strong>：
+                        <ul>
+                            <li>单质：金属、稀有气体、部分固态非金属用元素符号表示（Fe、He、C）；气态非金属在元素符号右下角加数字（O₂、N₂）。</li>
+                            <li>化合物：正价在前，负价在后（金属在前，非金属在后）；原子个数比最简整数。如NaCl、H₂O、CO₂等。</li>
+                        </ul>
+                    </li>
+                    <li><strong>化合价</strong>：元素在形成化合物时表现出来的性质。常见化合价：H⁺¹、O⁻²、Na⁺¹、Mg⁺²、Al⁺³、Ca⁺²、Fe⁺²/⁺³、Cl⁻¹等。化合物中各元素化合价代数和为0。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec2-7">
+            <div class="knowledge-card">
+                <h2>2.7 元素符号表示的量</h2>
+                <ul>
+                    <li><strong>相对原子质量</strong>：以一种碳原子质量的1/12为标准，其他原子的质量跟它相比所得的比值。单位是1，一般不写。计算公式：\( \text{相对原子质量} = \frac{\text{一个原子的实际质量}}{\text{碳12原子质量的}1/12} \)。</li>
+                    <li><strong>相对分子质量</strong>：化学式中各原子相对原子质量的总和。如H₂O的相对分子质量=1×2+16=18。</li>
+                    <li><strong>元素质量分数计算</strong>：\( \omega = \frac{\text{该元素相对原子质量×原子个数}}{\text{相对分子质量}} \times 100\% \)。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第三章 空气与生命 -->
+        <h1>第三章 空气与生命</h1>
+        <section id="sec3-1">
+            <div class="knowledge-card">
+                <h2>3.1 空气</h2>
+                <ul>
+                    <li><strong>空气成分</strong>：氮气（N₂）约78%、氧气（O₂）约21%、稀有气体约0.94%、二氧化碳约0.03%、其他杂质和水分。空气是混合物。</li>
+                    <li><strong>空气中氧气含量的测定</strong>：红磷燃烧实验，消耗氧气，水倒流入集气瓶体积约1/5。</li>
+                    <li><strong>空气的利用</strong>：氧气用于呼吸、助燃；氮气作保护气、制冷剂；稀有气体用于霓虹灯等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-2">
+            <div class="knowledge-card">
+                <h2>3.2 氧气与氧化</h2>
+                <ul>
+                    <li><strong>氧气的性质</strong>：
+                        <ul>
+                            <li>物理性质：无色无味气体，不易溶于水，密度比空气略大。</li>
+                            <li>化学性质：助燃性，支持燃烧，具有氧化性。硫在氧气中燃烧蓝紫色火焰（SO₂）；铁在氧气中燃烧火星四射（Fe₃O₄）；碳在氧气中燃烧发白光（CO₂）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>氧化反应</strong>：物质与氧发生的反应。缓慢氧化（如铁生锈、食物腐败）与剧烈氧化（燃烧）。</li>
+                    <li><strong>氧气的制取</strong>：
+                        <ul>
+                            <li>工业制法：分离液态空气（物理变化）。</li>
+                            <li>实验室制法：加热高锰酸钾 \(2KMnO_4 \xrightarrow{\Delta} K_2MnO_4 + MnO_2 + O_2↑\)；过氧化氢与二氧化锰 \(2H_2O_2 \xrightarrow{MnO_2} 2H_2O + O_2↑\)。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-3">
+            <div class="knowledge-card">
+                <h2>3.3 二氧化碳</h2>
+                <ul>
+                    <li><strong>二氧化碳的性质</strong>：
+                        <ul>
+                            <li>物理性质：无色无味气体，密度比空气大，能溶于水。固态CO₂叫干冰，升华吸热。</li>
+                            <li>化学性质：不燃烧也不支持燃烧，能与水反应 \(CO_2+H_2O \rightleftharpoons H_2CO_3\)，能使澄清石灰水变浑浊 \(CO_2+Ca(OH)_2 = CaCO_3↓+H_2O\)（检验CO₂）。</li>
+                        </ul>
+                    </li>
+                    <li><strong>二氧化碳的制取</strong>：实验室用大理石（或石灰石）和稀盐酸反应 \(CaCO_3+2HCl = CaCl_2+H_2O+CO_2↑\)。装置：固液不加热，向上排空气法收集。</li>
+                    <li><strong>二氧化碳的用途</strong>：灭火、人工降雨、气体肥料、碳酸饮料等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-4">
+            <div class="knowledge-card">
+                <h2>3.4 燃烧与灭火</h2>
+                <ul>
+                    <li><strong>燃烧条件</strong>：①可燃物；②氧气（或空气）；③温度达到着火点。</li>
+                    <li><strong>灭火原理</strong>：破坏燃烧条件之一：①移除可燃物；②隔绝氧气；③降温至着火点以下。</li>
+                    <li><strong>爆炸</strong>：可燃物在有限空间内急剧燃烧，短时间内聚集大量热，使气体体积迅速膨胀引起爆炸。粉尘爆炸、瓦斯爆炸等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-5">
+            <div class="knowledge-card">
+                <h2>3.5 化学方程式</h2>
+                <ul>
+                    <li><strong>质量守恒定律</strong>：参加化学反应的各物质质量总和等于反应后生成的各物质质量总和。原因：原子种类、数目、质量不变。</li>
+                    <li><strong>化学方程式</strong>：用化学式表示化学反应的式子。书写原则：①以客观事实为依据；②遵守质量守恒定律（配平）。</li>
+                    <li><strong>化学方程式的意义</strong>：①表示反应物、生成物和反应条件；②表示各物质间的质量比；③表示各物质的粒子个数比。</li>
+                    <li><strong>根据化学方程式计算</strong>：步骤：设、写、找、列、解、答。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-6">
+            <div class="knowledge-card">
+                <h2>3.6 光合作用</h2>
+                <ul>
+                    <li><strong>光合作用的反应式</strong>：\(6CO_2 + 6H_2O \xrightarrow[\text{叶绿体}]{\text{光}} C_6H_{12}O_6 + 6O_2\)（有机物葡萄糖）。</li>
+                    <li><strong>光合作用的原料</strong>：二氧化碳和水；产物：有机物和氧气；条件：光照、叶绿体；能量转化：光能→化学能。</li>
+                    <li><strong>光合作用的实验</strong>：验证淀粉（碘液变蓝）、验证氧气（带火星木条复燃）、探究二氧化碳是原料（氢氧化钠吸收CO₂）等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-7">
+            <div class="knowledge-card">
+                <h2>3.7 呼吸作用</h2>
+                <ul>
+                    <li><strong>呼吸作用的反应式</strong>：\(C_6H_{12}O_6 + 6O_2 \rightarrow 6CO_2 + 6H_2O + 能量\)。</li>
+                    <li><strong>呼吸作用的实质</strong>：有机物在细胞内被氧化分解，释放能量，供生命活动需要。呼吸作用时时刻刻进行。</li>
+                    <li><strong>光合作用与呼吸作用的关系</strong>：光合作用合成有机物、储存能量；呼吸作用分解有机物、释放能量。二者相互依存。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec3-8">
+            <div class="knowledge-card">
+                <h2>3.8 自然界中的碳循环和氧循环</h2>
+                <ul>
+                    <li><strong>碳循环</strong>：碳在无机环境（CO₂、碳酸盐）与生物群落（有机物）之间的循环。主要途径：光合作用固定CO₂，呼吸作用、燃烧、分解作用释放CO₂。</li>
+                    <li><strong>氧循环</strong>：氧气在自然界中的循环。光合作用产生O₂，呼吸作用、燃烧等消耗O₂。维持大气中O₂和CO₂的相对稳定。</li>
+                    <li><strong>温室效应</strong>：CO₂等温室气体增多导致全球变暖。措施：减少化石燃料使用，植树造林。</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 第四章 植物与土壤 -->
+        <h1>第四章 植物与土壤</h1>
+        <section id="sec4-1">
+            <div class="knowledge-card">
+                <h2>4.1 土壤的成分</h2>
+                <ul>
+                    <li><strong>土壤的组成</strong>：矿物质颗粒（固体）、有机质、水分、空气、微生物等。按体积比，矿物质约占38%，有机质约12%，空气和水各占约25%。</li>
+                    <li><strong>土壤质地</strong>：砂土（通气性好，保水性差）、黏土（通气性差，保水性强）、壤土（通气保水适中，适宜作物）。</li>
+                    <li><strong>土壤的形成</strong>：岩石风化→成土母质→生物作用（有机质积累）→成熟土壤。影响因素：气候、生物、地形、母质、时间等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-2">
+            <div class="knowledge-card">
+                <h2>4.2 土壤与植物</h2>
+                <ul>
+                    <li><strong>土壤的作用</strong>：固定植物；提供水分、无机盐、空气；提供生长场所。</li>
+                    <li><strong>植物的根系</strong>：直根系（主根发达，如大豆）、须根系（不定根，如小麦）。根吸收水分和无机盐的主要部位是根尖成熟区（根毛区）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-3">
+            <div class="knowledge-card">
+                <h2>4.3 植物的根与物质吸收</h2>
+                <ul>
+                    <li><strong>根尖的结构</strong>：根冠（保护）、分生区（细胞分裂）、伸长区（细胞伸长）、根毛区（吸收水分和无机盐，有根毛）。</li>
+                    <li><strong>水分吸收的条件</strong>：根毛细胞液浓度 > 土壤溶液浓度（通过渗透作用）。盐碱地植物不易生长是因为土壤溶液浓度过高。</li>
+                    <li><strong>无机盐的吸收</strong>：植物需要氮、磷、钾（大量元素）以及钙、镁、硫等。氮（枝叶茂盛）、磷（花果实种子）、钾（茎秆健壮、抗倒伏）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-4">
+            <div class="knowledge-card">
+                <h2>4.4 植物的茎与物质运输</h2>
+                <ul>
+                    <li><strong>茎的结构</strong>：
+                        <ul>
+                            <li>木质茎：树皮（韧皮部、筛管）、形成层、木质部（导管）、髓。形成层使茎加粗。</li>
+                            <li>草本茎：无形成层，不能逐年加粗。</li>
+                        </ul>
+                    </li>
+                    <li><strong>物质运输</strong>：
+                        <ul>
+                            <li>导管：位于木质部，运输水和无机盐，方向向上。</li>
+                            <li>筛管：位于韧皮部，运输有机物（如光合产物），方向向下（或双向）。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-5">
+            <div class="knowledge-card">
+                <h2>4.5 植物的叶与蒸腾作用</h2>
+                <ul>
+                    <li><strong>叶的结构</strong>：表皮（上、下，有气孔）、叶肉（栅栏组织、海绵组织）、叶脉（导管、筛管）。</li>
+                    <li><strong>蒸腾作用</strong>：水分从植物体表面（主要是叶片气孔）以水蒸气状态散失到大气中的过程。意义：①促进水分和无机盐的吸收运输；②降低叶片温度。</li>
+                    <li><strong>气孔的开闭</strong>：保卫细胞控制，白天张开，夜晚关闭（部分植物）。</li>
+                    <li><strong>影响蒸腾作用的因素</strong>：光照、温度、湿度、风速等。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="sec4-6">
+            <div class="knowledge-card">
+                <h2>4.6 保护土壤</h2>
+                <ul>
+                    <li><strong>土壤污染与退化</strong>：过度使用化肥农药、工业废水、盐碱化、水土流失、荒漠化等。</li>
+                    <li><strong>保护措施</strong>：合理施肥、退耕还林、植树造林、轮作休耕、防止水土流失等。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+
+        function toggleCategory(id) {
+            const content = document.getElementById(id);
+            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particle-container');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 1.2 + 0.6;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = '#2c7da0';
+                }
+                update(mouse) {
+                    if (mouse.x !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < mouse.radius) {
+                            const force = (mouse.radius - distance) / mouse.radius;
+                            const angle = Math.atan2(dy, dx);
+                            this.speedX += Math.cos(angle) * force * 0.03;
+                            this.speedY += Math.sin(angle) * force * 0.03;
+                        }
+                    }
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+                draw() {
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            const mouse = { x: null, y: null, radius: 150 };
+            window.addEventListener('mousemove', e => { mouse.x = e.x; mouse.y = e.y; });
+            
+            const particlesArray = Array.from({ length: 40 }, () => new Particle());
+
+            function connect() {
+                for (let a = 0; a < particlesArray.length; a++) {
+                    for (let b = a+1; b < particlesArray.length; b++) {
+                        const dx = particlesArray[a].x - particlesArray[b].x;
+                        const dy = particlesArray[a].y - particlesArray[b].y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        if (distance < 100) {
+                            ctx.strokeStyle = `rgba(44, 125, 160, ${1 - distance/100})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                            ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particlesArray.forEach(p => { p.update(mouse); p.draw(); });
+                connect();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('toggleSidebar');
+            const body = document.body;
+
+            function toggleCollapse() {
+                body.classList.toggle('collapsed');
+                btn.textContent = body.classList.contains('collapsed') ? '▶' : '◀';
+            }
+            btn.addEventListener('click', toggleCollapse);
+
+            const sections = Array.from(document.querySelectorAll('section[id]'));
+            const navLinks = Array.from(document.querySelectorAll('nav .category-content a[href^="#"]'));
+
+            function removeActiveClass() {
+                navLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            function updateActiveNav() {
+                let activeSection = null;
+                const offset = 120;
+                for (let section of sections) {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= offset && rect.bottom > 0) {
+                        activeSection = section;
+                        break;
+                    }
+                }
+                if (!activeSection) {
+                    let minTop = Infinity;
+                    for (let section of sections) {
+                        const rect = section.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.top < minTop) {
+                            minTop = rect.top;
+                            activeSection = section;
+                        }
+                    }
+                }
+                if (!activeSection) return;
+                const activeId = activeSection.getAttribute('id');
+                const activeLink = navLinks.find(link => link.getAttribute('href') === `#${activeId}`);
+                removeActiveClass();
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const parentContent = activeLink.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                }
+            }
+
+            window.addEventListener('scroll', () => { requestAnimationFrame(updateActiveNav); });
+            window.addEventListener('resize', updateActiveNav);
+            updateActiveNav();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const parentContent = this.closest('.category-content');
+                    if (parentContent && window.getComputedStyle(parentContent).display === 'none') {
+                        parentContent.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
