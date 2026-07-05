@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的账号 | 山火</title>
+  <link rel="stylesheet" href="/assets/css/auth.css">
+</head>
+<body class="auth-page">
+  <main class="auth-shell">
+    <section class="auth-intro">
+      <a class="brand-mark" href="/">山火学习站</a>
+      <h1>欢迎回来，<br><em>继续学习。</em></h1>
+      <p>账号系统是收藏、进度和错题功能的地基。这里会成为你的个人学习主页。</p>
+    </section>
+    <section class="auth-card">
+      <h2>我的账号</h2>
+      <p id="account-email" class="form-note">正在读取账号...</p>
+      <form id="password-form" hidden>
+        <div class="field"><label for="new-password">设置新密码</label><input id="new-password" type="password" minlength="8" autocomplete="new-password" required></div>
+        <button class="primary-button" type="submit">更新密码</button>
+        <p id="password-note" class="form-note" aria-live="polite"></p>
+      </form>
+      <button id="logout-button" class="primary-button" type="button">退出登录</button>
+    </section>
+  </main>
+  <script type="module">
+    import { getSession, signOut, supabase } from "/assets/js/auth.js";
+    const session = await getSession();
+    if (!session) window.location.replace("/login.html");
+    else document.querySelector("#account-email").textContent = session.user.email;
+
+    if (new URLSearchParams(location.search).has("reset")) {
+      document.querySelector("#password-form").hidden = false;
+    }
+    document.querySelector("#password-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const note = document.querySelector("#password-note");
+      const { error } = await supabase.auth.updateUser({ password: document.querySelector("#new-password").value });
+      note.textContent = error ? error.message : "密码已更新。";
+      note.classList.toggle("is-error", Boolean(error));
+    });
+    document.querySelector("#logout-button").addEventListener("click", async () => {
+      await signOut();
+      window.location.replace("/");
+    });
+  </script>
+</body>
+</html>

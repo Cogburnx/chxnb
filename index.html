@@ -146,6 +146,20 @@
       z-index: 10;
     }
 
+    .account-nav {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+    }
+
+    .account-nav .nav-btn {
+      background: linear-gradient(145deg, rgba(255, 244, 224, 0.92), rgba(246, 225, 190, 0.82));
+      border-color: rgba(190, 115, 50, 0.25);
+    }
+
+    .account-nav .nav-btn i { color: #b65328; }
+
     .nav-btn {
       display: inline-flex;
       align-items: center;
@@ -260,6 +274,10 @@
         gap: 10px;
       }
 
+      .account-nav { top: 10px; right: 10px; }
+      .account-nav .nav-btn { padding: 10px 14px; font-size: 0; }
+      .account-nav .nav-btn i { font-size: 1.2rem; }
+
       .nav-btn {
         padding: 8px 18px;
         font-size: 1rem;
@@ -306,6 +324,11 @@
 </head>
 <body>
   <canvas id="particle-container"></canvas>
+  <div class="account-nav">
+    <a id="account-link" href="/login.html" class="nav-btn" title="登录或管理账号">
+      <i class="fas fa-user-circle"></i> <span id="account-label">登录</span>
+    </a>
+  </div>
   
   <div class="corner-nav">
     <a href="/kz/cz/cz.html" class="nav-btn" title="初中知识点">
@@ -524,6 +547,14 @@
       init();
       animate();
     });
+  </script>
+  <script type="module">
+    import { getSession } from "/assets/js/auth.js";
+    const session = await getSession();
+    if (session) {
+      document.querySelector("#account-link").href = "/account.html";
+      document.querySelector("#account-label").textContent = "我的账号";
+    }
   </script>
 </body>
 </html>
