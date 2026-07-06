@@ -1,13 +1,13 @@
 :root {
-  --ink: #18211d;
-  --muted: #65716a;
-  --paper: #f7f3e9;
-  --card: rgba(255, 255, 255, 0.88);
-  --line: rgba(24, 33, 29, 0.13);
-  --green: #176b4d;
-  --green-dark: #0f4e38;
-  --orange: #e66b32;
-  --danger: #a6382c;
+  --ink: #12243a;
+  --muted: #59708d;
+  --paper: #eff6ff;
+  --card: rgba(255, 255, 255, 0.9);
+  --line: rgba(41, 104, 183, 0.18);
+  --blue: #2f86f5;
+  --blue-dark: #1f68d8;
+  --accent: #68b6ff;
+  --danger: #b34343;
 }
 
 * { box-sizing: border-box; }
@@ -18,8 +18,8 @@ body.auth-page {
   color: var(--ink);
   font-family: "Noto Serif SC", "Songti SC", serif;
   background:
-    radial-gradient(circle at 12% 18%, rgba(230, 107, 50, 0.15), transparent 25rem),
-    radial-gradient(circle at 88% 78%, rgba(23, 107, 77, 0.18), transparent 28rem),
+    radial-gradient(circle at 10% 14%, rgba(77, 163, 255, 0.2), transparent 24rem),
+    radial-gradient(circle at 86% 84%, rgba(104, 182, 255, 0.18), transparent 26rem),
     var(--paper);
 }
 
@@ -38,13 +38,13 @@ body.auth-page {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: var(--green-dark);
+  color: var(--blue-dark);
   font: 700 18px/1 "Noto Sans SC", sans-serif;
   text-decoration: none;
 }
 
 .brand-mark::before {
-  content: "山";
+  content: "火";
   display: grid;
   place-items: center;
   width: 38px;
@@ -61,35 +61,83 @@ body.auth-page {
   letter-spacing: -0.04em;
 }
 
-.auth-intro h1 em { color: var(--orange); font-style: normal; }
+.auth-intro h1 em { color: var(--blue); font-style: normal; }
 .auth-intro p { max-width: 500px; color: var(--muted); font-size: 18px; line-height: 1.9; }
 
 .auth-card {
   padding: 34px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  border-radius: 28px 8px 28px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 28px 10px 28px 10px;
   background: var(--card);
-  box-shadow: 0 24px 70px rgba(37, 50, 43, 0.14);
-  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 70px rgba(35, 85, 148, 0.14);
+  backdrop-filter: blur(16px);
 }
 
 .auth-tabs { display: flex; gap: 8px; margin-bottom: 28px; border-bottom: 1px solid var(--line); }
 .auth-tab { padding: 12px 4px; margin-right: 24px; border: 0; border-bottom: 3px solid transparent; color: var(--muted); background: none; font: 700 16px/1 "Noto Sans SC", sans-serif; cursor: pointer; }
-.auth-tab.is-active { color: var(--green); border-color: var(--green); }
+.auth-tab.is-active { color: var(--blue); border-color: var(--blue); }
 .auth-panel[hidden] { display: none; }
 
 .field { display: grid; gap: 8px; margin: 18px 0; }
 .field label { font: 600 14px/1.4 "Noto Sans SC", sans-serif; }
-.field input { width: 100%; padding: 14px 15px; border: 1px solid var(--line); border-radius: 10px; outline: none; background: rgba(255,255,255,.78); color: var(--ink); font-size: 16px; }
-.field input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(23,107,77,.1); }
+.field input {
+  width: 100%;
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--ink);
+  font-size: 16px;
+}
+.field input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(47, 134, 245, 0.15); }
 
-.primary-button { width: 100%; margin-top: 10px; padding: 15px 18px; border: 0; border-radius: 10px; background: var(--green); color: #fff; font: 700 16px/1 "Noto Sans SC", sans-serif; cursor: pointer; transition: .2s ease; }
-.primary-button:hover { background: var(--green-dark); transform: translateY(-1px); }
+.primary-button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 15px 18px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(145deg, var(--blue), var(--blue-dark));
+  color: #fff;
+  font: 700 16px/1 "Noto Sans SC", sans-serif;
+  cursor: pointer;
+  transition: .2s ease;
+}
+.primary-button:hover { filter: brightness(1.05); transform: translateY(-1px); }
 .primary-button:disabled { opacity: .6; cursor: wait; }
-.text-button { border: 0; padding: 10px 0 0; color: var(--green); background: none; cursor: pointer; }
+.text-button { border: 0; padding: 10px 0 0; color: var(--blue-dark); background: none; cursor: pointer; }
 .form-note { min-height: 24px; margin: 14px 0 0; color: var(--muted); font: 14px/1.7 "Noto Sans SC", sans-serif; }
 .form-note.is-error { color: var(--danger); }
-.config-warning { margin-bottom: 20px; padding: 12px 14px; border-left: 3px solid var(--orange); background: rgba(230,107,50,.08); color: #744026; font: 14px/1.7 "Noto Sans SC", sans-serif; }
+.config-warning { margin-bottom: 20px; padding: 12px 14px; border-left: 3px solid var(--accent); background: rgba(104,182,255,.16); color: #214d84; font: 14px/1.7 "Noto Sans SC", sans-serif; }
+
+.account-section {
+  margin-top: 20px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.avatar-preview {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(47, 134, 245, 0.18);
+  background: #d8ecff;
+  box-shadow: 0 8px 20px rgba(33, 94, 175, 0.14);
+}
+
+.avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.input-file {
+  font: 13px/1.3 "Noto Sans SC", sans-serif;
+  color: var(--muted);
+}
 
 @media (max-width: 780px) {
   .auth-shell { grid-template-columns: 1fr; gap: 28px; padding: 24px 0 40px; }
