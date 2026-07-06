@@ -1,7 +1,8 @@
-﻿const FALLBACK_NAME = "山火用户";
+﻿const FALLBACK_NAME = "User";
+const ASSET_VERSION = "20260707-fix5";
 
 function fallbackAvatar(name) {
-  const initial = (name || "火").trim().slice(0, 1) || "火";
+  const initial = (name || "U").trim().slice(0, 1) || "U";
   const safeInitial = initial.replace(/[&<>\"']/g, (char) => `&#${char.charCodeAt(0)};`);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7dc8ff"/><stop offset="100%" stop-color="#4c98ff"/></linearGradient></defs><rect width="96" height="96" rx="48" fill="url(#g)"/><text x="48" y="58" text-anchor="middle" font-size="42" font-family="Arial, sans-serif" font-weight="700" fill="#fff">${safeInitial}</text></svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
@@ -71,6 +72,30 @@ function injectStyle() {
   document.head.append(style);
 }
 
+function showAccountRuntimeError(message) {
+  let badge = document.querySelector("#site-runtime-error");
+  if (!badge) {
+    badge = document.createElement("div");
+    badge.id = "site-runtime-error";
+    badge.style.cssText = [
+      "position:fixed",
+      "right:14px",
+      "top:62px",
+      "z-index:10001",
+      "max-width:min(360px,calc(100vw - 28px))",
+      "padding:8px 12px",
+      "border-radius:10px",
+      "background:#d94e4e",
+      "color:#fff",
+      "font:700 12px/1.4 Arial,'Microsoft YaHei',sans-serif",
+      "box-shadow:0 10px 24px rgba(0,0,0,.22)",
+      "word-break:break-word",
+    ].join(";");
+    document.body.append(badge);
+  }
+  badge.textContent = message;
+}
+
 function ensureAccountLink() {
   const wrap = document.createElement("div");
   wrap.className = "site-account-wrap";
@@ -87,11 +112,11 @@ function ensureAccountLink() {
 function renderAccount(link, session) {
   const user = session?.user;
   const meta = user?.user_metadata || {};
-  const name = meta.display_name || user?.email || user?.phone || "登录";
-  const avatar = user ? (meta.avatar_url || fallbackAvatar(name)) : fallbackAvatar("登录");
+  const name = meta.display_name || user?.email || user?.phone || "Login";
+  const avatar = user ? (meta.avatar_url || fallbackAvatar(name)) : fallbackAvatar("Login");
 
   link.href = user ? "/account.html" : "/login.html";
-  link.title = user ? "进入个人设置" : "登录";
+  link.title = user ? "Account" : "Login";
   link.replaceChildren();
 
   const image = document.createElement("img");
@@ -116,11 +141,15 @@ async function initAccountEntry() {
   renderAccount(link, null);
 
   try {
-    const { getSession } = await import("/assets/js/auth.js");
+    const { getSession } = await import(`/assets/js/auth.js?v=${ASSET_VERSION}`);
     renderAccount(link, await getSession());
   } catch {
     renderAccount(link, null);
   }
+
+  import(`/assets/js/site-annotations.js?v=${ASSET_VERSION}`).catch((error) => {
+    showAccountRuntimeError(`Annotations load failed: ${error?.message || "unknown"}`);
+  });
 }
 
 if (document.readyState === "loading") {
