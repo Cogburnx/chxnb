@@ -1,18 +1,9 @@
-const FALLBACK_NAME = "山火用户";
-const SKIP_PATHS = new Set([
-  "/login.html",
-  "/account.html",
-  "/kz/sxgj.html",
-  "/kz/wlsys.html",
-  "/kz/hxsys.html",
-  "/kz/swsys.html",
-  "/kz/xxs.html",
-]);
+﻿const FALLBACK_NAME = "山火用户";
 
 function fallbackAvatar(name) {
   const initial = (name || "火").trim().slice(0, 1) || "火";
   const safeInitial = initial.replace(/[&<>\"']/g, (char) => `&#${char.charCodeAt(0)};`);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#66b8ff"/><stop offset="100%" stop-color="#3e87f5"/></linearGradient></defs><rect width="96" height="96" rx="48" fill="url(#g)"/><text x="48" y="58" text-anchor="middle" font-size="42" font-family="Arial, sans-serif" font-weight="700" fill="#fff">${safeInitial}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7dc8ff"/><stop offset="100%" stop-color="#4c98ff"/></linearGradient></defs><rect width="96" height="96" rx="48" fill="url(#g)"/><text x="48" y="58" text-anchor="middle" font-size="42" font-family="Arial, sans-serif" font-weight="700" fill="#fff">${safeInitial}</text></svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
@@ -35,11 +26,11 @@ function injectStyle() {
       max-width: min(238px, calc(100vw - 28px));
       min-height: 42px;
       padding: 7px 14px 7px 8px;
-      border: 1px solid rgba(158, 204, 255, 0.95);
+      border: 1px solid rgba(140, 198, 255, 0.96);
       border-radius: 999px;
-      background: linear-gradient(145deg, rgba(242, 250, 255, 0.96), rgba(221, 240, 255, 0.95));
-      color: #12437a;
-      box-shadow: 0 14px 34px rgba(44, 108, 185, 0.2);
+      background: linear-gradient(145deg, rgba(232, 246, 255, 0.98), rgba(208, 233, 255, 0.97));
+      color: #0f4a86;
+      box-shadow: 0 12px 30px rgba(41, 108, 188, 0.25);
       text-decoration: none;
       font-size: 14px;
       font-weight: 700;
@@ -50,8 +41,8 @@ function injectStyle() {
     }
     .site-account-chip:hover {
       transform: translateY(-2px);
-      filter: brightness(1.02);
-      box-shadow: 0 16px 38px rgba(44, 108, 185, 0.28);
+      filter: brightness(1.03);
+      box-shadow: 0 16px 38px rgba(41, 108, 188, 0.34);
       text-decoration: none;
     }
     .site-account-avatar {
@@ -60,7 +51,7 @@ function injectStyle() {
       border-radius: 50%;
       object-fit: cover;
       flex: 0 0 auto;
-      background: #d8ecff;
+      background: #d9eeff;
       border: 1px solid rgba(255, 255, 255, 0.98);
     }
     .site-account-name {
@@ -98,6 +89,7 @@ function renderAccount(link, session) {
   const meta = user?.user_metadata || {};
   const name = meta.display_name || user?.email || user?.phone || "登录";
   const avatar = user ? (meta.avatar_url || fallbackAvatar(name)) : fallbackAvatar("登录");
+
   link.href = user ? "/account.html" : "/login.html";
   link.title = user ? "进入个人设置" : "登录";
   link.replaceChildren();
@@ -106,6 +98,9 @@ function renderAccount(link, session) {
   image.className = "site-account-avatar";
   image.src = avatar;
   image.alt = "";
+  image.addEventListener("error", () => {
+    image.src = fallbackAvatar(name);
+  }, { once: true });
 
   const label = document.createElement("span");
   label.id = "account-label";
@@ -116,8 +111,6 @@ function renderAccount(link, session) {
 }
 
 async function initAccountEntry() {
-  if (SKIP_PATHS.has(location.pathname)) return;
-
   injectStyle();
   const link = ensureAccountLink();
   renderAccount(link, null);
